@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+addlicense -c "Pavel Sobolev" -l apache -s -y 2025 .
