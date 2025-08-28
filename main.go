@@ -18,18 +18,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package serve
+package main
 
-import "reachard/cmd"
+import (
+	"os"
 
-const CommandName = "serve"
+	"reachard/cmd"
+	"reachard/server"
+)
 
 var Command = cmd.Command{
-	Name:        CommandName,
-	Description: "Start the server",
-	Run:         Run,
+	Name: "reachard",
+	Commands: cmd.Commands{
+		server.Command.Name: &server.Command,
+	},
+	Run: run,
 }
 
-func Run(command *cmd.Command, args cmd.Args) {
+func run(command *cmd.Command, args cmd.Args) {
 	command.Parse(args)
+}
+
+func main() {
+	run(&Command, os.Args)
 }
