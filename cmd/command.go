@@ -24,6 +24,8 @@ import (
 	"bufio"
 	"flag"
 	"os"
+	"strconv"
+	"strings"
 	"text/template"
 )
 
@@ -37,15 +39,39 @@ type Command struct {
 	Run         func(command *Command, args Args)
 }
 
-const usageTemplate = `{{if .Description}}{{.Description}}
+type commandFormat struct {
+	*Command
+	Padding              string
+	CommandsFormatString string
+}
+
+func (command *Command) Format() commandFormat {
+	const paddingInt = 4
+
+	maxCommandNameLength := 0
+	for command, _ := range command.Commands {
+		maxCommandNameLength = max(maxCommandNameLength, len(command))
+	}
+
+	paddingString := strings.Repeat(" ", paddingInt)
+	commandsFormatString := "%-" + strconv.Itoa(maxCommandNameLength+paddingInt) + "s"
+
+	return commandFormat{
+		Command:              command,
+		Padding:              paddingString,
+		CommandsFormatString: commandsFormatString,
+	}
+}
+
+func (command *Command) Usage() {
+	const usageTemplate = `{{if .Description}}{{.Description}}
 
 {{end}}Usage: {{.Name}}{{if .Commands}} <COMMAND>{{end}} [OPTIONS]{{if .Commands}}
 
-Commands:
-    {{range .Commands}}{{.Name}}    {{.Description}}{{end}}{{end}}
+Commands:{{range .Commands}}
+{{$.Padding}}{{printf $.CommandsFormatString .Name}}{{.Description}}{{end}}{{end}}
 `
 
-func (command *Command) Usage() {
 	bw := bufio.NewWriter(os.Stderr)
 
 	template, err := template.New("usage").Parse(usageTemplate)
@@ -53,7 +79,7 @@ func (command *Command) Usage() {
 		panic(err)
 	}
 
-	err = template.Execute(bw, command)
+	err = template.Execute(bw, command.Format())
 	if err != nil {
 		panic(err)
 	}
