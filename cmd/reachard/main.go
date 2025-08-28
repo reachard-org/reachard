@@ -23,19 +23,19 @@ package main
 import (
 	"os"
 
-	"reachard/cmd/internal"
+	"reachard/cmd"
 	"reachard/cmd/serve"
 )
 
-var Command = internal.Command{
+var Command = cmd.Command{
 	Name: "reachard",
-	Commands: internal.Commands{
+	Commands: cmd.Commands{
 		"serve": &serve.Command,
 	},
 	Run: run,
 }
 
-func run(command *internal.Command, args internal.Args) {
+func run(command *cmd.Command, args cmd.Args) {
 	command.Parse(args)
 }
 

@@ -20,18 +20,16 @@
 
 package serve
 
-import (
-	"reachard/cmd/internal"
-)
+import "reachard/cmd"
 
 const CommandName = "serve"
 
-var Command = internal.Command{
+var Command = cmd.Command{
 	Name:        CommandName,
 	Description: "Start the server",
 	Run:         Run,
 }
 
-func Run(command *internal.Command, args internal.Args) {
+func Run(command *cmd.Command, args cmd.Args) {
 	command.Parse(args)
 }
