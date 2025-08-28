@@ -1,5 +1,6 @@
-<!--
-Copyright 2025 Pavel Sobolev
+{% for copyright_line in copyright_lines %}
+{{ copyright_line }}
+{% endfor %}
 
 This file is part of the Reachard project, located at
 
@@ -17,13 +18,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-SPDX-License-Identifier: Apache-2.0
--->
-
-# Reachard
-
-Git mirrors:
-
-- [Codeberg](https://codeberg.org/reachard-org/reachard)
-- [GitHub](https://github.com/reachard-org/reachard)
-- [GitLab](https://gitlab.com/reachard-org/reachard)
+{% for contributor_line in contributor_lines %}
+SPDX-FileContributor: {{ contributor_line }}
+{% endfor %}
+{% for expression in spdx_expressions %}
+SPDX-License-Identifier: {{ expression }}
+{% endfor %}

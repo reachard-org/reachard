@@ -1,3 +1,11 @@
 #!/usr/bin/env bash
 
-addlicense -c "Pavel Sobolev" -l apache -s -y 2025 .
+reuse annotate \
+    --copyright "Pavel Sobolev" \
+    --copyright-prefix string \
+    --year 2025 \
+    --license "Apache-2.0" \
+    --template apache \
+    --skip-unrecognised \
+    --merge-copyrights \
+    --recursive .

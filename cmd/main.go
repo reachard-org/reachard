@@ -1,5 +1,9 @@
 // Copyright 2025 Pavel Sobolev
 //
+// This file is part of the Reachard project, located at
+//
+//     https://reachard.paveloom.dev
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
