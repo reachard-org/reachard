@@ -30,17 +30,29 @@ import (
 )
 
 type Args []string
-type Commands map[string]*Command
+type Commands = []*Command
+type Subcommands map[string]*Command
 
 type Command struct {
-	Name        string
-	Description string
-	Commands    Commands
-	Run         func(command *Command, args Args)
+	Name          string
+	Description   string
+	Subcommands   Subcommands
+	ParentCommand *Command
+	Run           func(command *Command, args Args)
+}
+
+func (parentCommand *Command) SetSubcommands(commands Commands) {
+	subcommands := make(Subcommands)
+	for _, command := range commands {
+		command.ParentCommand = parentCommand
+		subcommands[command.Name] = command
+	}
+	parentCommand.Subcommands = subcommands
 }
 
 type commandFormat struct {
 	*Command
+	FullName             string
 	Padding              string
 	CommandsFormatString string
 }
@@ -48,15 +60,22 @@ type commandFormat struct {
 func (command *Command) Format() commandFormat {
 	const paddingInt = 4
 
+	fullName := command.Name
+	for currentCommand := command.ParentCommand; currentCommand != nil; {
+		fullName = currentCommand.Name + " " + fullName
+		currentCommand = currentCommand.ParentCommand
+	}
+
 	maxCommandNameLength := 0
-	for command, _ := range command.Commands {
-		maxCommandNameLength = max(maxCommandNameLength, len(command))
+	for subcommand, _ := range command.Subcommands {
+		maxCommandNameLength = max(maxCommandNameLength, len(subcommand))
 	}
 
 	paddingString := strings.Repeat(" ", paddingInt)
 	commandsFormatString := "%-" + strconv.Itoa(maxCommandNameLength+paddingInt) + "s"
 
 	return commandFormat{
+		FullName:             fullName,
 		Command:              command,
 		Padding:              paddingString,
 		CommandsFormatString: commandsFormatString,
@@ -66,9 +85,9 @@ func (command *Command) Format() commandFormat {
 func (command *Command) Usage() {
 	const usageTemplate = `{{if .Description}}{{.Description}}
 
-{{end}}Usage: {{.Name}} [OPTIONS]{{if .Commands}} <COMMAND>{{end}}{{if .Commands}}
+{{end}}Usage: {{.FullName}} [OPTIONS]{{if .Subcommands}} <COMMAND>{{end}}{{if .Subcommands}}
 
-Commands:{{range .Commands}}
+Commands:{{range .Subcommands}}
 {{$.Padding}}{{printf $.CommandsFormatString .Name}}{{.Description}}{{end}}{{end}}
 `
 
@@ -96,7 +115,7 @@ func (command *Command) Parse(args Args) {
 		return
 	}
 
-	if subcommand, ok := command.Commands[args[1]]; ok {
+	if subcommand, ok := command.Subcommands[args[1]]; ok {
 		subcommand.Run(subcommand, args[1:])
 	} else {
 		flagSet.Parse(args[1:])

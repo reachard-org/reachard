@@ -24,21 +24,28 @@ import (
 	"os"
 
 	"reachard/cmd"
+
 	"reachard/server"
 )
 
-var Command = cmd.Command{
-	Name: "reachard",
-	Commands: cmd.Commands{
-		server.Command.Name: &server.Command,
-	},
-	Run: run,
-}
+var command *cmd.Command
 
-func run(command *cmd.Command, args cmd.Args) {
+func Run(command *cmd.Command, args cmd.Args) {
 	command.Parse(args)
 }
 
+func Command() *cmd.Command {
+	if command == nil {
+		command = &cmd.Command{
+			Name: "reachard",
+			Run:  Run,
+		}
+		command.SetSubcommands(cmd.Commands{server.Command()})
+	}
+
+	return command
+}
+
 func main() {
-	run(&Command, os.Args)
+	Run(Command(), os.Args)
 }

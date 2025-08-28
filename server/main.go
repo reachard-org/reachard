@@ -22,12 +22,20 @@ package server
 
 import "reachard/cmd"
 
-var Command = cmd.Command{
-	Name:        "serve",
-	Description: "Start the server",
-	Run:         Run,
-}
+var command *cmd.Command
 
 func Run(command *cmd.Command, args cmd.Args) {
 	command.Parse(args)
+}
+
+func Command() *cmd.Command {
+	if command == nil {
+		command = &cmd.Command{
+			Name:        "serve",
+			Description: "Start the server",
+			Run:         Run,
+		}
+	}
+
+	return command
 }
