@@ -66,7 +66,7 @@ func (command *Command) Format() commandFormat {
 func (command *Command) Usage() {
 	const usageTemplate = `{{if .Description}}{{.Description}}
 
-{{end}}Usage: {{.Name}}{{if .Commands}} <COMMAND>{{end}} [OPTIONS]{{if .Commands}}
+{{end}}Usage: {{.Name}} [OPTIONS]{{if .Commands}} <COMMAND>{{end}}{{if .Commands}}
 
 Commands:{{range .Commands}}
 {{$.Padding}}{{printf $.CommandsFormatString .Name}}{{.Description}}{{end}}{{end}}
