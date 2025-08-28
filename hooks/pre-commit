@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 
-reuse annotate \
+find . \
+    -type f \
+    -not -name .sql-formatter.json \
+    -not -path "./.git/*" \
+    -not -path "./.reuse/*" \
+    -exec reuse annotate \
     --copyright "Pavel Sobolev" \
     --copyright-prefix string \
     --year 2025 \
@@ -8,4 +13,4 @@ reuse annotate \
     --template apache \
     --skip-unrecognised \
     --merge-copyrights \
-    --recursive .
+    {} +
