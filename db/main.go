@@ -18,38 +18,4 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package main
-
-import (
-	"os"
-
-	"reachard/cmd"
-)
-
-func Run(command *cmd.Command, args cmd.Args) {
-	command.Parse(args)
-}
-
-func main() {
-	dbCommand := cmd.Command{
-		Name:        "db",
-		Description: "Operate on the database",
-		RunFunc:     Run,
-	}
-
-	serveCommand := cmd.Command{
-		Name:        "serve",
-		Description: "Start the server",
-		RunFunc:     Run,
-	}
-
-	mainCommand := cmd.Command{
-		Name:    "reachard",
-		RunFunc: Run,
-	}
-
-	mainCommand.AddSubcommand(&dbCommand)
-	mainCommand.AddSubcommand(&serveCommand)
-
-	mainCommand.Run(os.Args)
-}
+package db
