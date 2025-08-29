@@ -30,7 +30,6 @@ import (
 )
 
 type Args []string
-type Commands = []*Command
 type Subcommands map[string]*Command
 
 type Command struct {
@@ -38,16 +37,20 @@ type Command struct {
 	Description   string
 	Subcommands   Subcommands
 	ParentCommand *Command
-	Run           func(command *Command, args Args)
+	RunFunc       func(command *Command, args Args)
 }
 
-func (parentCommand *Command) SetSubcommands(commands Commands) {
-	subcommands := make(Subcommands)
-	for _, command := range commands {
-		command.ParentCommand = parentCommand
-		subcommands[command.Name] = command
+func (command *Command) AddSubcommand(subcommand *Command) {
+	if command.Subcommands == nil {
+		command.Subcommands = make(Subcommands)
 	}
-	parentCommand.Subcommands = subcommands
+
+	subcommand.ParentCommand = command
+	command.Subcommands[subcommand.Name] = subcommand
+}
+
+func (command *Command) Run(args Args) {
+	command.RunFunc(command, args)
 }
 
 type commandFormat struct {
@@ -116,7 +119,7 @@ func (command *Command) Parse(args Args) {
 	}
 
 	if subcommand, ok := command.Subcommands[args[1]]; ok {
-		subcommand.Run(subcommand, args[1:])
+		subcommand.Run(args[1:])
 	} else {
 		flagSet.Parse(args[1:])
 	}

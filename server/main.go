@@ -19,23 +19,3 @@
 // SPDX-License-Identifier: Apache-2.0
 
 package server
-
-import "reachard/cmd"
-
-var command *cmd.Command
-
-func Run(command *cmd.Command, args cmd.Args) {
-	command.Parse(args)
-}
-
-func Command() *cmd.Command {
-	if command == nil {
-		command = &cmd.Command{
-			Name:        "serve",
-			Description: "Start the server",
-			Run:         Run,
-		}
-	}
-
-	return command
-}
