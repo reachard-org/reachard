@@ -21,31 +21,67 @@
 package main
 
 import (
+	"bufio"
+	"context"
+	"fmt"
 	"os"
 
 	"reachard/cmd"
+	"reachard/database"
 )
 
-func Run(command *cmd.Command, args cmd.Args) {
+func dbPingRun(command *cmd.Command, args cmd.Args) {
+	bw := bufio.NewWriter(os.Stdout)
+
+	envVars := []string{
+		"PGHOST", "PGPORT", "PGDATABASE", "PGUSER",
+	}
+
+	for _, envVar := range envVars {
+		fmt.Fprintf(bw, "%s: %s\n", envVar, os.Getenv(envVar))
+	}
+
+	bw.WriteByte('\n')
+	bw.Flush()
+
+	db, err := database.Connect(context.Background(), "")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Couldn't connect to the database: %v\n", err)
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	println("Successfully pinged the database!")
+}
+
+func run(command *cmd.Command, args cmd.Args) {
 	command.Parse(args)
 }
 
 func main() {
+	dbPingCommand := cmd.Command{
+		Name:        "ping",
+		Description: "Ping the database",
+		RunFunc:     dbPingRun,
+	}
+
 	dbCommand := cmd.Command{
 		Name:        "db",
 		Description: "Operate on the database",
-		RunFunc:     Run,
+		RunFunc:     run,
 	}
+
+	dbCommand.AddSubcommand(&dbPingCommand)
 
 	serveCommand := cmd.Command{
 		Name:        "serve",
 		Description: "Start the server",
-		RunFunc:     Run,
+		RunFunc:     run,
 	}
 
 	mainCommand := cmd.Command{
 		Name:    "reachard",
-		RunFunc: Run,
+		RunFunc: run,
 	}
 
 	mainCommand.AddSubcommand(&dbCommand)
