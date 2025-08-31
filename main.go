@@ -28,14 +28,11 @@ import (
 
 	"reachard/cmd"
 	"reachard/database"
+	"reachard/server"
 )
 
-func dbPingRun(command *cmd.Command, args cmd.Args) error {
+func listEnvVars(envVars []string) {
 	bw := bufio.NewWriter(os.Stdout)
-
-	envVars := []string{
-		"PGHOST", "PGPORT", "PGDATABASE", "PGUSER",
-	}
 
 	for _, envVar := range envVars {
 		fmt.Fprintf(bw, "%s: %s\n", envVar, os.Getenv(envVar))
@@ -43,6 +40,11 @@ func dbPingRun(command *cmd.Command, args cmd.Args) error {
 
 	bw.WriteByte('\n')
 	bw.Flush()
+}
+
+func dbPingRun(command *cmd.Command, args cmd.Args) error {
+	envVars := []string{"PGHOST", "PGPORT", "PGDATABASE", "PGUSER"}
+	listEnvVars(envVars)
 
 	db, err := database.Connect(context.Background(), "")
 	if err != nil {
@@ -70,6 +72,27 @@ func dbPrepareRun(command *cmd.Command, args cmd.Args) error {
 	}
 
 	println("Successfully prepared the database!")
+
+	return nil
+}
+
+func dbServeRun(command *cmd.Command, args cmd.Args) error {
+	envVars := []string{"REACHARD_HOST", "REACHARD_PORT"}
+	listEnvVars(envVars)
+
+	port := os.Getenv("REACHARD_PORT")
+	if port == "" {
+		port = "7272"
+	}
+
+	addr := os.Getenv("REACHARD_HOST") + ":" + port
+
+	println("Serving at", addr)
+
+	err := server.Serve(addr)
+	if err != nil {
+		return fmt.Errorf("Failed to serve: %v", err)
+	}
 
 	return nil
 }
@@ -108,7 +131,7 @@ func main() {
 	serveCommand := cmd.Command{
 		Name:        "serve",
 		Description: "Start the server",
-		RunFunc:     run,
+		RunFunc:     dbServeRun,
 	}
 
 	mainCommand := cmd.Command{

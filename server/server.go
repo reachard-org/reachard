@@ -19,3 +19,16 @@
 // SPDX-License-Identifier: Apache-2.0
 
 package server
+
+import "net/http"
+
+func Serve(addr string) error {
+	mux := http.NewServeMux()
+
+	err := http.ListenAndServe(addr, mux)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
