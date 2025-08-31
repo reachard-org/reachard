@@ -77,7 +77,10 @@ func dbPrepareRun(command *cmd.Command, args cmd.Args) error {
 }
 
 func dbServeRun(command *cmd.Command, args cmd.Args) error {
-	envVars := []string{"REACHARD_HOST", "REACHARD_PORT"}
+	envVars := []string{
+		"PGHOST", "PGPORT", "PGDATABASE", "PGUSER",
+		"REACHARD_HOST", "REACHARD_PORT",
+	}
 	listEnvVars(envVars)
 
 	port := os.Getenv("REACHARD_PORT")
