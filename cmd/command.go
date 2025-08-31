@@ -23,6 +23,7 @@ package cmd
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -37,7 +38,7 @@ type Command struct {
 	Description   string
 	Subcommands   Subcommands
 	ParentCommand *Command
-	RunFunc       func(command *Command, args Args)
+	RunFunc       func(command *Command, args Args) error
 }
 
 func (command *Command) AddSubcommand(subcommand *Command) {
@@ -50,7 +51,11 @@ func (command *Command) AddSubcommand(subcommand *Command) {
 }
 
 func (command *Command) Run(args Args) {
-	command.RunFunc(command, args)
+	err := command.RunFunc(command, args)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
 }
 
 type commandFormat struct {
@@ -109,18 +114,23 @@ Commands:{{range .Subcommands}}
 	bw.Flush()
 }
 
-func (command *Command) Parse(args Args) {
-	flagSet := flag.NewFlagSet(command.Name, flag.ExitOnError)
+func (command *Command) Parse(args Args) error {
+	flagSet := flag.NewFlagSet(command.Name, flag.ContinueOnError)
 	flagSet.Usage = command.Usage
 
 	if len(args) < 2 {
 		command.Usage()
-		return
+		return nil
 	}
 
 	if subcommand, ok := command.Subcommands[args[1]]; ok {
 		subcommand.Run(args[1:])
 	} else {
-		flagSet.Parse(args[1:])
+		err := flagSet.Parse(args[1:])
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }

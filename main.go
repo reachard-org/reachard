@@ -30,7 +30,7 @@ import (
 	"reachard/database"
 )
 
-func dbPingRun(command *cmd.Command, args cmd.Args) {
+func dbPingRun(command *cmd.Command, args cmd.Args) error {
 	bw := bufio.NewWriter(os.Stdout)
 
 	envVars := []string{
@@ -46,16 +46,23 @@ func dbPingRun(command *cmd.Command, args cmd.Args) {
 
 	db, err := database.Connect(context.Background(), "")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Couldn't connect to the database: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("Couldn't connect to the database: %v", err)
 	}
 	defer db.Close()
 
 	println("Successfully pinged the database!")
+
+	return nil
+}
 }
 
-func run(command *cmd.Command, args cmd.Args) {
-	command.Parse(args)
+func run(command *cmd.Command, args cmd.Args) error {
+	err := command.Parse(args)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func main() {
