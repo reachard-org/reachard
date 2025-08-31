@@ -22,6 +22,7 @@ package database
 
 import (
 	"context"
+	_ "embed"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -42,6 +43,18 @@ func Connect(ctx context.Context, connString string) (Database, error) {
 	}
 
 	return Database{Pool: pool}, nil
+}
+
+//go:embed schemas/v0.sql
+var Schema string
+
+func (db *Database) ExecSchema(ctx context.Context) error {
+	_, err := db.Pool.Exec(ctx, Schema)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (db *Database) Close() {

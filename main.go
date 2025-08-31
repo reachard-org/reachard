@@ -54,6 +54,24 @@ func dbPingRun(command *cmd.Command, args cmd.Args) error {
 
 	return nil
 }
+
+func dbPrepareRun(command *cmd.Command, args cmd.Args) error {
+	ctx := context.Background()
+
+	db, err := database.Connect(ctx, "")
+	if err != nil {
+		return fmt.Errorf("Couldn't connect to the database: %v", err)
+	}
+	defer db.Close()
+
+	err = db.ExecSchema(ctx)
+	if err != nil {
+		return fmt.Errorf("Failed to execute the schema SQL: %v", err)
+	}
+
+	println("Successfully prepared the database!")
+
+	return nil
 }
 
 func run(command *cmd.Command, args cmd.Args) error {
@@ -72,6 +90,12 @@ func main() {
 		RunFunc:     dbPingRun,
 	}
 
+	dbPrepareCommand := cmd.Command{
+		Name:        "prepare",
+		Description: "Prepare the database schema",
+		RunFunc:     dbPrepareRun,
+	}
+
 	dbCommand := cmd.Command{
 		Name:        "db",
 		Description: "Operate on the database",
@@ -79,6 +103,7 @@ func main() {
 	}
 
 	dbCommand.AddSubcommand(&dbPingCommand)
+	dbCommand.AddSubcommand(&dbPrepareCommand)
 
 	serveCommand := cmd.Command{
 		Name:        "serve",
