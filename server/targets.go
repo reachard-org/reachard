@@ -21,26 +21,21 @@
 package server
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 
 	"reachard/database"
 )
 
-func Serve(addr string) error {
-	db, err := database.Connect(context.Background(), "")
+type TargetsHandler struct {
+	DB *database.Database
+}
+
+func (handler TargetsHandler) ServeHTTP(w http.ResponseWriter, request *http.Request) {
+	targets, err := handler.DB.Targets(request.Context())
 	if err != nil {
-		return fmt.Errorf("failed to connect to the database: %v", err)
+		http.Error(w, "failed to get the targets", http.StatusInternalServerError)
+		return
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle("GET /v0/targets/", TargetsHandler{DB: &db})
-
-	err = http.ListenAndServe(addr, mux)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	w.Write([]byte(targets))
 }
