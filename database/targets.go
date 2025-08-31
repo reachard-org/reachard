@@ -22,43 +22,17 @@ package database
 
 import (
 	"context"
-	_ "embed"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Database struct {
-	Pool *pgxpool.Pool
-}
+func (db *Database) Targets(ctx context.Context) (string, error) {
+	const sql = "select json_agg(row_to_json(t)) from (select * from " + SchemaVersion + ".targets) t"
+	row := db.Pool.QueryRow(ctx, sql)
 
-func Connect(ctx context.Context, connString string) (Database, error) {
-	pool, err := pgxpool.New(ctx, connString)
+	var result string
+	err := row.Scan(&result)
 	if err != nil {
-		return Database{}, err
+		return "", err
 	}
 
-	err = pool.Ping(ctx)
-	if err != nil {
-		return Database{}, err
-	}
-
-	return Database{Pool: pool}, nil
-}
-
-const SchemaVersion = "v0"
-
-//go:embed schemas/v0.sql
-var Schema string
-
-func (db *Database) ExecSchema(ctx context.Context) error {
-	_, err := db.Pool.Exec(ctx, Schema)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (db *Database) Close() {
-	db.Pool.Close()
+	return result + "\n", nil
 }
