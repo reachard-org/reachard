@@ -39,5 +39,10 @@ func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 
 	writer.Header().Set("Content-Type", "application/json")
 
+	origin := request.Header.Get("Origin")
+	if origin != "" {
+		writer.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
+	}
+
 	writer.Write([]byte(targets))
 }
