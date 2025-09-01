@@ -37,5 +37,7 @@ func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 		return
 	}
 
+	writer.Header().Set("Content-Type", "application/json")
+
 	writer.Write([]byte(targets))
 }
