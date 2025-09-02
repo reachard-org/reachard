@@ -23,7 +23,6 @@ package database
 import (
 	"context"
 	"encoding/json"
-	"net/url"
 )
 
 func (db Database) Targets(ctx context.Context) (string, error) {
@@ -40,8 +39,8 @@ func (db Database) Targets(ctx context.Context) (string, error) {
 }
 
 type Target struct {
-	URL             url.URL `json:"url"`
-	IntervalSeconds int32   `json:"interval_seconds"`
+	URL             string `json:"url"`
+	IntervalSeconds int32  `json:"interval_seconds"`
 }
 
 func (db Database) AddTarget(ctx context.Context, input []byte) error {
