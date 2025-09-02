@@ -21,6 +21,7 @@
 package server
 
 import (
+	"io"
 	"net/http"
 
 	"reachard/database"
@@ -56,12 +57,30 @@ func (handler TargetsHandler) handleOptions(writer http.ResponseWriter, request 
 	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 }
 
+func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *http.Request) {
+	handler.handleCORS(writer, request)
+
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
+		return
+	}
+
+	err = handler.DB.AddTarget(request.Context(), body)
+	if err != nil {
+		http.Error(writer, "bad request", http.StatusBadRequest)
+		return
+	}
+}
+
 func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case "GET":
 		handler.handleGet(writer, request)
 	case "OPTIONS":
 		handler.handleOptions(writer, request)
+	case "POST":
+		handler.handlePost(writer, request)
 	default:
 		http.Error(writer, "method not allowed", http.StatusMethodNotAllowed)
 	}
