@@ -27,7 +27,7 @@ import (
 )
 
 type TargetsHandler struct {
-	DB *database.Database
+	DB database.Database
 }
 
 func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {

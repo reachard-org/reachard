@@ -24,7 +24,7 @@ import (
 	"context"
 )
 
-func (db *Database) Targets(ctx context.Context) (string, error) {
+func (db Database) Targets(ctx context.Context) (string, error) {
 	const sql = "select json_agg(row_to_json(t)) from (select * from " + SchemaVersion + ".targets) t"
 	row := db.Pool.QueryRow(ctx, sql)
 

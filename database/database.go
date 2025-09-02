@@ -50,7 +50,7 @@ const SchemaVersion = "v0"
 //go:embed schemas/v0.sql
 var Schema string
 
-func (db *Database) ExecSchema(ctx context.Context) error {
+func (db Database) ExecSchema(ctx context.Context) error {
 	_, err := db.Pool.Exec(ctx, Schema)
 	if err != nil {
 		return err
@@ -59,6 +59,6 @@ func (db *Database) ExecSchema(ctx context.Context) error {
 	return nil
 }
 
-func (db *Database) Close() {
+func (db Database) Close() {
 	db.Pool.Close()
 }
