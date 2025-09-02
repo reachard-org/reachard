@@ -22,6 +22,8 @@ package database
 
 import (
 	"context"
+	"encoding/json"
+	"net/url"
 )
 
 func (db Database) Targets(ctx context.Context) (string, error) {
@@ -35,4 +37,25 @@ func (db Database) Targets(ctx context.Context) (string, error) {
 	}
 
 	return result + "\n", nil
+}
+
+type Target struct {
+	URL             url.URL `json:"url"`
+	IntervalSeconds int32   `json:"interval_seconds"`
+}
+
+func (db Database) AddTarget(ctx context.Context, input []byte) error {
+	var target Target
+	err := json.Unmarshal(input, &target)
+	if err != nil {
+		return err
+	}
+
+	const sql = "INSERT INTO " + SchemaVersion + ".targets (url, interval_seconds) VALUES ($1, $2)"
+	_, err = db.Pool.Exec(ctx, "INSERT INTO ()", sql, target.URL, target.IntervalSeconds)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
