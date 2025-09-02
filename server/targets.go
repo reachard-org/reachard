@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 
 	"reachard/database"
 )
@@ -78,11 +79,16 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 	}
 
 	target := requestBody
-	err = handler.DB.AddTarget(request.Context(), target)
+	targetID, err := handler.DB.AddTarget(request.Context(), target)
 	if err != nil {
 		http.Error(writer, "failed to add the target", http.StatusInternalServerError)
 		return
 	}
+
+	requestURLString := request.URL.String()
+	targetIDString := strconv.Itoa(int(targetID))
+	writer.Header().Set("Location", requestURLString+targetIDString)
+	writer.WriteHeader(http.StatusCreated)
 }
 
 func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {

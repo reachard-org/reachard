@@ -37,22 +37,26 @@ func (db Database) Targets(ctx context.Context) (string, error) {
 	return result + "\n", nil
 }
 
+type TargetID = int32
+
 type Target struct {
 	URL             string `json:"url"`
 	IntervalSeconds int32  `json:"interval_seconds"`
 }
 
-func (db Database) AddTarget(ctx context.Context, target Target) error {
-	const sql = "INSERT INTO " + SchemaVersion + ".targets (url, interval_seconds) VALUES ($1, $2)"
-	_, err := db.Pool.Exec(ctx, sql, target.URL, target.IntervalSeconds)
+func (db Database) AddTarget(ctx context.Context, target Target) (TargetID, error) {
+	const sql = "INSERT INTO " +
+		SchemaVersion + ".targets (url, interval_seconds) VALUES ($1, $2) RETURNING id"
+	row := db.Pool.QueryRow(ctx, sql, target.URL, target.IntervalSeconds)
+
+	var targetID TargetID
+	err := row.Scan(&targetID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return targetID, nil
 }
-
-type TargetID = int32
 
 func (db Database) DeleteTarget(ctx context.Context, id TargetID) error {
 	const sql = "DELETE FROM " + SchemaVersion + ".targets WHERE id = $1"
