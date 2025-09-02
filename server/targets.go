@@ -50,10 +50,18 @@ func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *htt
 	writer.Write([]byte(targets))
 }
 
+func (handler TargetsHandler) handleOptions(writer http.ResponseWriter, request *http.Request) {
+	handler.handleCORS(writer, request)
+
+	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+}
+
 func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case "GET":
 		handler.handleGet(writer, request)
+	case "OPTIONS":
+		handler.handleOptions(writer, request)
 	default:
 		http.Error(writer, "method not allowed", http.StatusMethodNotAllowed)
 	}
