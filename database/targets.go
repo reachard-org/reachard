@@ -22,7 +22,6 @@ package database
 
 import (
 	"context"
-	"encoding/json"
 )
 
 func (db Database) Targets(ctx context.Context) (string, error) {
@@ -43,15 +42,9 @@ type Target struct {
 	IntervalSeconds int32  `json:"interval_seconds"`
 }
 
-func (db Database) AddTarget(ctx context.Context, input []byte) error {
-	var target Target
-	err := json.Unmarshal(input, &target)
-	if err != nil {
-		return err
-	}
-
+func (db Database) AddTarget(ctx context.Context, target Target) error {
 	const sql = "INSERT INTO " + SchemaVersion + ".targets (url, interval_seconds) VALUES ($1, $2)"
-	_, err = db.Pool.Exec(ctx, sql, target.URL, target.IntervalSeconds)
+	_, err := db.Pool.Exec(ctx, sql, target.URL, target.IntervalSeconds)
 	if err != nil {
 		return err
 	}
@@ -59,7 +52,7 @@ func (db Database) AddTarget(ctx context.Context, input []byte) error {
 	return nil
 }
 
-type TargetID int32
+type TargetID = int32
 
 func (db Database) DeleteTarget(ctx context.Context, id TargetID) error {
 	const sql = "DELETE FROM " + SchemaVersion + ".targets WHERE id = $1"

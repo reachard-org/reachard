@@ -62,15 +62,25 @@ func (handler TargetsHandler) handleOptions(writer http.ResponseWriter, request 
 func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *http.Request) {
 	handler.handleCORS(writer, request)
 
-	body, err := io.ReadAll(request.Body)
+	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
 		return
 	}
 
-	err = handler.DB.AddTarget(request.Context(), body)
+	type RequestBody = database.Target
+
+	var requestBody RequestBody
+	err = json.Unmarshal(rawRequestBody, &requestBody)
 	if err != nil {
 		http.Error(writer, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	target := requestBody
+	err = handler.DB.AddTarget(request.Context(), target)
+	if err != nil {
+		http.Error(writer, "failed to add the target", http.StatusInternalServerError)
 		return
 	}
 }
