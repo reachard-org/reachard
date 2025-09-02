@@ -51,7 +51,7 @@ func (db Database) AddTarget(ctx context.Context, input []byte) error {
 	}
 
 	const sql = "INSERT INTO " + SchemaVersion + ".targets (url, interval_seconds) VALUES ($1, $2)"
-	_, err = db.Pool.Exec(ctx, "INSERT INTO ()", sql, target.URL, target.IntervalSeconds)
+	_, err = db.Pool.Exec(ctx, sql, target.URL, target.IntervalSeconds)
 	if err != nil {
 		return err
 	}
