@@ -79,7 +79,7 @@ func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *
 	handler.handleCORS(writer, request)
 
 	type RequestBody struct {
-		ID int32 `json:"id"`
+		ID database.TargetID `json:"id"`
 	}
 
 	rawRequestBody, err := io.ReadAll(request.Body)
