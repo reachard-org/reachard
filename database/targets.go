@@ -58,3 +58,13 @@ func (db Database) AddTarget(ctx context.Context, input []byte) error {
 
 	return nil
 }
+
+func (db Database) DeleteTarget(ctx context.Context, id int32) error {
+	const sql = "DELETE FROM " + SchemaVersion + ".targets WHERE id = $1"
+	_, err := db.Pool.Exec(ctx, sql, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
