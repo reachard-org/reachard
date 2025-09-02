@@ -35,7 +35,7 @@ func Serve(addr string) error {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("GET /v0/targets/", TargetsHandler{DB: &db})
+	mux.Handle("/v0/targets/", TargetsHandler{DB: &db})
 
 	err = http.ListenAndServe(addr, mux)
 	if err != nil {

@@ -30,7 +30,7 @@ type TargetsHandler struct {
 	DB *database.Database
 }
 
-func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {
 	targets, err := handler.DB.Targets(request.Context())
 	if err != nil {
 		http.Error(writer, "failed to get the targets", http.StatusInternalServerError)
@@ -45,4 +45,13 @@ func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 	}
 
 	writer.Write([]byte(targets))
+}
+
+func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	switch request.Method {
+	case "GET":
+		handler.handleGet(writer, request)
+	default:
+		http.Error(writer, "method not allowed", http.StatusMethodNotAllowed)
+	}
 }
