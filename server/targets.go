@@ -30,7 +30,16 @@ type TargetsHandler struct {
 	DB database.Database
 }
 
+func (handler TargetsHandler) handleCORS(writer http.ResponseWriter, request *http.Request) {
+	origin := request.Header.Get("Origin")
+	if origin != "" {
+		writer.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
+	}
+}
+
 func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {
+	handler.handleCORS(writer, request)
+
 	targets, err := handler.DB.Targets(request.Context())
 	if err != nil {
 		http.Error(writer, "failed to get the targets", http.StatusInternalServerError)
@@ -38,12 +47,6 @@ func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *htt
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
-
-	origin := request.Header.Get("Origin")
-	if origin != "" {
-		writer.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
-	}
-
 	writer.Write([]byte(targets))
 }
 
