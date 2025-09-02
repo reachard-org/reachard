@@ -88,9 +88,7 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {
 	handler.handleCORS(writer, request)
 
-	type RequestBody struct {
-		ID database.TargetID `json:"id"`
-	}
+	type RequestBody = database.TargetID
 
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
@@ -105,7 +103,8 @@ func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *
 		return
 	}
 
-	err = handler.DB.DeleteTarget(request.Context(), requestBody.ID)
+	targetID := requestBody
+	err = handler.DB.DeleteTarget(request.Context(), targetID)
 	if err != nil {
 		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
 		return
