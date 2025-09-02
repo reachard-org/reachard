@@ -33,6 +33,7 @@ func Serve(addr string) error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to the database: %v", err)
 	}
+	defer db.Close()
 
 	mux := http.NewServeMux()
 	mux.Handle("/v0/targets/", TargetsHandler{DB: db})
