@@ -21,6 +21,7 @@
 package server
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -55,6 +56,7 @@ func (handler TargetsHandler) handleOptions(writer http.ResponseWriter, request 
 	handler.handleCORS(writer, request)
 
 	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
 }
 
 func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *http.Request) {
@@ -73,6 +75,33 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 	}
 }
 
+func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {
+	handler.handleCORS(writer, request)
+
+	type RequestBody struct {
+		ID int32 `json:"id"`
+	}
+
+	rawRequestBody, err := io.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
+		return
+	}
+
+	var requestBody RequestBody
+	err = json.Unmarshal(rawRequestBody, &requestBody)
+	if err != nil {
+		http.Error(writer, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	err = handler.DB.DeleteTarget(request.Context(), requestBody.ID)
+	if err != nil {
+		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case "GET":
@@ -81,6 +110,8 @@ func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 		handler.handleOptions(writer, request)
 	case "POST":
 		handler.handlePost(writer, request)
+	case "DELETE":
+		handler.handleDelete(writer, request)
 	default:
 		http.Error(writer, "method not allowed", http.StatusMethodNotAllowed)
 	}
