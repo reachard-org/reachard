@@ -66,7 +66,7 @@ func dbPrepareRun(command *cmd.Command, args cmd.Args) error {
 	}
 	defer db.Close()
 
-	err = db.ExecSchema(ctx)
+	err = db.ExecSchemas(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to execute the schema SQL: %v", err)
 	}

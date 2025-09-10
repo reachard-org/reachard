@@ -18,30 +18,40 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package database
+package postgresql
 
 import (
 	"context"
 	_ "embed"
 
-	"reachard/database/postgresql"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Database struct {
-	PostgreSQL postgresql.Database
+	Pool *pgxpool.Pool
 }
 
 func Connect(ctx context.Context, connString string) (Database, error) {
-	PostgreSQL, err := postgresql.Connect(ctx, connString)
+	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		return Database{}, err
 	}
 
-	return Database{PostgreSQL: PostgreSQL}, nil
+	err = pool.Ping(ctx)
+	if err != nil {
+		return Database{}, err
+	}
+
+	return Database{Pool: pool}, nil
 }
 
-func (db Database) ExecSchemas(ctx context.Context) error {
-	err := db.PostgreSQL.ExecSchema(ctx)
+const SchemaVersion = "v0"
+
+//go:embed schemas/v0.sql
+var Schema string
+
+func (db Database) ExecSchema(ctx context.Context) error {
+	_, err := db.Pool.Exec(ctx, Schema)
 	if err != nil {
 		return err
 	}
@@ -50,5 +60,5 @@ func (db Database) ExecSchemas(ctx context.Context) error {
 }
 
 func (db Database) Close() {
-	db.PostgreSQL.Close()
+	db.Pool.Close()
 }

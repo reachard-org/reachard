@@ -18,7 +18,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package database
+package postgresql
 
 import (
 	"context"

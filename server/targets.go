@@ -27,6 +27,7 @@ import (
 	"strconv"
 
 	"reachard/database"
+	"reachard/database/postgresql"
 )
 
 type TargetsHandler struct {
@@ -43,7 +44,7 @@ func (handler TargetsHandler) handleCORS(writer http.ResponseWriter, request *ht
 func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {
 	handler.handleCORS(writer, request)
 
-	targets, err := handler.DB.Targets(request.Context())
+	targets, err := handler.DB.PostgreSQL.Targets(request.Context())
 	if err != nil {
 		http.Error(writer, "failed to get the targets", http.StatusInternalServerError)
 		return
@@ -69,7 +70,7 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 		return
 	}
 
-	type RequestBody = database.Target
+	type RequestBody = postgresql.Target
 
 	var requestBody RequestBody
 	err = json.Unmarshal(rawRequestBody, &requestBody)
@@ -79,7 +80,7 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 	}
 
 	target := requestBody
-	targetID, err := handler.DB.AddTarget(request.Context(), target)
+	targetID, err := handler.DB.PostgreSQL.AddTarget(request.Context(), target)
 	if err != nil {
 		http.Error(writer, "failed to add the target", http.StatusInternalServerError)
 		return
@@ -94,7 +95,7 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {
 	handler.handleCORS(writer, request)
 
-	type RequestBody = database.TargetID
+	type RequestBody = postgresql.TargetID
 
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
@@ -110,7 +111,7 @@ func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *
 	}
 
 	targetID := requestBody
-	err = handler.DB.DeleteTarget(request.Context(), targetID)
+	err = handler.DB.PostgreSQL.DeleteTarget(request.Context(), targetID)
 	if err != nil {
 		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
 		return
