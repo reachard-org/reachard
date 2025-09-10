@@ -18,46 +18,53 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package database
+package clickhouse
 
 import (
 	"context"
-	_ "embed"
-	"fmt"
+	"os"
 
-	"reachard/database/clickhouse"
-	"reachard/database/postgresql"
+	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
 type Database struct {
-	PostgreSQL postgresql.Database
-	ClickHouse clickhouse.Database
+	Conn driver.Conn
 }
 
-func Connect(ctx context.Context, connString string) (Database, error) {
-	PostgreSQL, err := postgresql.Connect(ctx, connString)
-	if err != nil {
-		return Database{}, fmt.Errorf("couldn't connect to the PostgreSQL database: %v", err)
+func Connect(ctx context.Context) (Database, error) {
+	host := os.Getenv("REACHARD_CLICKHOUSE_HOST")
+	port := os.Getenv("REACHARD_CLICKHOUSE_PORT")
+	db := os.Getenv("REACHARD_CLICKHOUSE_DB")
+	user := os.Getenv("REACHARD_CLICKHOUSE_USER")
+	password := os.Getenv("REACHARD_CLICKHOUSE_PASSWORD")
+
+	if port == "" {
+		port = "9000"
 	}
 
-	ClickHouse, err := clickhouse.Connect(ctx)
+	addr := host + ":" + port
+
+	conn, err := clickhouse.Open(&clickhouse.Options{
+		Addr: []string{addr},
+		Auth: clickhouse.Auth{
+			Database: db,
+			Username: user,
+			Password: password,
+		},
+	})
 	if err != nil {
-		return Database{}, fmt.Errorf("couldn't connect to the ClickHouse database: %v", err)
+		return Database{}, err
 	}
 
-	return Database{PostgreSQL, ClickHouse}, nil
+	err = conn.Ping(ctx)
+	if err != nil {
+		return Database{}, err
+	}
+
+	return Database{Conn: conn}, nil
 }
 
-func (db Database) ExecSchemas(ctx context.Context) error {
-	err := db.PostgreSQL.ExecSchema(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (db Database) Close() {
-	db.PostgreSQL.Close()
-	db.ClickHouse.Close()
+func (database Database) Close() {
+	_ = database.Conn.Close()
 }
