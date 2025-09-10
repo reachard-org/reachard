@@ -35,11 +35,28 @@ func printInfo() {
 	bw := bufio.NewWriter(os.Stdout)
 
 	envVars := []string{
-		"PGHOST", "PGPORT", "PGDATABASE", "PGUSER",
-		"REACHARD_HOST", "REACHARD_PORT",
+		"REACHARD_POSTGRESQL_DB",
+		"REACHARD_POSTGRESQL_USER",
+		"",
+		"REACHARD_CLICKHOUSE_HOST",
+		"REACHARD_CLICKHOUSE_PORT",
+		"REACHARD_CLICKHOUSE_DB",
+		"REACHARD_CLICKHOUSE_USER",
+		"",
+		"PGHOST",
+		"PGPORT",
+		"PGDATABASE",
+		"PGUSER",
+		"",
+		"REACHARD_HOST",
+		"REACHARD_PORT",
 	}
 
 	for _, envVar := range envVars {
+		if envVar == "" {
+			fmt.Fprint(bw, "\n")
+			continue
+		}
 		fmt.Fprintf(bw, "%s: %s\n", envVar, os.Getenv(envVar))
 	}
 
