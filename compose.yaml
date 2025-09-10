@@ -20,14 +20,27 @@
 
 name: reachard
 services:
+  db-clickhouse:
+    image: docker.io/clickhouse:25.8
+    restart: unless-stopped
+    environment:
+      - CLICKHOUSE_USER=${REACHARD_CLICKHOUSE_USER:?error}
+      - CLICKHOUSE_PASSWORD=${REACHARD_CLICKHOUSE_PASSWORD:?error}
+      - CLICKHOUSE_DB=${REACHARD_CLICKHOUSE_DB:?error}
+    networks:
+      - db
+    ports:
+      - 127.0.0.1:8123:8123
+    volumes:
+      - db_clickhouse:/var/lib/clickhouse
   db-postgresql:
     image: docker.io/postgres:17
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=${REACHARD_POSTGRESQL_USER:?error}
       - POSTGRES_PASSWORD=${REACHARD_POSTGRESQL_PASSWORD:?error}
       - POSTGRES_DB=${REACHARD_POSTGRESQL_DB:?error}
       - PGUSER=${REACHARD_POSTGRESQL_USER:?error}
-    restart: unless-stopped
     networks:
       - db
     volumes:
@@ -40,4 +53,5 @@ services:
 networks:
   db:
 volumes:
+  db_clickhouse:
   db_postgresql:
