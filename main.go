@@ -31,8 +31,13 @@ import (
 	"reachard/server"
 )
 
-func listEnvVars(envVars []string) {
+func printInfo() {
 	bw := bufio.NewWriter(os.Stdout)
+
+	envVars := []string{
+		"PGHOST", "PGPORT", "PGDATABASE", "PGUSER",
+		"REACHARD_HOST", "REACHARD_PORT",
+	}
 
 	for _, envVar := range envVars {
 		fmt.Fprintf(bw, "%s: %s\n", envVar, os.Getenv(envVar))
@@ -43,10 +48,11 @@ func listEnvVars(envVars []string) {
 }
 
 func dbPingRun(command *cmd.Command, args cmd.Args) error {
-	envVars := []string{"PGHOST", "PGPORT", "PGDATABASE", "PGUSER"}
-	listEnvVars(envVars)
+	printInfo()
 
-	db, err := database.Connect(context.Background(), "")
+	ctx := context.Background()
+
+	db, err := database.Connect(ctx, "")
 	if err != nil {
 		return fmt.Errorf("Couldn't connect to the database: %v", err)
 	}
@@ -58,6 +64,8 @@ func dbPingRun(command *cmd.Command, args cmd.Args) error {
 }
 
 func dbPrepareRun(command *cmd.Command, args cmd.Args) error {
+	printInfo()
+
 	ctx := context.Background()
 
 	db, err := database.Connect(ctx, "")
@@ -77,11 +85,7 @@ func dbPrepareRun(command *cmd.Command, args cmd.Args) error {
 }
 
 func dbServeRun(command *cmd.Command, args cmd.Args) error {
-	envVars := []string{
-		"PGHOST", "PGPORT", "PGDATABASE", "PGUSER",
-		"REACHARD_HOST", "REACHARD_PORT",
-	}
-	listEnvVars(envVars)
+	printInfo()
 
 	port := os.Getenv("REACHARD_PORT")
 	if port == "" {
