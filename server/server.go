@@ -28,20 +28,32 @@ import (
 	"reachard/database"
 )
 
-func Serve(addr string) error {
+type Server struct {
+	DB      database.Database
+	Handler http.Handler
+}
+
+func NewServer() (Server, error) {
 	db, err := database.Connect(context.Background(), "")
 	if err != nil {
-		return fmt.Errorf("failed to connect to the database: %v", err)
+		return Server{}, fmt.Errorf("failed to connect to a database: %v", err)
 	}
-	defer db.Close()
 
 	mux := http.NewServeMux()
 	mux.Handle("/v0/targets/", TargetsHandler{DB: db})
 
-	err = http.ListenAndServe(addr, mux)
+	return Server{DB: db, Handler: mux}, nil
+}
+
+func (server Server) ListenAndServe(addr string) error {
+	err := http.ListenAndServe(addr, server.Handler)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (server Server) Cleanup() {
+	server.DB.Close()
 }

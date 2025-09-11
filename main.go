@@ -111,9 +111,15 @@ func dbServeRun(command *cmd.Command, args cmd.Args) error {
 
 	addr := os.Getenv("REACHARD_HOST") + ":" + port
 
+	server, err := server.NewServer()
+	if err != nil {
+		return fmt.Errorf("Failed to create a server: %v", err)
+	}
+	defer server.Cleanup()
+
 	println("Serving at", addr)
 
-	err := server.Serve(addr)
+	err = server.ListenAndServe(addr)
 	if err != nil {
 		return fmt.Errorf("Failed to serve: %v", err)
 	}
