@@ -22,7 +22,10 @@ package clickhouse
 
 import (
 	"context"
+	_ "embed"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
@@ -63,6 +66,30 @@ func Connect(ctx context.Context) (Database, error) {
 	}
 
 	return Database{Conn: conn}, nil
+}
+
+const SchemaVersion = "v0"
+
+//go:embed schemas/v0.sql
+var Schema string
+
+func (db Database) ExecSchema(ctx context.Context) error {
+	// ClickHouse supports neither multiple statements nor transactions
+
+	lastCommentRegex := regexp.MustCompile(`--.*\n\n`)
+	lastCommentLocation := lastCommentRegex.FindIndex([]byte(Schema))
+
+	cleanSchema := Schema[lastCommentLocation[1] : len(Schema)-2]
+
+	statements := strings.SplitSeq(cleanSchema, ";")
+	for statement := range statements {
+		err := db.Conn.Exec(ctx, statement)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (database Database) Close() {

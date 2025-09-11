@@ -51,7 +51,12 @@ func Connect(ctx context.Context, connString string) (Database, error) {
 func (db Database) ExecSchemas(ctx context.Context) error {
 	err := db.PostgreSQL.ExecSchema(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to execute the PostgreSQL schema: %v", err)
+	}
+
+	err = db.ClickHouse.ExecSchema(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to execute the ClickHouse schema: %v", err)
 	}
 
 	return nil
