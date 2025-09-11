@@ -44,14 +44,20 @@ func (handler TargetsHandler) handleCORS(writer http.ResponseWriter, request *ht
 func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {
 	handler.handleCORS(writer, request)
 
-	targets, err := handler.DB.PostgreSQL.Targets(request.Context())
+	targets, err := handler.DB.PostgreSQL.GetTargets(request.Context())
 	if err != nil {
 		http.Error(writer, "failed to get the targets", http.StatusInternalServerError)
 		return
 	}
 
+	json, err := json.Marshal(targets)
+	if err != nil {
+		http.Error(writer, "failed to convert the targets to JSON", http.StatusInternalServerError)
+		return
+	}
+
 	writer.Header().Set("Content-Type", "application/json")
-	writer.Write([]byte(targets))
+	writer.Write(json)
 }
 
 func (handler TargetsHandler) handleOptions(writer http.ResponseWriter, request *http.Request) {

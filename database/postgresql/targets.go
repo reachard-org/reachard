@@ -22,26 +22,31 @@ package postgresql
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5"
 )
-
-func (db Database) Targets(ctx context.Context) (string, error) {
-	const sql = "select json_agg(row_to_json(t)) from (select * from " + SchemaVersion + ".targets) t"
-	row := db.Pool.QueryRow(ctx, sql)
-
-	var result string
-	err := row.Scan(&result)
-	if err != nil {
-		return "", err
-	}
-
-	return result + "\n", nil
-}
 
 type TargetID = int32
 
 type Target struct {
+	ID              int32  `json:"id"`
 	URL             string `json:"url"`
 	IntervalSeconds int32  `json:"interval_seconds"`
+}
+
+func (db Database) GetTargets(ctx context.Context) ([]Target, error) {
+	const sql = "SELECT * FROM " + SchemaVersion + ".targets"
+	rows, err := db.Pool.Query(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	targets, err := pgx.CollectRows(rows, pgx.RowToStructByName[Target])
+	if err != nil {
+		return nil, err
+	}
+
+	return targets, nil
 }
 
 func (db Database) AddTarget(ctx context.Context, target Target) (TargetID, error) {
