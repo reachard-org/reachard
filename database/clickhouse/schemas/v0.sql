@@ -20,7 +20,7 @@
 
 CREATE DATABASE IF NOT EXISTS "reachard.v0";
 
-CREATE TABLE IF NOT EXISTS "reachard.v0".targets (
+CREATE TABLE IF NOT EXISTS "reachard.v0".check_results (
     timestamp DateTime,
     target String,
     status UInt8,
