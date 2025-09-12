@@ -46,6 +46,10 @@ func NewServer() (Server, error) {
 }
 
 func (server Server) ListenAndServe(addr string) error {
+	ctx := context.Background()
+
+	server.StartChecksLoop(ctx)
+
 	err := http.ListenAndServe(addr, server.Handler)
 	if err != nil {
 		return err
