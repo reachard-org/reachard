@@ -62,9 +62,9 @@ func (database Database) AuthenticateByCredentials(
 
 	err = bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(credentials.Password))
 	if err != nil {
-		return -1, errors.Join(ErrInternalServerError{
-			"internal server error",
-			"failed to compare the passwords",
+		return -1, errors.Join(ErrUnauthorized{
+			"wrong password",
+			"wrong password",
 		}, err)
 	}
 
