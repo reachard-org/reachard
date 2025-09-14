@@ -21,44 +21,19 @@
 package server
 
 import (
-	"context"
-	"fmt"
 	"net/http"
 
 	"reachard/database"
 )
 
-type Server struct {
-	DB      database.Database
-	Handler http.Handler
+type Handler struct {
+	DB database.Database
 }
 
-func NewServer() (Server, error) {
-	db, err := database.Connect(context.Background(), "")
-	if err != nil {
-		return Server{}, fmt.Errorf("failed to connect to a database: %v", err)
+func (handler Handler) HandleCORS(writer http.ResponseWriter, request *http.Request) {
+	origin := request.Header.Get("Origin")
+	if origin != "" {
+		writer.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
 	}
-
-	mux := http.NewServeMux()
-	mux.Handle("/v0/session/", SessionHandler{Handler{DB: db}})
-	mux.Handle("/v0/targets/", TargetsHandler{Handler{DB: db}})
-
-	return Server{DB: db, Handler: mux}, nil
-}
-
-func (server Server) ListenAndServe(addr string) error {
-	ctx := context.Background()
-
-	server.StartChecksLoop(ctx)
-
-	err := http.ListenAndServe(addr, server.Handler)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (server Server) Cleanup() {
-	server.DB.Close()
+	writer.Header().Set("Vary", "Origin")
 }

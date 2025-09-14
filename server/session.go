@@ -27,12 +27,11 @@ import (
 	"net/http"
 	"strings"
 
-	"reachard/database"
 	"reachard/database/postgresql"
 )
 
 type SessionHandler struct {
-	DB database.Database
+	Handler
 }
 
 func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *http.Request) {
@@ -120,6 +119,8 @@ func (handler SessionHandler) HandleDelete(writer http.ResponseWriter, request *
 }
 
 func (handler SessionHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	handler.HandleCORS(writer, request)
+
 	switch request.Method {
 	case "DELETE":
 		handler.HandleDelete(writer, request)

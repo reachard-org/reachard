@@ -26,25 +26,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"reachard/database"
 	"reachard/database/postgresql"
 )
 
 type TargetsHandler struct {
-	DB database.Database
-}
-
-func (handler TargetsHandler) handleCORS(writer http.ResponseWriter, request *http.Request) {
-	origin := request.Header.Get("Origin")
-	if origin != "" {
-		writer.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
-	}
-	writer.Header().Set("Vary", "Origin")
+	Handler
 }
 
 func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {
-	handler.handleCORS(writer, request)
-
 	targets, err := handler.DB.PostgreSQL.GetTargets(request.Context())
 	if err != nil {
 		http.Error(writer, "failed to get the targets", http.StatusInternalServerError)
@@ -62,15 +51,11 @@ func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *htt
 }
 
 func (handler TargetsHandler) handleOptions(writer http.ResponseWriter, request *http.Request) {
-	handler.handleCORS(writer, request)
-
 	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
 }
 
 func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *http.Request) {
-	handler.handleCORS(writer, request)
-
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
@@ -100,8 +85,6 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 }
 
 func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {
-	handler.handleCORS(writer, request)
-
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
@@ -126,6 +109,8 @@ func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *
 }
 
 func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	handler.HandleCORS(writer, request)
+
 	switch request.Method {
 	case "GET":
 		handler.handleGet(writer, request)
