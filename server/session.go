@@ -82,6 +82,11 @@ func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *ht
 	writer.Write(json)
 }
 
+func (handler SessionHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	writer.Header().Set("Access-Control-Allow-Methods", "POST, DELETE")
+}
+
 func (handler SessionHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
 	authorizationHeader := request.Header.Get("Authorization")
 	if authorizationHeader == "" {
@@ -124,6 +129,8 @@ func (handler SessionHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 	switch request.Method {
 	case "DELETE":
 		handler.HandleDelete(writer, request)
+	case "OPTIONS":
+		handler.HandleOptions(writer, request)
 	case "POST":
 		handler.HandlePost(writer, request)
 	default:
