@@ -40,6 +40,7 @@ func NewServer() (Server, error) {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("/v0/session/", SessionHandler{DB: db})
 	mux.Handle("/v0/targets/", TargetsHandler{DB: db})
 
 	return Server{DB: db, Handler: mux}, nil
