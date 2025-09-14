@@ -80,7 +80,7 @@ func (database Database) CreateSessionToken(ctx context.Context, userID UserID) 
 	sessionToken := base64.URLEncoding.EncodeToString(byteSessionToken)
 
 	const sql = "INSERT INTO " + SchemaVersion + ".sessions VALUES ($1, $2)"
-	_, err := database.Pool.Exec(ctx, sql, userID, sessionToken)
+	_, err := database.Pool.Exec(ctx, sql, sessionToken, userID)
 	if err != nil {
 		return "", err
 	}
