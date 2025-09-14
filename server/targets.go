@@ -39,6 +39,7 @@ func (handler TargetsHandler) handleCORS(writer http.ResponseWriter, request *ht
 	if origin != "" {
 		writer.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
 	}
+	writer.Header().Set("Vary", "Origin")
 }
 
 func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {
