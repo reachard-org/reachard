@@ -33,6 +33,30 @@ type TargetsHandler struct {
 	Handler
 }
 
+func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {
+	rawRequestBody, err := io.ReadAll(request.Body)
+	if err != nil {
+		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
+		return
+	}
+
+	type RequestBody = postgresql.TargetID
+
+	var requestBody RequestBody
+	err = json.Unmarshal(rawRequestBody, &requestBody)
+	if err != nil {
+		http.Error(writer, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	targetID := requestBody
+	err = handler.DB.PostgreSQL.DeleteTarget(request.Context(), targetID)
+	if err != nil {
+		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {
 	targets, err := handler.DB.PostgreSQL.GetTargets(request.Context())
 	if err != nil {
@@ -84,42 +108,18 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 	writer.WriteHeader(http.StatusCreated)
 }
 
-func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {
-	rawRequestBody, err := io.ReadAll(request.Body)
-	if err != nil {
-		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
-		return
-	}
-
-	type RequestBody = postgresql.TargetID
-
-	var requestBody RequestBody
-	err = json.Unmarshal(rawRequestBody, &requestBody)
-	if err != nil {
-		http.Error(writer, "bad request", http.StatusBadRequest)
-		return
-	}
-
-	targetID := requestBody
-	err = handler.DB.PostgreSQL.DeleteTarget(request.Context(), targetID)
-	if err != nil {
-		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
-		return
-	}
-}
-
 func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	handler.HandleCORS(writer, request)
 
 	switch request.Method {
+	case "DELETE":
+		handler.handleDelete(writer, request)
 	case "GET":
 		handler.handleGet(writer, request)
 	case "OPTIONS":
 		handler.handleOptions(writer, request)
 	case "POST":
 		handler.handlePost(writer, request)
-	case "DELETE":
-		handler.handleDelete(writer, request)
 	default:
 		http.Error(writer, "method not allowed", http.StatusMethodNotAllowed)
 	}
