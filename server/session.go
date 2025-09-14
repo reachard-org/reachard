@@ -22,6 +22,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"reachard/database"
@@ -53,11 +54,13 @@ func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *ht
 	credentials := requestBody
 	userID, err := handler.DB.PostgreSQL.AuthenticateByCredentials(ctx, credentials)
 	if err != nil {
-		switch err := err.(type) {
-		case postgresql.ErrUnauthorized:
-			http.Error(writer, err.UserMsg, http.StatusUnauthorized)
-		case postgresql.ErrInternalServerError:
-			http.Error(writer, err.UserMsg, http.StatusInternalServerError)
+		var errInternalServerError postgresql.ErrInternalServerError
+		var errUnauthorized postgresql.ErrUnauthorized
+		switch {
+		case errors.As(err, &errInternalServerError):
+			http.Error(writer, errInternalServerError.UserMsg, http.StatusInternalServerError)
+		case errors.As(err, &errUnauthorized):
+			http.Error(writer, errUnauthorized.UserMsg, http.StatusUnauthorized)
 		}
 		return
 	}
