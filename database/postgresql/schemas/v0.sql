@@ -22,6 +22,17 @@ BEGIN;
 
 CREATE SCHEMA IF NOT EXISTS v0;
 
+CREATE TABLE IF NOT EXISTS v0.users (
+    id SERIAL PRIMARY KEY,
+    username TEXT NOT NULL,
+    password TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS v0.sessions (
+    session_token TEXT PRIMARY KEY,
+    user_id INTEGER REFERENCES v0.users (id)
+);
+
 CREATE TABLE IF NOT EXISTS v0.targets (
     id SERIAL PRIMARY KEY,
     url TEXT NOT NULL,
