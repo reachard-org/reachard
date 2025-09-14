@@ -24,9 +24,10 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"time"
+
 	"reachard/database/clickhouse"
 	"reachard/database/postgresql"
-	"time"
 )
 
 func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResult, error) {
