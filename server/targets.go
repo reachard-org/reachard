@@ -81,7 +81,7 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 	var requestBody RequestBody
 	err = json.Unmarshal(rawRequestBody, &requestBody)
 	if err != nil {
-		http.Error(writer, "bad request", http.StatusBadRequest)
+		http.Error(writer, "failed to parse the body as JSON", http.StatusBadRequest)
 		return
 	}
 
