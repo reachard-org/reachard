@@ -75,7 +75,7 @@ func (handler TargetsHandler) HandleGet(writer http.ResponseWriter, request *htt
 }
 
 func (handler TargetsHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 	writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
 }
 

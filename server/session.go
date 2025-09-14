@@ -83,7 +83,7 @@ func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *ht
 }
 
 func (handler SessionHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 	writer.Header().Set("Access-Control-Allow-Methods", "POST, DELETE")
 }
 
