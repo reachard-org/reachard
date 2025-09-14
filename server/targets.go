@@ -22,6 +22,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -34,6 +35,8 @@ type TargetsHandler struct {
 }
 
 func (handler TargetsHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
@@ -50,7 +53,7 @@ func (handler TargetsHandler) HandleDelete(writer http.ResponseWriter, request *
 	}
 
 	targetID := requestBody
-	err = handler.DB.PostgreSQL.DeleteTarget(request.Context(), targetID)
+	err = handler.DB.PostgreSQL.DeleteTarget(ctx, targetID)
 	if err != nil {
 		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
 		return
@@ -58,7 +61,9 @@ func (handler TargetsHandler) HandleDelete(writer http.ResponseWriter, request *
 }
 
 func (handler TargetsHandler) HandleGet(writer http.ResponseWriter, request *http.Request) {
-	targets, err := handler.DB.PostgreSQL.GetTargets(request.Context())
+	ctx := request.Context()
+
+	targets, err := handler.DB.PostgreSQL.GetTargets(ctx)
 	if err != nil {
 		http.Error(writer, "failed to get the targets", http.StatusInternalServerError)
 		return
@@ -80,6 +85,8 @@ func (handler TargetsHandler) HandleOptions(writer http.ResponseWriter, request 
 }
 
 func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
@@ -96,7 +103,7 @@ func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *ht
 	}
 
 	target := requestBody
-	targetID, err := handler.DB.PostgreSQL.AddTarget(request.Context(), target)
+	targetID, err := handler.DB.PostgreSQL.AddTarget(ctx, target)
 	if err != nil {
 		http.Error(writer, "failed to add the target", http.StatusInternalServerError)
 		return
@@ -110,6 +117,18 @@ func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *ht
 
 func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	handler.HandleCORS(writer, request)
+
+	if request.Method != "OPTIONS" {
+		ctx := request.Context()
+		_, err := handler.AuthenticateBySessionToken(ctx, request)
+		if err != nil {
+			var errHTTP ErrHTTP
+			if errors.As(err, &errHTTP) {
+				http.Error(writer, errHTTP.error, errHTTP.code)
+			}
+			return
+		}
+	}
 
 	switch request.Method {
 	case "DELETE":
