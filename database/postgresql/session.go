@@ -71,3 +71,19 @@ func (database Database) AuthenticateByCredentials(
 	return userID, nil
 }
 
+type SessionToken = string
+
+func (database Database) CreateSessionToken(ctx context.Context, userID UserID) (SessionToken, error) {
+	byteSessionToken := make([]byte, 40)
+	_, _ = rand.Read(byteSessionToken)
+
+	sessionToken := base64.URLEncoding.EncodeToString(byteSessionToken)
+
+	const sql = "INSERT INTO " + SchemaVersion + ".sessions VALUES ($1, $2)"
+	_, err := database.Pool.Exec(ctx, sql, userID, sessionToken)
+	if err != nil {
+		return "", err
+	}
+
+	return sessionToken, nil
+}
