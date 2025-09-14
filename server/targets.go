@@ -101,13 +101,13 @@ func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *ht
 func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {
 	handler.handleCORS(writer, request)
 
-	type RequestBody = postgresql.TargetID
-
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
 		return
 	}
+
+	type RequestBody = postgresql.TargetID
 
 	var requestBody RequestBody
 	err = json.Unmarshal(rawRequestBody, &requestBody)
