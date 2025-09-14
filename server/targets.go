@@ -33,7 +33,7 @@ type TargetsHandler struct {
 	Handler
 }
 
-func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *http.Request) {
+func (handler TargetsHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
@@ -57,7 +57,7 @@ func (handler TargetsHandler) handleDelete(writer http.ResponseWriter, request *
 	}
 }
 
-func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *http.Request) {
+func (handler TargetsHandler) HandleGet(writer http.ResponseWriter, request *http.Request) {
 	targets, err := handler.DB.PostgreSQL.GetTargets(request.Context())
 	if err != nil {
 		http.Error(writer, "failed to get the targets", http.StatusInternalServerError)
@@ -74,12 +74,12 @@ func (handler TargetsHandler) handleGet(writer http.ResponseWriter, request *htt
 	writer.Write(json)
 }
 
-func (handler TargetsHandler) handleOptions(writer http.ResponseWriter, request *http.Request) {
+func (handler TargetsHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
 }
 
-func (handler TargetsHandler) handlePost(writer http.ResponseWriter, request *http.Request) {
+func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *http.Request) {
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
@@ -113,13 +113,13 @@ func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 
 	switch request.Method {
 	case "DELETE":
-		handler.handleDelete(writer, request)
+		handler.HandleDelete(writer, request)
 	case "GET":
-		handler.handleGet(writer, request)
+		handler.HandleGet(writer, request)
 	case "OPTIONS":
-		handler.handleOptions(writer, request)
+		handler.HandleOptions(writer, request)
 	case "POST":
-		handler.handlePost(writer, request)
+		handler.HandlePost(writer, request)
 	default:
 		http.Error(writer, "method not allowed", http.StatusMethodNotAllowed)
 	}
