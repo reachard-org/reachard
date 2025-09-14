@@ -41,8 +41,8 @@ func (database Database) AuthenticateByCredentials(
 	ctx context.Context,
 	credentials Credentials,
 ) (UserID, error) {
-	const sql = "SELECT id, password FROM " + SchemaVersion + ".users WHERE username = $1 AND password = $2"
-	row := database.Pool.QueryRow(ctx, sql, credentials.Username, credentials.Password)
+	const sql = "SELECT id, password FROM " + SchemaVersion + ".users WHERE username = $1"
+	row := database.Pool.QueryRow(ctx, sql, credentials.Username)
 
 	var userID UserID
 	var hashedPassword string
@@ -50,7 +50,7 @@ func (database Database) AuthenticateByCredentials(
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return -1, errors.Join(ErrUnauthorized{
-				"wrong username or password",
+				"there is no such user",
 				"there is no such user",
 			}, err)
 		}
