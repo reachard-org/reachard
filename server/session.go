@@ -25,6 +25,8 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"strings"
+
 	"reachard/database"
 	"reachard/database/postgresql"
 )
@@ -81,8 +83,46 @@ func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *ht
 	writer.Write(json)
 }
 
+func (handler SessionHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
+	authorizationHeader := request.Header.Get("Authorization")
+	if authorizationHeader == "" {
+		http.Error(writer, "missing the Authorization header", http.StatusUnauthorized)
+		return
+	}
+
+	authorizationHeaderParts := strings.Split(authorizationHeader, " ")
+	if len(authorizationHeaderParts) != 2 || authorizationHeaderParts[0] != "Bearer" {
+		http.Error(writer, "couldn't parse the Authorization header", http.StatusUnauthorized)
+		return
+	}
+
+	ctx := request.Context()
+
+	sessionToken := authorizationHeaderParts[1]
+	_, err := handler.DB.PostgreSQL.AuthenticateBySessionToken(ctx, sessionToken)
+	if err != nil {
+		var errInternalServerError postgresql.ErrInternalServerError
+		var errUnauthorized postgresql.ErrUnauthorized
+		switch {
+		case errors.As(err, &errInternalServerError):
+			http.Error(writer, errInternalServerError.UserMsg, http.StatusInternalServerError)
+		case errors.As(err, &errUnauthorized):
+			http.Error(writer, errUnauthorized.UserMsg, http.StatusUnauthorized)
+		}
+		return
+	}
+
+	err = handler.DB.PostgreSQL.DeleteSessionToken(ctx, sessionToken)
+	if err != nil {
+		http.Error(writer, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (handler SessionHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	switch request.Method {
+	case "DELETE":
+		handler.HandleDelete(writer, request)
 	case "POST":
 		handler.HandlePost(writer, request)
 	default:
