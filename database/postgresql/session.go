@@ -56,7 +56,7 @@ func (database Database) AuthenticateByCredentials(
 		}
 		return -1, errors.Join(ErrInternalServerError{
 			"internal server error",
-			"failed to scan the (id, password) pair",
+			"failed to look up a password",
 		}, err)
 	}
 
@@ -73,6 +73,31 @@ func (database Database) AuthenticateByCredentials(
 
 type SessionToken = string
 
+func (database Database) AuthenticateBySessionToken(
+	ctx context.Context,
+	sessionToken SessionToken,
+) (UserID, error) {
+	const sql = "SELECT user_id FROM " + SchemaVersion + ".sessions WHERE session_token = $1"
+	row := database.Pool.QueryRow(ctx, sql, sessionToken)
+
+	var userID UserID
+	err := row.Scan(&userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return -1, errors.Join(ErrUnauthorized{
+				"there is no such session",
+				"there is no such session",
+			}, err)
+		}
+		return -1, errors.Join(ErrInternalServerError{
+			"internal server error",
+			"failed to look up a session token",
+		}, err)
+	}
+
+	return userID, nil
+}
+
 func (database Database) CreateSessionToken(ctx context.Context, userID UserID) (SessionToken, error) {
 	byteSessionToken := make([]byte, 40)
 	_, _ = rand.Read(byteSessionToken)
@@ -86,4 +111,14 @@ func (database Database) CreateSessionToken(ctx context.Context, userID UserID) 
 	}
 
 	return sessionToken, nil
+}
+
+func (database Database) DeleteSessionToken(ctx context.Context, sessionToken SessionToken) error {
+	const sql = "DELETE FROM " + SchemaVersion + ".sessions WHERE session_token = $1"
+	_, err := database.Pool.Exec(ctx, sql, sessionToken)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
