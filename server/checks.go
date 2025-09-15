@@ -52,7 +52,7 @@ func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResu
 }
 
 func (server Server) CheckAllTargets(ctx context.Context) error {
-	targets, err := server.DB.PostgreSQL.GetTargets(ctx)
+	targets, err := server.DB.PostgreSQL.GetAllTargets(ctx)
 	if err != nil {
 		return err
 	}

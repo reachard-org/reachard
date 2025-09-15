@@ -35,9 +35,8 @@ type Target struct {
 	IntervalSeconds int32  `json:"interval_seconds"`
 }
 
-func (db Database) GetTargets(ctx context.Context) ([]Target, error) {
-	const sql = "SELECT * FROM " + SchemaVersion + ".targets"
-	rows, err := db.Pool.Query(ctx, sql)
+func (db Database) getTargetsWith(ctx context.Context, sql string, args ...any) ([]Target, error) {
+	rows, err := db.Pool.Query(ctx, sql, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +47,16 @@ func (db Database) GetTargets(ctx context.Context) ([]Target, error) {
 	}
 
 	return targets, nil
+}
+
+func (db Database) GetAllTargets(ctx context.Context) ([]Target, error) {
+	const sql = "SELECT * FROM " + SchemaVersion + ".targets"
+	return db.getTargetsWith(ctx, sql)
+}
+
+func (db Database) GetUserTargets(ctx context.Context, userID UserID) ([]Target, error) {
+	const sql = "SELECT * FROM " + SchemaVersion + ".targets WHERE user_id = $1"
+	return db.getTargetsWith(ctx, sql, userID)
 }
 
 func (db Database) AddTarget(ctx context.Context, target Target) (TargetID, error) {
@@ -64,9 +73,9 @@ func (db Database) AddTarget(ctx context.Context, target Target) (TargetID, erro
 	return targetID, nil
 }
 
-func (db Database) DeleteTarget(ctx context.Context, id TargetID) error {
-	const sql = "DELETE FROM " + SchemaVersion + ".targets WHERE id = $1"
-	_, err := db.Pool.Exec(ctx, sql, id)
+func (db Database) DeleteTarget(ctx context.Context, target Target) error {
+	const sql = "DELETE FROM " + SchemaVersion + ".targets WHERE id = $1 AND user_id = $2"
+	_, err := db.Pool.Exec(ctx, sql, target.ID, target.UserID)
 	if err != nil {
 		return err
 	}

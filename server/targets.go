@@ -36,6 +36,11 @@ type TargetsHandler struct {
 func (handler TargetsHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
+	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
+	if !authenticated {
+		return
+	}
+
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
@@ -52,7 +57,9 @@ func (handler TargetsHandler) HandleDelete(writer http.ResponseWriter, request *
 	}
 
 	targetID := requestBody
-	err = handler.DB.PostgreSQL.DeleteTarget(ctx, targetID)
+	target := postgresql.Target{ID: targetID, UserID: sessionInfo.UserID}
+
+	err = handler.DB.PostgreSQL.DeleteTarget(ctx, target)
 	if err != nil {
 		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
 		return
@@ -62,7 +69,12 @@ func (handler TargetsHandler) HandleDelete(writer http.ResponseWriter, request *
 func (handler TargetsHandler) HandleGet(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	targets, err := handler.DB.PostgreSQL.GetTargets(ctx)
+	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
+	if !authenticated {
+		return
+	}
+
+	targets, err := handler.DB.PostgreSQL.GetUserTargets(ctx, sessionInfo.UserID)
 	if err != nil {
 		http.Error(writer, "failed to get the targets", http.StatusInternalServerError)
 		return
@@ -123,13 +135,6 @@ func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *ht
 
 func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	handler.HandleCORS(writer, request)
-
-	if request.Method != "OPTIONS" && request.Method != "POST" {
-		_, authenticated := handler.AuthenticateBySessionToken(writer, request)
-		if !authenticated {
-			return
-		}
-	}
 
 	switch request.Method {
 	case "DELETE":
