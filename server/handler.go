@@ -21,7 +21,6 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -42,27 +41,22 @@ func (handler Handler) HandleCORS(writer http.ResponseWriter, request *http.Requ
 	writer.Header().Set("Vary", "Origin")
 }
 
-type ErrHTTP struct {
-	error string
-	code  int
-}
-
-func (err ErrHTTP) Error() string {
-	return err.error
-}
-
 func (handler Handler) AuthenticateBySessionToken(
-	ctx context.Context,
+	writer http.ResponseWriter,
 	request *http.Request,
-) (postgresql.SessionToken, error) {
+) (postgresql.SessionToken, bool) {
+	ctx := request.Context()
+
 	authorizationHeader := request.Header.Get("Authorization")
 	if authorizationHeader == "" {
-		return "", ErrHTTP{"missing the Authorization header", http.StatusUnauthorized}
+		http.Error(writer, "missing the Authorization header", http.StatusUnauthorized)
+		return "", false
 	}
 
 	authorizationHeaderParts := strings.Split(authorizationHeader, " ")
 	if len(authorizationHeaderParts) != 2 || authorizationHeaderParts[0] != "Bearer" {
-		return "", ErrHTTP{"couldn't parse the Authorization header", http.StatusUnauthorized}
+		http.Error(writer, "couldn't parse the Authorization header", http.StatusUnauthorized)
+		return "", false
 	}
 
 	sessionToken := authorizationHeaderParts[1]
@@ -72,11 +66,13 @@ func (handler Handler) AuthenticateBySessionToken(
 		var errUnauthorized postgresql.ErrUnauthorized
 		switch {
 		case errors.As(err, &errInternalServerError):
-			return "", ErrHTTP{errInternalServerError.UserMsg, http.StatusInternalServerError}
+			http.Error(writer, errInternalServerError.UserMsg, http.StatusInternalServerError)
+			return "", false
 		case errors.As(err, &errUnauthorized):
-			return "", ErrHTTP{errUnauthorized.UserMsg, http.StatusUnauthorized}
+			http.Error(writer, errUnauthorized.UserMsg, http.StatusUnauthorized)
+			return "", false
 		}
 	}
 
-	return sessionToken, nil
+	return sessionToken, true
 }

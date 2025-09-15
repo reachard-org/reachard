@@ -22,7 +22,6 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -119,13 +118,8 @@ func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 	handler.HandleCORS(writer, request)
 
 	if request.Method != "OPTIONS" {
-		ctx := request.Context()
-		_, err := handler.AuthenticateBySessionToken(ctx, request)
-		if err != nil {
-			var errHTTP ErrHTTP
-			if errors.As(err, &errHTTP) {
-				http.Error(writer, errHTTP.error, errHTTP.code)
-			}
+		_, authenticated := handler.AuthenticateBySessionToken(writer, request)
+		if !authenticated {
 			return
 		}
 	}
