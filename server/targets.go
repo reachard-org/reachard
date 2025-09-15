@@ -86,6 +86,11 @@ func (handler TargetsHandler) HandleOptions(writer http.ResponseWriter, request 
 func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
+	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
+	if !authenticated {
+		return
+	}
+
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
 		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
@@ -102,6 +107,8 @@ func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *ht
 	}
 
 	target := requestBody
+	target.UserID = sessionInfo.UserID
+
 	targetID, err := handler.DB.PostgreSQL.AddTarget(ctx, target)
 	if err != nil {
 		http.Error(writer, "failed to add the target", http.StatusInternalServerError)
@@ -117,7 +124,7 @@ func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *ht
 func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	handler.HandleCORS(writer, request)
 
-	if request.Method != "OPTIONS" {
+	if request.Method != "OPTIONS" && request.Method != "POST" {
 		_, authenticated := handler.AuthenticateBySessionToken(writer, request)
 		if !authenticated {
 			return

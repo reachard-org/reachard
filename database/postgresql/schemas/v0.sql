@@ -30,11 +30,12 @@ CREATE TABLE IF NOT EXISTS v0.users (
 
 CREATE TABLE IF NOT EXISTS v0.sessions (
     session_token TEXT PRIMARY KEY,
-    user_id INTEGER REFERENCES v0.users (id)
+    user_id INTEGER NOT NULL REFERENCES v0.users (id)
 );
 
 CREATE TABLE IF NOT EXISTS v0.targets (
     id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES v0.users (id),
     url TEXT NOT NULL,
     interval_seconds INTEGER NOT NULL
 );

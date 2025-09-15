@@ -26,8 +26,9 @@ import (
 )
 
 type CheckResult struct {
+	UserID    int32     `ch:"user_id"`
+	URL       string    `ch:"url"`
 	Timestamp time.Time `ch:"timestamp"`
-	Target    string    `ch:"target"`
 	Status    uint8     `ch:"status"`
 }
 

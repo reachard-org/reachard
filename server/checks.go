@@ -42,8 +42,9 @@ func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResu
 	}
 
 	checkResult := clickhouse.CheckResult{
+		UserID:    target.UserID,
+		URL:       target.URL,
 		Timestamp: time.Now().UTC(),
-		Target:    target.URL,
 		Status:    status,
 	}
 
