@@ -89,12 +89,12 @@ func (handler SessionHandler) HandleOptions(writer http.ResponseWriter, request 
 func (handler SessionHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
-	sessionToken, authenticated := handler.AuthenticateBySessionToken(writer, request)
+	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
 	if !authenticated {
 		return
 	}
 
-	err := handler.DB.PostgreSQL.DeleteSessionToken(ctx, sessionToken)
+	err := handler.DB.PostgreSQL.DeleteSessionToken(ctx, sessionInfo.SessionToken)
 	if err != nil {
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
 		return
