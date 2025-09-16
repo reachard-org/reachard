@@ -30,8 +30,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserID = int32
-
 type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
