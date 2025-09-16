@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS v0.sessions (
 CREATE TABLE IF NOT EXISTS v0.targets (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES v0.users (id),
+    name TEXT NOT NULL,
     url TEXT NOT NULL,
     interval_seconds INTEGER NOT NULL
 );
