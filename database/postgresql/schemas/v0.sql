@@ -24,20 +24,20 @@ CREATE SCHEMA IF NOT EXISTS v0;
 
 CREATE TABLE IF NOT EXISTS v0.users (
     id SERIAL PRIMARY KEY,
-    username TEXT NOT NULL,
-    password TEXT NOT NULL
+    username TEXT NOT NULL CHECK (username <> ''),
+    password TEXT NOT NULL CHECK (password <> '')
 );
 
 CREATE TABLE IF NOT EXISTS v0.sessions (
-    session_token TEXT PRIMARY KEY,
+    session_token TEXT CHECK (session_token <> '') PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES v0.users (id)
 );
 
 CREATE TABLE IF NOT EXISTS v0.targets (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES v0.users (id),
-    name TEXT NOT NULL,
-    url TEXT NOT NULL,
+    name TEXT NOT NULL CHECK (name <> ''),
+    url TEXT NOT NULL CHECK (url <> ''),
     interval_seconds INTEGER NOT NULL
 );
 
