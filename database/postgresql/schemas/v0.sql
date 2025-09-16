@@ -25,7 +25,7 @@ CREATE SCHEMA IF NOT EXISTS v0;
 CREATE TABLE IF NOT EXISTS v0.users (
     id SERIAL PRIMARY KEY,
     username TEXT NOT NULL CHECK (username <> ''),
-    password TEXT NOT NULL CHECK (password <> '')
+    hashed_password TEXT NOT NULL CHECK (hashed_password <> '')
 );
 
 CREATE TABLE IF NOT EXISTS v0.sessions (

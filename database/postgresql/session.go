@@ -41,7 +41,7 @@ func (database Database) AuthenticateByCredentials(
 	ctx context.Context,
 	credentials Credentials,
 ) (UserID, error) {
-	const sql = "SELECT id, password FROM " + SchemaVersion + ".users WHERE username = $1"
+	const sql = "SELECT id, hashed_password FROM " + SchemaVersion + ".users WHERE username = $1"
 	row := database.Pool.QueryRow(ctx, sql, credentials.Username)
 
 	var userID UserID
