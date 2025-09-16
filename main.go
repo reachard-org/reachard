@@ -64,6 +64,35 @@ func printInfo() {
 	bw.Flush()
 }
 
+func dbAddUserRun(command *cmd.Command, args cmd.Args) error {
+	ctx := context.Background()
+
+	db, err := database.Connect(ctx, "")
+	if err != nil {
+		return fmt.Errorf("Couldn't connect to the database: %v", err)
+	}
+	defer db.Close()
+
+	if len(args) < 2 {
+		fmt.Println("Provide a username and a password. If the password is not provided, a random one is created.")
+		return nil
+	}
+
+	username := args[1]
+
+	password := ""
+	if len(args) >= 3 {
+		password = args[2]
+	}
+
+	err = db.PostgreSQL.AddNewUser(ctx, username, password)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func dbPingRun(command *cmd.Command, args cmd.Args) error {
 	printInfo()
 
@@ -137,6 +166,12 @@ func run(command *cmd.Command, args cmd.Args) error {
 }
 
 func main() {
+	dbAddUserCommand := cmd.Command{
+		Name:        "add-user",
+		Description: "Add a new user",
+		RunFunc:     dbAddUserRun,
+	}
+
 	dbPingCommand := cmd.Command{
 		Name:        "ping",
 		Description: "Ping the databases",
@@ -155,6 +190,7 @@ func main() {
 		RunFunc:     run,
 	}
 
+	dbCommand.AddSubcommand(&dbAddUserCommand)
 	dbCommand.AddSubcommand(&dbPingCommand)
 	dbCommand.AddSubcommand(&dbPrepareCommand)
 
