@@ -33,39 +33,6 @@ type TargetsHandler struct {
 	Handler
 }
 
-func (handler TargetsHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-
-	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
-	if !authenticated {
-		return
-	}
-
-	rawRequestBody, err := io.ReadAll(request.Body)
-	if err != nil {
-		http.Error(writer, "failed to read the body", http.StatusInternalServerError)
-		return
-	}
-
-	type RequestBody = postgresql.TargetID
-
-	var requestBody RequestBody
-	err = json.Unmarshal(rawRequestBody, &requestBody)
-	if err != nil {
-		http.Error(writer, "bad request", http.StatusBadRequest)
-		return
-	}
-
-	targetID := requestBody
-	target := postgresql.Target{ID: targetID, UserID: sessionInfo.UserID}
-
-	err = handler.DB.PostgreSQL.DeleteTarget(ctx, target)
-	if err != nil {
-		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
-		return
-	}
-}
-
 func (handler TargetsHandler) HandleGet(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -92,7 +59,7 @@ func (handler TargetsHandler) HandleGet(writer http.ResponseWriter, request *htt
 
 func (handler TargetsHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-	writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
+	writer.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 }
 
 func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *http.Request) {
@@ -137,8 +104,6 @@ func (handler TargetsHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 	handler.HandleCORS(writer, request)
 
 	switch request.Method {
-	case "DELETE":
-		handler.HandleDelete(writer, request)
 	case "GET":
 		handler.HandleGet(writer, request)
 	case "OPTIONS":
