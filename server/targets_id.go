@@ -21,6 +21,8 @@
 package server
 
 import (
+	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -31,6 +33,54 @@ type TargetsIDHandler struct {
 	Handler
 }
 
+func (handler TargetsIDHandler) ParseTargetID(writer http.ResponseWriter, request *http.Request) postgresql.TargetID {
+	pathValueIDString := request.PathValue("id")
+	pathValueID, err := strconv.Atoi(pathValueIDString)
+	if err != nil {
+		http.Error(writer, "only integer IDs are supported in the URL path", http.StatusBadRequest)
+		return -1
+	}
+
+	targetID := postgresql.TargetID(pathValueID)
+	return targetID
+}
+
+func (handler TargetsIDHandler) HandleGet(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+
+	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
+	if !authenticated {
+		return
+	}
+
+	targetID := handler.ParseTargetID(writer, request)
+	if targetID < 0 {
+		return
+	}
+
+	target, err := handler.DB.PostgreSQL.GetUserTarget(ctx, sessionInfo.UserID, targetID)
+	if err != nil {
+		var errInternalServerError postgresql.ErrInternalServerError
+		var errNotFound postgresql.ErrNotFound
+		switch {
+		case errors.As(err, &errInternalServerError):
+			http.Error(writer, errInternalServerError.UserMsg, http.StatusInternalServerError)
+		case errors.As(err, &errNotFound):
+			http.Error(writer, errNotFound.UserMsg, http.StatusNotFound)
+		}
+		return
+	}
+
+	json, err := json.Marshal(target)
+	if err != nil {
+		http.Error(writer, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.Write(json)
+}
+
 func (handler TargetsIDHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
@@ -39,17 +89,14 @@ func (handler TargetsIDHandler) HandleDelete(writer http.ResponseWriter, request
 		return
 	}
 
-	pathValueIDString := request.PathValue("id")
-	pathValueID, err := strconv.Atoi(pathValueIDString)
-	if err != nil {
-		http.Error(writer, "only integer IDs are supported in the URL path", http.StatusBadRequest)
+	targetID := handler.ParseTargetID(writer, request)
+	if targetID < 0 {
 		return
 	}
 
-	targetID := postgresql.TargetID(pathValueID)
 	target := postgresql.Target{ID: targetID, UserID: sessionInfo.UserID}
 
-	err = handler.DB.PostgreSQL.DeleteTarget(ctx, target)
+	err := handler.DB.PostgreSQL.DeleteTarget(ctx, target)
 	if err != nil {
 		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
 		return
@@ -65,6 +112,8 @@ func (handler TargetsIDHandler) ServeHTTP(writer http.ResponseWriter, request *h
 	handler.HandleCORS(writer, request)
 
 	switch request.Method {
+	case "GET":
+		handler.HandleGet(writer, request)
 	case "DELETE":
 		handler.HandleDelete(writer, request)
 	case "OPTIONS":
