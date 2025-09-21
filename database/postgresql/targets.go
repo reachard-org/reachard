@@ -71,7 +71,7 @@ func (db Database) getTargetsWith(ctx context.Context, sql string, args ...any) 
 	return targets, nil
 }
 
-func (db Database) GetAllTargets(ctx context.Context) ([]Target, error) {
+func (db Database) GetTargets(ctx context.Context) ([]Target, error) {
 	const sql = "SELECT * FROM " + SchemaVersion + ".targets"
 	return db.getTargetsWith(ctx, sql)
 }

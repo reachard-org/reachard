@@ -51,8 +51,8 @@ func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResu
 	return checkResult, nil
 }
 
-func (server Server) CheckAllTargets(ctx context.Context) error {
-	targets, err := server.DB.PostgreSQL.GetAllTargets(ctx)
+func (server Server) CheckTargets(ctx context.Context) error {
+	targets, err := server.DB.PostgreSQL.GetTargets(ctx)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (server Server) RunChecksLoop(ctx context.Context) {
 	timer := time.Tick(5 * time.Second)
 
 	for range timer {
-		err := server.CheckAllTargets(ctx)
+		err := server.CheckTargets(ctx)
 		if err != nil {
 			log.Printf("Failed to check a target: %v", err)
 		}
