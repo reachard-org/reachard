@@ -95,9 +95,9 @@ func (db Database) AddTarget(ctx context.Context, target Target) (TargetID, erro
 	return targetID, nil
 }
 
-func (db Database) DeleteTarget(ctx context.Context, target Target) error {
+func (db Database) DeleteUserTarget(ctx context.Context, userID UserID, targetID TargetID) error {
 	const sql = "DELETE FROM " + SchemaVersion + ".targets WHERE id = $1 AND user_id = $2"
-	_, err := db.Pool.Exec(ctx, sql, target.ID, target.UserID)
+	_, err := db.Pool.Exec(ctx, sql, targetID, userID)
 	if err != nil {
 		return err
 	}
