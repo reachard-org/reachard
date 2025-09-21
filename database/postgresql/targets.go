@@ -22,6 +22,7 @@ package postgresql
 
 import (
 	"context"
+	"errors"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -36,12 +37,32 @@ type Target struct {
 	IntervalSeconds int32  `json:"interval_seconds"`
 }
 
-func (db Database) getTargetsWith(ctx context.Context, sql string, args ...any) ([]Target, error) {
-	rows, err := db.Pool.Query(ctx, sql, args...)
+func (db Database) getTargetWith(ctx context.Context, sql string, args ...any) (Target, error) {
+	rows, _ := db.Pool.Query(ctx, sql, args...)
+	target, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[Target])
 	if err != nil {
-		return nil, err
+		if errors.Is(err, pgx.ErrNoRows) {
+			return Target{}, errors.Join(ErrNotFound{
+				"no target found",
+				"no target found",
+			}, err)
+		}
+		return Target{}, errors.Join(ErrInternalServerError{
+			"internal server error",
+			"failed to look up a target",
+		}, err)
 	}
 
+	return target, nil
+}
+
+func (db Database) GetUserTarget(ctx context.Context, userID UserID, targetID TargetID) (Target, error) {
+	const sql = "SELECT * FROM " + SchemaVersion + ".targets WHERE id = $1 AND user_id = $2"
+	return db.getTargetWith(ctx, sql, targetID, userID)
+}
+
+func (db Database) getTargetsWith(ctx context.Context, sql string, args ...any) ([]Target, error) {
+	rows, _ := db.Pool.Query(ctx, sql, args...)
 	targets, err := pgx.CollectRows(rows, pgx.RowToStructByName[Target])
 	if err != nil {
 		return nil, err
