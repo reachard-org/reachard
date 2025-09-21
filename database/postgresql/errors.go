@@ -37,3 +37,12 @@ type ErrUnauthorized struct {
 func (err ErrUnauthorized) Error() string {
 	return err.ServerMsg
 }
+
+type ErrNotFound struct {
+	UserMsg   string
+	ServerMsg string
+}
+
+func (err ErrNotFound) Error() string {
+	return err.ServerMsg
+}
