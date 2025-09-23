@@ -25,9 +25,12 @@ import (
 	"time"
 )
 
+type UserID = int32
+type TargetID = int32
+
 type CheckResult struct {
-	UserID    int32     `ch:"user_id"`
-	URL       string    `ch:"url"`
+	UserID    UserID    `ch:"user_id"`
+	TargetID  TargetID  `ch:"target_id"`
 	Timestamp time.Time `ch:"timestamp"`
 	Latency   int64     `ch:"latency"`
 }

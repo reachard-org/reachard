@@ -22,10 +22,9 @@ CREATE DATABASE IF NOT EXISTS "reachard.v0";
 
 CREATE TABLE IF NOT EXISTS "reachard.v0".check_results (
     user_id Int32,
-    url String,
+    target_id Int32,
     timestamp DateTime,
     latency Int64,
 )
 ENGINE = MergeTree()
-PRIMARY KEY (user_id, url, timestamp)
-;
+PRIMARY KEY (user_id, target_id, timestamp);
