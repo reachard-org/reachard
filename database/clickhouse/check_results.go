@@ -29,7 +29,7 @@ type CheckResult struct {
 	UserID    int32     `ch:"user_id"`
 	URL       string    `ch:"url"`
 	Timestamp time.Time `ch:"timestamp"`
-	Status    uint8     `ch:"status"`
+	Latency   int64     `ch:"latency"`
 }
 
 func (database Database) AddCheckResults(ctx context.Context, checkResults []CheckResult) error {

@@ -31,21 +31,22 @@ import (
 )
 
 func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResult, error) {
+	startTime := time.Now().UTC()
+
 	response, err := http.Get(target.URL)
 	if err != nil {
 		return clickhouse.CheckResult{}, err
 	}
+	defer response.Body.Close()
 
-	var status uint8 = 0
-	if response.StatusCode < 200 || response.StatusCode > 299 {
-		status = 1
-	}
+	duration := time.Since(startTime)
+	latency := duration.Nanoseconds()
 
 	checkResult := clickhouse.CheckResult{
 		UserID:    target.UserID,
 		URL:       target.URL,
-		Timestamp: time.Now().UTC(),
-		Status:    status,
+		Timestamp: startTime,
+		Latency:   latency,
 	}
 
 	return checkResult, nil

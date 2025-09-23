@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS "reachard.v0".check_results (
     user_id Int32,
     url String,
     timestamp DateTime,
-    status UInt8,
+    latency Int64,
 )
 ENGINE = MergeTree()
 PRIMARY KEY (user_id, url, timestamp)
