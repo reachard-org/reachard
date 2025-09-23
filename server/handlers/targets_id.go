@@ -18,7 +18,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package server
+package handlers
 
 import (
 	"encoding/json"
@@ -26,11 +26,16 @@ import (
 	"net/http"
 	"strconv"
 
+	"reachard/database"
 	"reachard/database/postgresql"
 )
 
 type TargetsIDHandler struct {
 	Handler
+}
+
+func NewTargetsIDHandler(db database.Database) TargetsIDHandler {
+	return TargetsIDHandler{Handler{DB: db}}
 }
 
 func (handler TargetsIDHandler) ParseTargetID(writer http.ResponseWriter, request *http.Request) postgresql.TargetID {

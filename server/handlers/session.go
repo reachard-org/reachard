@@ -18,7 +18,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package server
+package handlers
 
 import (
 	"encoding/json"
@@ -26,11 +26,16 @@ import (
 	"io"
 	"net/http"
 
+	"reachard/database"
 	"reachard/database/postgresql"
 )
 
 type SessionHandler struct {
 	Handler
+}
+
+func NewSessionHandler(db database.Database) SessionHandler {
+	return SessionHandler{Handler{DB: db}}
 }
 
 func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *http.Request) {

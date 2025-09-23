@@ -26,6 +26,7 @@ import (
 	"net/http"
 
 	"reachard/database"
+	"reachard/server/handlers"
 )
 
 type Server struct {
@@ -40,9 +41,9 @@ func NewServer() (Server, error) {
 	}
 
 	mux := http.NewServeMux()
-	mux.Handle("/v0/session/{$}", SessionHandler{Handler{DB: db}})
-	mux.Handle("/v0/targets/{$}", TargetsHandler{Handler{DB: db}})
-	mux.Handle("/v0/targets/{id}/{$}", TargetsIDHandler{Handler{DB: db}})
+	mux.Handle("/v0/session/{$}", handlers.NewSessionHandler(db))
+	mux.Handle("/v0/targets/{$}", handlers.NewTargetsHandler(db))
+	mux.Handle("/v0/targets/{id}/{$}", handlers.NewTargetsIDHandler(db))
 
 	return Server{DB: db, Handler: mux}, nil
 }

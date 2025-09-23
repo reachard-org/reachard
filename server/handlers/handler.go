@@ -18,7 +18,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package server
+package handlers
 
 import (
 	"errors"
