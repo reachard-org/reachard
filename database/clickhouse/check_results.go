@@ -22,12 +22,11 @@ package clickhouse
 
 import (
 	"context"
-	"time"
 )
 
 type UserID = int32
 type TargetID = int32
-type Timestamp = time.Time
+type Timestamp = int64
 type Latency = int64
 
 type CheckResult struct {
@@ -70,7 +69,7 @@ func (database Database) GetCheckResults(
 	userID UserID,
 	targetID TargetID,
 ) (CheckResults, error) {
-	const sql = "SELECT groupArray(timestamp) AS timestamps, groupArray(latency) AS latencies " +
+	const sql = "SELECT groupArray(toUnixTimestamp(timestamp)) AS timestamps, groupArray(latency) AS latencies " +
 		`FROM (SELECT timestamp, latency FROM "reachard.` + SchemaVersion + `".check_results ` +
 		"WHERE user_id = $1 and target_id = $2 ORDER BY timestamp)"
 	row := database.Conn.QueryRow(ctx, sql, userID, targetID)

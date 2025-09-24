@@ -31,7 +31,7 @@ import (
 )
 
 func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResult, error) {
-	startTime := time.Now().UTC()
+	startTime := time.Now()
 
 	response, err := http.Get(target.URL)
 	if err != nil {
@@ -40,12 +40,13 @@ func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResu
 	defer response.Body.Close()
 
 	duration := time.Since(startTime)
+	timestamp := startTime.Unix()
 	latency := duration.Nanoseconds()
 
 	checkResult := clickhouse.CheckResult{
 		UserID:    target.UserID,
 		TargetID:  target.ID,
-		Timestamp: startTime,
+		Timestamp: timestamp,
 		Latency:   latency,
 	}
 
