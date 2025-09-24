@@ -27,12 +27,14 @@ import (
 
 type UserID = int32
 type TargetID = int32
+type Timestamp = time.Time
+type Latency = int64
 
 type CheckResult struct {
 	UserID    UserID    `ch:"user_id" json:"-"`
 	TargetID  TargetID  `ch:"target_id" json:"-"`
-	Timestamp time.Time `ch:"timestamp" json:"timestamp"`
-	Latency   int64     `ch:"latency" json:"latency"`
+	Timestamp Timestamp `ch:"timestamp" json:"timestamp"`
+	Latency   Latency   `ch:"latency" json:"latency"`
 }
 
 func (database Database) AddCheckResults(ctx context.Context, checkResults []CheckResult) error {
@@ -58,18 +60,26 @@ func (database Database) AddCheckResults(ctx context.Context, checkResults []Che
 	return nil
 }
 
+type CheckResults struct {
+	Timestamps []Timestamp `ch:"timestamps" json:"timestamps"`
+	Latencies  []Latency   `ch:"latencies" json:"latencies"`
+}
+
 func (database Database) GetCheckResults(
 	ctx context.Context,
 	userID UserID,
 	targetID TargetID,
-) ([]CheckResult, error) {
-	var results []CheckResult
-	const sql = `SELECT timestamp, latency from "reachard.` + SchemaVersion + `".check_results ` +
-		"WHERE user_id = $1 and target_id = $2 ORDER BY timestamp"
-	err := database.Conn.Select(ctx, &results, sql, userID, targetID)
+) (CheckResults, error) {
+	const sql = "SELECT groupArray(timestamp) AS timestamps, groupArray(latency) AS latencies " +
+		`FROM (SELECT timestamp, latency FROM "reachard.` + SchemaVersion + `".check_results ` +
+		"WHERE user_id = $1 and target_id = $2 ORDER BY timestamp)"
+	row := database.Conn.QueryRow(ctx, sql, userID, targetID)
+
+	var checkResults CheckResults
+	err := row.ScanStruct(&checkResults)
 	if err != nil {
-		return nil, err
+		return CheckResults{}, err
 	}
 
-	return results, nil
+	return checkResults, nil
 }
