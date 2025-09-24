@@ -108,7 +108,7 @@ func (handler TargetsIDHandler) HandleDelete(writer http.ResponseWriter, request
 
 func (handler TargetsIDHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-	writer.Header().Set("Access-Control-Allow-Methods", "DELETE")
+	writer.Header().Set("Access-Control-Allow-Methods", "GET, DELETE")
 }
 
 func (handler TargetsIDHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
