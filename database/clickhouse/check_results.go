@@ -29,10 +29,10 @@ type UserID = int32
 type TargetID = int32
 
 type CheckResult struct {
-	UserID    UserID    `ch:"user_id"`
-	TargetID  TargetID  `ch:"target_id"`
-	Timestamp time.Time `ch:"timestamp"`
-	Latency   int64     `ch:"latency"`
+	UserID    UserID    `ch:"user_id" json:"-"`
+	TargetID  TargetID  `ch:"target_id" json:"-"`
+	Timestamp time.Time `ch:"timestamp" json:"timestamp"`
+	Latency   int64     `ch:"latency" json:"latency"`
 }
 
 func (database Database) AddCheckResults(ctx context.Context, checkResults []CheckResult) error {
