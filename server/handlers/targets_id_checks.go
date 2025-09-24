@@ -22,7 +22,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"reachard/database"
@@ -51,14 +50,12 @@ func (handler TargetsIDChecksHandler) HandleGet(writer http.ResponseWriter, requ
 
 	checkResults, err := handler.DB.ClickHouse.GetCheckResults(ctx, sessionInfo.UserID, targetID)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	json, err := json.Marshal(checkResults)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
 		return
 	}
