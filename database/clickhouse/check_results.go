@@ -57,3 +57,19 @@ func (database Database) AddCheckResults(ctx context.Context, checkResults []Che
 
 	return nil
 }
+
+func (database Database) GetCheckResults(
+	ctx context.Context,
+	userID UserID,
+	targetID TargetID,
+) ([]CheckResult, error) {
+	var results []CheckResult
+	const sql = `SELECT timestamp, latency from "reachard.` + SchemaVersion + `".check_results ` +
+		"WHERE user_id = $1 and target_id = $2 ORDER BY timestamp"
+	err := database.Conn.Select(ctx, &results, sql, userID, targetID)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
