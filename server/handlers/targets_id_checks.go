@@ -23,8 +23,10 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"reachard/database"
+	"reachard/database/clickhouse"
 )
 
 type TargetsIDChecksHandler struct {
@@ -48,7 +50,19 @@ func (handler TargetsIDChecksHandler) HandleGet(writer http.ResponseWriter, requ
 		return
 	}
 
-	checkResults, err := handler.DB.ClickHouse.GetCheckResults(ctx, sessionInfo.UserID, targetID)
+	var since clickhouse.Timestamp
+	sinceString := request.URL.Query().Get("since")
+	if sinceString != "" {
+		var err error
+		since, err = strconv.ParseInt(sinceString, 10, 64)
+		if err != nil {
+			http.Error(writer, "couldn't parse the `since` query parameter", http.StatusBadRequest)
+			return
+		}
+	}
+
+	options := clickhouse.GetCheckResultsOptions{Since: since}
+	checkResults, err := handler.DB.ClickHouse.GetCheckResults(ctx, sessionInfo.UserID, targetID, options)
 	if err != nil {
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
 		return

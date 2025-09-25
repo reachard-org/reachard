@@ -64,15 +64,29 @@ type CheckResults struct {
 	Latencies  []Latency   `ch:"latencies" json:"latencies"`
 }
 
+type GetCheckResultsOptions struct {
+	Since Timestamp
+}
+
 func (database Database) GetCheckResults(
 	ctx context.Context,
 	userID UserID,
 	targetID TargetID,
+	options GetCheckResultsOptions,
 ) (CheckResults, error) {
-	const sql = "SELECT groupArray(toUnixTimestamp(timestamp)) AS timestamps, groupArray(latency) AS latencies " +
+	sql := "SELECT groupArray(toUnixTimestamp(timestamp)) AS timestamps, groupArray(latency) AS latencies " +
 		`FROM (SELECT timestamp, latency FROM "reachard.` + SchemaVersion + `".check_results ` +
-		"WHERE user_id = $1 and target_id = $2 ORDER BY timestamp)"
-	row := database.Conn.QueryRow(ctx, sql, userID, targetID)
+		"WHERE user_id = $1 AND target_id = $2 "
+	args := []any{userID, targetID}
+
+	if options.Since != 0 {
+		sql += "AND timestamp >= $3 "
+		args = append(args, options.Since)
+	}
+
+	sql += "ORDER BY timestamp)"
+
+	row := database.Conn.QueryRow(ctx, sql, args...)
 
 	var checkResults CheckResults
 	err := row.ScanStruct(&checkResults)
