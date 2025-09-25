@@ -61,7 +61,18 @@ func (handler TargetsIDChecksHandler) HandleGet(writer http.ResponseWriter, requ
 		}
 	}
 
-	options := clickhouse.GetCheckResultsOptions{Since: since}
+	var step clickhouse.Step
+	stepString := request.URL.Query().Get("step")
+	if stepString != "" {
+		var err error
+		step, err = strconv.ParseUint(stepString, 10, 64)
+		if err != nil {
+			http.Error(writer, "couldn't parse the `step` query parameter", http.StatusBadRequest)
+			return
+		}
+	}
+
+	options := clickhouse.GetCheckResultsOptions{Since: since, Step: step}
 	checkResults, err := handler.DB.ClickHouse.GetCheckResults(ctx, sessionInfo.UserID, targetID, options)
 	if err != nil {
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
