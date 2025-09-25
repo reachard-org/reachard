@@ -41,7 +41,7 @@ func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResu
 
 	duration := time.Since(startTime)
 	timestamp := startTime.Unix()
-	latency := duration.Nanoseconds()
+	latency := duration.Milliseconds()
 
 	checkResult := clickhouse.CheckResult{
 		UserID:    target.UserID,
