@@ -23,4 +23,4 @@
 set -eux
 
 reachard db prepare
-reachard serve
+exec reachard serve
