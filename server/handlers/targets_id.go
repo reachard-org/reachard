@@ -100,7 +100,7 @@ func (handler TargetsIDHandler) HandleDelete(writer http.ResponseWriter, request
 		return
 	}
 
-	err := handler.DB.PostgreSQL.DeleteUserTarget(ctx, sessionInfo.UserID, targetID)
+	err := handler.DB.DeleteUserTarget(ctx, sessionInfo.UserID, targetID)
 	if err != nil {
 		http.Error(writer, "failed to delete the target", http.StatusInternalServerError)
 		return
