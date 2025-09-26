@@ -23,6 +23,7 @@ package postgresql
 import (
 	"context"
 	_ "embed"
+	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -31,7 +32,23 @@ type Database struct {
 	Pool *pgxpool.Pool
 }
 
-func Connect(ctx context.Context, connString string) (Database, error) {
+func Connect(ctx context.Context) (Database, error) {
+	connOptions := map[string]string{
+		"host":     os.Getenv("REACHARD_POSTGRESQL_HOST"),
+		"port":     os.Getenv("REACHARD_POSTGRESQL_PORT"),
+		"dbname":   os.Getenv("REACHARD_POSTGRESQL_DB"),
+		"user":     os.Getenv("REACHARD_POSTGRESQL_USER"),
+		"password": os.Getenv("REACHARD_POSTGRESQL_PASSWORD"),
+		"sslmode":  os.Getenv("REACHARD_POSTGRESQL_SSLMODE"),
+	}
+
+	connString := ""
+	for key, value := range connOptions {
+		if value != "" {
+			connString += key + "=" + value + " "
+		}
+	}
+
 	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		return Database{}, err

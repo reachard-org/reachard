@@ -35,6 +35,8 @@ func printInfo() {
 	bw := bufio.NewWriter(os.Stdout)
 
 	envVars := []string{
+		"REACHARD_POSTGRESQL_HOST",
+		"REACHARD_POSTGRESQL_PORT",
 		"REACHARD_POSTGRESQL_DB",
 		"REACHARD_POSTGRESQL_USER",
 		"",
@@ -42,11 +44,6 @@ func printInfo() {
 		"REACHARD_CLICKHOUSE_PORT",
 		"REACHARD_CLICKHOUSE_DB",
 		"REACHARD_CLICKHOUSE_USER",
-		"",
-		"PGHOST",
-		"PGPORT",
-		"PGDATABASE",
-		"PGUSER",
 		"",
 		"REACHARD_HOST",
 		"REACHARD_PORT",
@@ -67,7 +64,7 @@ func printInfo() {
 func dbAddUserRun(command *cmd.Command, args cmd.Args) error {
 	ctx := context.Background()
 
-	db, err := database.Connect(ctx, "")
+	db, err := database.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("Couldn't connect to the database: %v", err)
 	}
@@ -98,7 +95,7 @@ func dbPingRun(command *cmd.Command, args cmd.Args) error {
 
 	ctx := context.Background()
 
-	db, err := database.Connect(ctx, "")
+	db, err := database.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("Couldn't connect to the database: %v", err)
 	}
@@ -114,7 +111,7 @@ func dbPrepareRun(command *cmd.Command, args cmd.Args) error {
 
 	ctx := context.Background()
 
-	db, err := database.Connect(ctx, "")
+	db, err := database.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("Couldn't connect to a database: %v", err)
 	}

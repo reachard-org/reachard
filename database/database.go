@@ -34,8 +34,8 @@ type Database struct {
 	ClickHouse clickhouse.Database
 }
 
-func Connect(ctx context.Context, connString string) (Database, error) {
-	PostgreSQL, err := postgresql.Connect(ctx, connString)
+func Connect(ctx context.Context) (Database, error) {
+	PostgreSQL, err := postgresql.Connect(ctx)
 	if err != nil {
 		return Database{}, fmt.Errorf("couldn't connect to the PostgreSQL database: %v", err)
 	}

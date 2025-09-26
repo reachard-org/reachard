@@ -35,7 +35,7 @@ type Server struct {
 }
 
 func NewServer() (Server, error) {
-	db, err := database.Connect(context.Background(), "")
+	db, err := database.Connect(context.Background())
 	if err != nil {
 		return Server{}, fmt.Errorf("failed to connect to a database: %v", err)
 	}
