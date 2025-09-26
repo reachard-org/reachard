@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 # Copyright 2025 Pavel Sobolev
 #
 # This file is part of the Reachard project, located at
@@ -18,10 +20,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-*
+set -eux
 
-!**/*.go
-!**/*.sql
-!docker
-!go.mod
-!go.sum
+reachard db prepare
+reachard serve

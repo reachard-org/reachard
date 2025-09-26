@@ -42,4 +42,6 @@ USER reachard
 
 WORKDIR /var/lib/reachard
 
-CMD ["/usr/local/bin/reachard", "serve"]
+COPY docker/entrypoint.sh /docker-entrypoint.sh
+
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
