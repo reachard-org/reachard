@@ -30,39 +30,39 @@ import (
 )
 
 type Database struct {
-	PostgreSQL postgresql.Database
 	ClickHouse clickhouse.Database
+	PostgreSQL postgresql.Database
 }
 
 func Connect(ctx context.Context) (Database, error) {
-	PostgreSQL, err := postgresql.Connect(ctx)
-	if err != nil {
-		return Database{}, fmt.Errorf("couldn't connect to the PostgreSQL database: %v", err)
-	}
-
 	ClickHouse, err := clickhouse.Connect(ctx)
 	if err != nil {
 		return Database{}, fmt.Errorf("couldn't connect to the ClickHouse database: %v", err)
 	}
 
-	return Database{PostgreSQL, ClickHouse}, nil
+	PostgreSQL, err := postgresql.Connect(ctx)
+	if err != nil {
+		return Database{}, fmt.Errorf("couldn't connect to the PostgreSQL database: %v", err)
+	}
+
+	return Database{ClickHouse, PostgreSQL}, nil
 }
 
 func (db Database) ExecSchemas(ctx context.Context) error {
-	err := db.PostgreSQL.ExecSchema(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to execute the PostgreSQL schema: %v", err)
-	}
-
-	err = db.ClickHouse.ExecSchema(ctx)
+	err := db.ClickHouse.ExecSchema(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to execute the ClickHouse schema: %v", err)
+	}
+
+	err = db.PostgreSQL.ExecSchema(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to execute the PostgreSQL schema: %v", err)
 	}
 
 	return nil
 }
 
 func (db Database) Close() {
-	db.PostgreSQL.Close()
 	db.ClickHouse.Close()
+	db.PostgreSQL.Close()
 }
