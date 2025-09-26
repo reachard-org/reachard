@@ -27,25 +27,25 @@ import (
 type UserID = int32
 type TargetID = int32
 type Timestamp = int64
-type Latency = int64
+type LatencyValue = int64
 
-type CheckResult struct {
-	UserID    UserID    `ch:"user_id" json:"-"`
-	TargetID  TargetID  `ch:"target_id" json:"-"`
-	Timestamp Timestamp `ch:"timestamp" json:"timestamp"`
-	Latency   Latency   `ch:"latency" json:"latency"`
+type Latency struct {
+	UserID    UserID       `ch:"user_id" json:"-"`
+	TargetID  TargetID     `ch:"target_id" json:"-"`
+	Timestamp Timestamp    `ch:"timestamp" json:"timestamp"`
+	Value     LatencyValue `ch:"value" json:"value"`
 }
 
-func (database Database) AddCheckResults(ctx context.Context, checkResults []CheckResult) error {
-	const sql = `INSERT INTO "reachard.` + SchemaVersion + `".check_results`
+func (database Database) AddLatencies(ctx context.Context, latencies []Latency) error {
+	const sql = `INSERT INTO "reachard.` + SchemaVersion + `".latencies`
 	batch, err := database.Conn.PrepareBatch(ctx, sql)
 	if err != nil {
 		return err
 	}
 	defer batch.Close()
 
-	for _, checkResult := range checkResults {
-		err := batch.AppendStruct(&checkResult)
+	for _, latency := range latencies {
+		err := batch.AppendStruct(&latency)
 		if err != nil {
 			return err
 		}
@@ -59,24 +59,24 @@ func (database Database) AddCheckResults(ctx context.Context, checkResults []Che
 	return nil
 }
 
-type CheckResults struct {
-	Timestamps []Timestamp `ch:"timestamps" json:"timestamps"`
-	Latencies  []Latency   `ch:"latencies" json:"latencies"`
+type Latencies struct {
+	Timestamps []Timestamp    `ch:"timestamps" json:"timestamps"`
+	Values     []LatencyValue `ch:"values" json:"values"`
 }
 
 type Step = uint64
 
-type GetCheckResultsOptions struct {
+type GetLatenciesOptions struct {
 	Since Timestamp
 	Step  Step
 }
 
-func (database Database) GetCheckResults(
+func (database Database) GetLatencies(
 	ctx context.Context,
 	userID UserID,
 	targetID TargetID,
-	options GetCheckResultsOptions,
-) (CheckResults, error) {
+	options GetLatenciesOptions,
+) (Latencies, error) {
 	if options.Step == 0 {
 		options.Step = 1
 	}
@@ -84,20 +84,20 @@ func (database Database) GetCheckResults(
 	sql := `
 SELECT
 	groupArray(toUnixTimestamp(timestamp)) AS timestamps,
-	groupArray(latency) AS latencies
+	groupArray(value) AS values
 FROM
 (
-	SELECT timestamp, latency
+	SELECT timestamp, value
 	FROM
 	(
 		SELECT
 			timestamp,
-			latency,
+			value,
 			row_number() OVER (
                 PARTITION BY user_id, target_id
                 ORDER BY timestamp
             ) AS rn
-		FROM "reachard.` + SchemaVersion + `".check_results
+		FROM "reachard.` + SchemaVersion + `".latencies
 		WHERE user_id = $1 AND target_id = $2 AND timestamp >= $3
 	)
 	WHERE (rn - 1) % $4 = 0
@@ -108,11 +108,11 @@ FROM
 	args := []any{userID, targetID, options.Since, options.Step}
 	row := database.Conn.QueryRow(ctx, sql, args...)
 
-	var checkResults CheckResults
-	err := row.ScanStruct(&checkResults)
+	var latencies Latencies
+	err := row.ScanStruct(&latencies)
 	if err != nil {
-		return CheckResults{}, err
+		return Latencies{}, err
 	}
 
-	return checkResults, nil
+	return latencies, nil
 }

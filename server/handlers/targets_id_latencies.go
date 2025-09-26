@@ -22,6 +22,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -29,15 +30,15 @@ import (
 	"reachard/database/clickhouse"
 )
 
-type TargetsIDChecksHandler struct {
+type TargetsIDLatenciesHandler struct {
 	TargetsIDHandler
 }
 
-func NewTargetsIDChecksHandler(db database.Database) TargetsIDChecksHandler {
-	return TargetsIDChecksHandler{TargetsIDHandler{Handler{DB: db}}}
+func NewTargetsIDLatenciesHandler(db database.Database) TargetsIDLatenciesHandler {
+	return TargetsIDLatenciesHandler{TargetsIDHandler{Handler{DB: db}}}
 }
 
-func (handler TargetsIDChecksHandler) HandleGet(writer http.ResponseWriter, request *http.Request) {
+func (handler TargetsIDLatenciesHandler) HandleGet(writer http.ResponseWriter, request *http.Request) {
 	ctx := request.Context()
 
 	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
@@ -72,15 +73,17 @@ func (handler TargetsIDChecksHandler) HandleGet(writer http.ResponseWriter, requ
 		}
 	}
 
-	options := clickhouse.GetCheckResultsOptions{Since: since, Step: step}
-	checkResults, err := handler.DB.ClickHouse.GetCheckResults(ctx, sessionInfo.UserID, targetID, options)
+	options := clickhouse.GetLatenciesOptions{Since: since, Step: step}
+	latencies, err := handler.DB.ClickHouse.GetLatencies(ctx, sessionInfo.UserID, targetID, options)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	json, err := json.Marshal(checkResults)
+	json, err := json.Marshal(latencies)
 	if err != nil {
+		fmt.Println(err)
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -89,12 +92,12 @@ func (handler TargetsIDChecksHandler) HandleGet(writer http.ResponseWriter, requ
 	writer.Write(json)
 }
 
-func (handler TargetsIDChecksHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
+func (handler TargetsIDLatenciesHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
 	writer.Header().Set("Access-Control-Allow-Methods", "GET")
 }
 
-func (handler TargetsIDChecksHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+func (handler TargetsIDLatenciesHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	handler.HandleCORS(writer, request)
 
 	switch request.Method {

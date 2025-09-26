@@ -44,7 +44,7 @@ func NewServer() (Server, error) {
 	mux.Handle("/v0/session/{$}", handlers.NewSessionHandler(db))
 	mux.Handle("/v0/targets/{$}", handlers.NewTargetsHandler(db))
 	mux.Handle("/v0/targets/{id}/{$}", handlers.NewTargetsIDHandler(db))
-	mux.Handle("/v0/targets/{id}/checks/{$}", handlers.NewTargetsIDChecksHandler(db))
+	mux.Handle("/v0/targets/{id}/latencies/{$}", handlers.NewTargetsIDLatenciesHandler(db))
 
 	return Server{DB: db, Handler: mux}, nil
 }

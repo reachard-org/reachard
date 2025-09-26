@@ -20,11 +20,11 @@
 
 CREATE DATABASE IF NOT EXISTS "reachard.v0";
 
-CREATE TABLE IF NOT EXISTS "reachard.v0".check_results (
+CREATE TABLE IF NOT EXISTS "reachard.v0".latencies (
     user_id Int32,
     target_id Int32,
     timestamp DateTime,
-    latency Int64,
+    value Int64,
 )
 ENGINE = MergeTree()
 PRIMARY KEY (user_id, target_id, timestamp);

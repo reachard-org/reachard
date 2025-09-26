@@ -30,27 +30,27 @@ import (
 	"reachard/database/postgresql"
 )
 
-func (server Server) CheckTarget(target postgresql.Target) (clickhouse.CheckResult, error) {
+func (server Server) CheckTarget(target postgresql.Target) (clickhouse.Latency, error) {
 	startTime := time.Now()
 
 	response, err := http.Get(target.URL)
 	if err != nil {
-		return clickhouse.CheckResult{}, err
+		return clickhouse.Latency{}, err
 	}
 	defer response.Body.Close()
 
 	duration := time.Since(startTime)
 	timestamp := startTime.Unix()
-	latency := duration.Milliseconds()
+	latencyValue := duration.Milliseconds()
 
-	checkResult := clickhouse.CheckResult{
+	latency := clickhouse.Latency{
 		UserID:    target.UserID,
 		TargetID:  target.ID,
 		Timestamp: timestamp,
-		Latency:   latency,
+		Value:     latencyValue,
 	}
 
-	return checkResult, nil
+	return latency, nil
 }
 
 func (server Server) CheckTargets(ctx context.Context) error {
@@ -59,17 +59,17 @@ func (server Server) CheckTargets(ctx context.Context) error {
 		return err
 	}
 
-	checkResults := make([]clickhouse.CheckResult, 0, len(targets))
+	latencies := make([]clickhouse.Latency, 0, len(targets))
 	for _, target := range targets {
-		checkResult, err := server.CheckTarget(target)
+		latency, err := server.CheckTarget(target)
 		if err != nil {
 			return err
 		}
 
-		checkResults = append(checkResults, checkResult)
+		latencies = append(latencies, latency)
 	}
 
-	err = server.DB.ClickHouse.AddCheckResults(ctx, checkResults)
+	err = server.DB.ClickHouse.AddLatencies(ctx, latencies)
 	if err != nil {
 		return err
 	}
