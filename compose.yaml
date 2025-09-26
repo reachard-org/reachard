@@ -45,6 +45,9 @@ services:
     develop:
       watch:
         - path: .
+          include:
+            - "**/*.go"
+            - "**/*.sql"
           action: rebuild
     networks:
       - db
