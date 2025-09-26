@@ -61,8 +61,6 @@ services:
       - CLICKHOUSE_PASSWORD=${REACHARD_CLICKHOUSE_PASSWORD:?error}
     networks:
       - db
-    ports:
-      - 127.0.0.1:8123:8123
     volumes:
       - db_clickhouse:/var/lib/clickhouse
   db-postgresql:
