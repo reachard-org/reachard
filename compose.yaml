@@ -20,13 +20,45 @@
 
 name: reachard
 services:
+  reachard:
+    build: .
+    depends_on:
+      - db-clickhouse
+      - db-postgresql
+    restart: unless-stopped
+    expose:
+      - ${REACHARD_PORT:?error}
+    environment:
+      - REACHARD_HOST=${REACHARD_HOST?error}
+      - REACHARD_PORT=${REACHARD_PORT:?error}
+      - REACHARD_CLICKHOUSE_HOST=${REACHARD_CLICKHOUSE_HOST:?error}
+      - REACHARD_CLICKHOUSE_PORT=${REACHARD_CLICKHOUSE_PORT?error}
+      - REACHARD_CLICKHOUSE_DB=${REACHARD_CLICKHOUSE_DB:?error}
+      - REACHARD_CLICKHOUSE_USER=${REACHARD_CLICKHOUSE_USER:?error}
+      - REACHARD_CLICKHOUSE_PASSWORD=${REACHARD_CLICKHOUSE_PASSWORD:?error}
+      - REACHARD_POSTGRESQL_HOST=${REACHARD_POSTGRESQL_HOST:?error}
+      - REACHARD_POSTGRESQL_PORT=${REACHARD_POSTGRESQL_PORT?error}
+      - REACHARD_POSTGRESQL_DB=${REACHARD_POSTGRESQL_DB:?error}
+      - REACHARD_POSTGRESQL_USER=${REACHARD_POSTGRESQL_USER:?error}
+      - REACHARD_POSTGRESQL_PASSWORD=${REACHARD_POSTGRESQL_PASSWORD:?error}
+      - REACHARD_POSTGRESQL_SSLMODE=${REACHARD_POSTGRESQL_SSLMODE?error}
+    develop:
+      watch:
+        - path: .
+          action: rebuild
+    networks:
+      - db
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
   db-clickhouse:
     image: docker.io/clickhouse:25.8
     restart: unless-stopped
     environment:
+      - CLICKHOUSE_DB=${REACHARD_CLICKHOUSE_DB:?error}
       - CLICKHOUSE_USER=${REACHARD_CLICKHOUSE_USER:?error}
       - CLICKHOUSE_PASSWORD=${REACHARD_CLICKHOUSE_PASSWORD:?error}
-      - CLICKHOUSE_DB=${REACHARD_CLICKHOUSE_DB:?error}
     networks:
       - db
     ports:
@@ -37,9 +69,9 @@ services:
     image: docker.io/postgres:17
     restart: unless-stopped
     environment:
+      - POSTGRES_DB=${REACHARD_POSTGRESQL_DB:?error}
       - POSTGRES_USER=${REACHARD_POSTGRESQL_USER:?error}
       - POSTGRES_PASSWORD=${REACHARD_POSTGRESQL_PASSWORD:?error}
-      - POSTGRES_DB=${REACHARD_POSTGRESQL_DB:?error}
       - PGUSER=${REACHARD_POSTGRESQL_USER:?error}
     networks:
       - db
@@ -52,6 +84,8 @@ services:
       retries: 5
 networks:
   db:
+  traefik:
+    external: true
 volumes:
   db_clickhouse:
   db_postgresql:
