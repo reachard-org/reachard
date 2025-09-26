@@ -29,8 +29,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserID = int32
-
 func (database Database) GeneratePlainPassword() string {
 	buffer := make([]byte, 40)
 	rand.Read(buffer)

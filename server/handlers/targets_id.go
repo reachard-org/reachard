@@ -28,6 +28,7 @@ import (
 
 	"reachard/database"
 	"reachard/database/postgresql"
+	"reachard/database/types"
 )
 
 type TargetsIDHandler struct {
@@ -38,7 +39,7 @@ func NewTargetsIDHandler(db database.Database) TargetsIDHandler {
 	return TargetsIDHandler{Handler{DB: db}}
 }
 
-func (handler TargetsIDHandler) ParseTargetID(writer http.ResponseWriter, request *http.Request) postgresql.TargetID {
+func (handler TargetsIDHandler) ParseTargetID(writer http.ResponseWriter, request *http.Request) types.TargetID {
 	pathValueIDString := request.PathValue("id")
 	pathValueID, err := strconv.Atoi(pathValueIDString)
 	if err != nil {
@@ -46,7 +47,7 @@ func (handler TargetsIDHandler) ParseTargetID(writer http.ResponseWriter, reques
 		return -1
 	}
 
-	targetID := postgresql.TargetID(pathValueID)
+	targetID := types.TargetID(pathValueID)
 	return targetID
 }
 

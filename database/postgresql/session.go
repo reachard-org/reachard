@@ -26,6 +26,8 @@ import (
 	"encoding/base64"
 	"errors"
 
+	"reachard/database/types"
+
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,11 +40,11 @@ type Credentials struct {
 func (database Database) AuthenticateByCredentials(
 	ctx context.Context,
 	credentials Credentials,
-) (UserID, error) {
+) (types.UserID, error) {
 	const sql = "SELECT id, hashed_password FROM " + SchemaVersion + ".users WHERE username = $1"
 	row := database.Pool.QueryRow(ctx, sql, credentials.Username)
 
-	var userID UserID
+	var userID types.UserID
 	var hashedPassword string
 	err := row.Scan(&userID, &hashedPassword)
 	if err != nil {
@@ -74,11 +76,11 @@ type SessionToken = string
 func (database Database) AuthenticateBySessionToken(
 	ctx context.Context,
 	sessionToken SessionToken,
-) (UserID, error) {
+) (types.UserID, error) {
 	const sql = "SELECT user_id FROM " + SchemaVersion + ".sessions WHERE session_token = $1"
 	row := database.Pool.QueryRow(ctx, sql, sessionToken)
 
-	var userID UserID
+	var userID types.UserID
 	err := row.Scan(&userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -96,7 +98,7 @@ func (database Database) AuthenticateBySessionToken(
 	return userID, nil
 }
 
-func (database Database) CreateSessionToken(ctx context.Context, userID UserID) (SessionToken, error) {
+func (database Database) CreateSessionToken(ctx context.Context, userID types.UserID) (SessionToken, error) {
 	byteSessionToken := make([]byte, 40)
 	_, _ = rand.Read(byteSessionToken)
 

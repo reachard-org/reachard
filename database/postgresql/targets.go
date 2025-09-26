@@ -24,17 +24,17 @@ import (
 	"context"
 	"errors"
 
+	"reachard/database/types"
+
 	"github.com/jackc/pgx/v5"
 )
 
-type TargetID = int32
-
 type Target struct {
-	ID              int32  `json:"id"`
-	UserID          UserID `json:"-"`
-	Name            string `json:"name"`
-	URL             string `json:"url"`
-	IntervalSeconds int32  `json:"interval_seconds"`
+	ID              types.TargetID `json:"id"`
+	UserID          types.UserID   `json:"-"`
+	Name            string         `json:"name"`
+	URL             string         `json:"url"`
+	IntervalSeconds int32          `json:"interval_seconds"`
 }
 
 func (db Database) getTargetWith(ctx context.Context, sql string, args ...any) (Target, error) {
@@ -56,7 +56,7 @@ func (db Database) getTargetWith(ctx context.Context, sql string, args ...any) (
 	return target, nil
 }
 
-func (db Database) GetUserTarget(ctx context.Context, userID UserID, targetID TargetID) (Target, error) {
+func (db Database) GetUserTarget(ctx context.Context, userID types.UserID, targetID types.TargetID) (Target, error) {
 	const sql = "SELECT * FROM " + SchemaVersion + ".targets WHERE id = $1 AND user_id = $2"
 	return db.getTargetWith(ctx, sql, targetID, userID)
 }
@@ -76,17 +76,17 @@ func (db Database) GetTargets(ctx context.Context) ([]Target, error) {
 	return db.getTargetsWith(ctx, sql)
 }
 
-func (db Database) GetUserTargets(ctx context.Context, userID UserID) ([]Target, error) {
+func (db Database) GetUserTargets(ctx context.Context, userID types.UserID) ([]Target, error) {
 	const sql = "SELECT * FROM " + SchemaVersion + ".targets WHERE user_id = $1"
 	return db.getTargetsWith(ctx, sql, userID)
 }
 
-func (db Database) AddTarget(ctx context.Context, target Target) (TargetID, error) {
+func (db Database) AddTarget(ctx context.Context, target Target) (types.TargetID, error) {
 	const sql = "INSERT INTO " +
 		SchemaVersion + ".targets (user_id, name, url, interval_seconds) VALUES ($1, $2, $3, $4) RETURNING id"
 	row := db.Pool.QueryRow(ctx, sql, target.UserID, target.Name, target.URL, target.IntervalSeconds)
 
-	var targetID TargetID
+	var targetID types.TargetID
 	err := row.Scan(&targetID)
 	if err != nil {
 		return 0, err
@@ -95,7 +95,7 @@ func (db Database) AddTarget(ctx context.Context, target Target) (TargetID, erro
 	return targetID, nil
 }
 
-func (db Database) DeleteUserTarget(ctx context.Context, userID UserID, targetID TargetID) error {
+func (db Database) DeleteUserTarget(ctx context.Context, userID types.UserID, targetID types.TargetID) error {
 	const sql = "DELETE FROM " + SchemaVersion + ".targets WHERE id = $1 AND user_id = $2"
 	_, err := db.Pool.Exec(ctx, sql, targetID, userID)
 	if err != nil {

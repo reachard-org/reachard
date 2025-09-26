@@ -22,18 +22,17 @@ package clickhouse
 
 import (
 	"context"
+
+	"reachard/database/types"
 )
 
-type UserID = int32
-type TargetID = int32
-type Timestamp = int64
 type LatencyValue = int64
 
 type Latency struct {
-	UserID    UserID       `ch:"user_id" json:"-"`
-	TargetID  TargetID     `ch:"target_id" json:"-"`
-	Timestamp Timestamp    `ch:"timestamp" json:"timestamp"`
-	Value     LatencyValue `ch:"value" json:"value"`
+	UserID    types.UserID    `ch:"user_id" json:"-"`
+	TargetID  types.TargetID  `ch:"target_id" json:"-"`
+	Timestamp types.Timestamp `ch:"timestamp" json:"timestamp"`
+	Value     LatencyValue    `ch:"value" json:"value"`
 }
 
 func (database Database) AddLatencies(ctx context.Context, latencies []Latency) error {
@@ -60,21 +59,21 @@ func (database Database) AddLatencies(ctx context.Context, latencies []Latency) 
 }
 
 type Latencies struct {
-	Timestamps []Timestamp    `ch:"timestamps" json:"timestamps"`
-	Values     []LatencyValue `ch:"values" json:"values"`
+	Timestamps []types.Timestamp `ch:"timestamps" json:"timestamps"`
+	Values     []LatencyValue    `ch:"values" json:"values"`
 }
 
 type Step = uint64
 
 type GetLatenciesOptions struct {
-	Since Timestamp
+	Since types.Timestamp
 	Step  Step
 }
 
 func (database Database) GetLatencies(
 	ctx context.Context,
-	userID UserID,
-	targetID TargetID,
+	userID types.UserID,
+	targetID types.TargetID,
 	options GetLatenciesOptions,
 ) (Latencies, error) {
 	if options.Step == 0 {

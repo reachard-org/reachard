@@ -27,6 +27,7 @@ import (
 
 	"reachard/database"
 	"reachard/database/postgresql"
+	"reachard/database/types"
 )
 
 type Handler struct {
@@ -42,7 +43,7 @@ func (handler Handler) HandleCORS(writer http.ResponseWriter, request *http.Requ
 }
 
 type SessionInfo struct {
-	UserID       postgresql.UserID
+	UserID       types.UserID
 	SessionToken postgresql.SessionToken
 }
 
