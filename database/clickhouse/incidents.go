@@ -55,10 +55,15 @@ type Incidents struct {
 	Timestamps []Timestamp `ch:"timestamps" json:"timestamps"`
 }
 
+type GetIncidentsOptions struct {
+	Since Timestamp
+}
+
 func (database Database) GetIncidents(
 	ctx context.Context,
 	userID types.UserID,
 	targetID types.TargetID,
+	options GetIncidentsOptions,
 ) (Incidents, error) {
 	sql := `
 SELECT
@@ -71,7 +76,7 @@ FROM
 )
 `
 
-	args := []any{userID, targetID}
+	args := []any{userID, targetID, options.Since}
 	row := database.Conn.QueryRow(ctx, sql, args...)
 
 	var incidents Incidents
