@@ -73,6 +73,7 @@ FROM
 	SELECT timestamp
 	FROM "reachard.` + SchemaVersion + `".incidents
 	WHERE user_id = $1 AND target_id = $2 AND timestamp >= $3
+	ORDER BY timestamp
 )
 `
 
