@@ -39,8 +39,24 @@ func (server Server) CheckTarget(ctx context.Context, target postgresql.Target) 
 	}
 	defer response.Body.Close()
 
-	duration := time.Since(startTime)
 	timestamp := startTime.Unix()
+
+	if response.StatusCode >= 400 && response.StatusCode < 600 {
+		incident := clickhouse.Incident{
+			UserID:    target.UserID,
+			TargetID:  target.ID,
+			Timestamp: timestamp,
+		}
+
+		err := server.DB.ClickHouse.AddIncident(ctx, incident)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	duration := time.Since(startTime)
 	latencyValue := duration.Milliseconds()
 
 	latency := clickhouse.Latency{

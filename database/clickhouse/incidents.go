@@ -31,18 +31,16 @@ type Incident struct {
 	Timestamp Timestamp      `ch:"timestamp" json:"timestamp"`
 }
 
-func (database Database) AddIncidents(ctx context.Context, incidents []Incident) error {
+func (database Database) AddIncident(ctx context.Context, incident Incident) error {
 	const sql = `INSERT INTO "reachard.` + SchemaVersion + `".incidents`
 	batch, err := database.Conn.PrepareBatch(ctx, sql)
 	if err != nil {
 		return err
 	}
 
-	for _, incident := range incidents {
-		err := batch.AppendStruct(&incident)
-		if err != nil {
-			return err
-		}
+	err = batch.AppendStruct(&incident)
+	if err != nil {
+		return err
 	}
 
 	err = batch.Send()
