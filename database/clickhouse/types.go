@@ -18,7 +18,6 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package types
+package clickhouse
 
-type UserID = int32
-type TargetID = int32
+type Timestamp = int64

@@ -29,10 +29,10 @@ import (
 type LatencyValue = int64
 
 type Latency struct {
-	UserID    types.UserID    `ch:"user_id" json:"-"`
-	TargetID  types.TargetID  `ch:"target_id" json:"-"`
-	Timestamp types.Timestamp `ch:"timestamp" json:"timestamp"`
-	Value     LatencyValue    `ch:"value" json:"value"`
+	UserID    types.UserID   `ch:"user_id" json:"-"`
+	TargetID  types.TargetID `ch:"target_id" json:"-"`
+	Timestamp Timestamp      `ch:"timestamp" json:"timestamp"`
+	Value     LatencyValue   `ch:"value" json:"value"`
 }
 
 func (database Database) AddLatencies(ctx context.Context, latencies []Latency) error {
@@ -59,14 +59,14 @@ func (database Database) AddLatencies(ctx context.Context, latencies []Latency) 
 }
 
 type Latencies struct {
-	Timestamps []types.Timestamp `ch:"timestamps" json:"timestamps"`
-	Values     []LatencyValue    `ch:"values" json:"values"`
+	Timestamps []Timestamp    `ch:"timestamps" json:"timestamps"`
+	Values     []LatencyValue `ch:"values" json:"values"`
 }
 
 type Step = uint64
 
 type GetLatenciesOptions struct {
-	Since types.Timestamp
+	Since Timestamp
 	Step  Step
 }
 

@@ -28,7 +28,6 @@ import (
 
 	"reachard/database"
 	"reachard/database/clickhouse"
-	"reachard/database/types"
 )
 
 type TargetsIDLatenciesHandler struct {
@@ -52,7 +51,7 @@ func (handler TargetsIDLatenciesHandler) HandleGet(writer http.ResponseWriter, r
 		return
 	}
 
-	var since types.Timestamp
+	var since clickhouse.Timestamp
 	sinceString := request.URL.Query().Get("since")
 	if sinceString != "" {
 		var err error

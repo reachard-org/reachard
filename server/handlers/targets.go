@@ -25,6 +25,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"reachard/database"
 	"reachard/database/postgresql"
@@ -92,6 +93,7 @@ func (handler TargetsHandler) HandlePost(writer http.ResponseWriter, request *ht
 
 	target := requestBody
 	target.UserID = sessionInfo.UserID
+	target.TimeAdded = postgresql.Timestamp(time.Now().Unix())
 
 	targetID, err := handler.DB.PostgreSQL.AddTarget(ctx, target)
 	if err != nil {

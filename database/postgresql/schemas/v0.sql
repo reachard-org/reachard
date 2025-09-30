@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS v0.sessions (
 CREATE TABLE IF NOT EXISTS v0.targets (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES v0.users (id),
+    time_added TIMESTAMP NOT NULL,
     name TEXT NOT NULL CHECK (name <> ''),
     url TEXT NOT NULL CHECK (url <> ''),
     interval_seconds INTEGER NOT NULL

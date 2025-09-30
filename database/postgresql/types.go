@@ -18,7 +18,31 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package types
+package postgresql
 
-type UserID = int32
-type TargetID = int32
+import (
+	"database/sql/driver"
+	"fmt"
+	"time"
+)
+
+type Timestamp int64
+
+func (timestamp *Timestamp) Scan(value any) error {
+	if value == nil {
+		*timestamp = 0
+		return nil
+	}
+
+	switch v := value.(type) {
+	case time.Time:
+		*timestamp = Timestamp(v.Unix())
+		return nil
+	default:
+		return fmt.Errorf("cannot scan %T (%v) into Timestamp", value, value)
+	}
+}
+
+func (timestamp Timestamp) Value() (driver.Value, error) {
+	return time.Unix(int64(timestamp), 0), nil
+}

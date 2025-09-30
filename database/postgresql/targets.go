@@ -32,6 +32,7 @@ import (
 type Target struct {
 	ID              types.TargetID `json:"id"`
 	UserID          types.UserID   `json:"-"`
+	TimeAdded       Timestamp      `json:"time_added"`
 	Name            string         `json:"name"`
 	URL             string         `json:"url"`
 	IntervalSeconds int32          `json:"interval_seconds"`
@@ -83,8 +84,15 @@ func (db Database) GetUserTargets(ctx context.Context, userID types.UserID) ([]T
 
 func (db Database) AddTarget(ctx context.Context, target Target) (types.TargetID, error) {
 	const sql = "INSERT INTO " +
-		SchemaVersion + ".targets (user_id, name, url, interval_seconds) VALUES ($1, $2, $3, $4) RETURNING id"
-	row := db.Pool.QueryRow(ctx, sql, target.UserID, target.Name, target.URL, target.IntervalSeconds)
+		SchemaVersion + ".targets VALUES (DEFAULT, $1, $2, $3, $4, $5) RETURNING id"
+	row := db.Pool.QueryRow(
+		ctx, sql,
+		target.UserID,
+		target.TimeAdded,
+		target.Name,
+		target.URL,
+		target.IntervalSeconds,
+	)
 
 	var targetID types.TargetID
 	err := row.Scan(&targetID)
