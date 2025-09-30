@@ -22,7 +22,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -76,14 +75,12 @@ func (handler TargetsIDLatenciesHandler) HandleGet(writer http.ResponseWriter, r
 	options := clickhouse.GetLatenciesOptions{Since: since, Step: step}
 	latencies, err := handler.DB.ClickHouse.GetLatencies(ctx, sessionInfo.UserID, targetID, options)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	json, err := json.Marshal(latencies)
 	if err != nil {
-		fmt.Println(err)
 		http.Error(writer, "internal server error", http.StatusInternalServerError)
 		return
 	}
