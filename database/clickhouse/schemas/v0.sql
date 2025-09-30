@@ -28,3 +28,11 @@ CREATE TABLE IF NOT EXISTS "reachard.v0".latencies (
 )
 ENGINE = MergeTree()
 PRIMARY KEY (user_id, target_id, timestamp);
+
+CREATE TABLE IF NOT EXISTS "reachard.v0".incidents (
+    user_id Int32,
+    target_id Int32,
+    timestamp DateTime,
+)
+ENGINE = MergeTree()
+PRIMARY KEY (user_id, target_id, timestamp);
