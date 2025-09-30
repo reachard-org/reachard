@@ -35,7 +35,7 @@ type Latency struct {
 	Value     LatencyValue   `ch:"value" json:"value"`
 }
 
-func (database Database) AddLatencies(ctx context.Context, latencies []Latency) error {
+func (database Database) AddLatency(ctx context.Context, latency Latency) error {
 	const sql = `INSERT INTO "reachard.` + SchemaVersion + `".latencies`
 	batch, err := database.Conn.PrepareBatch(ctx, sql)
 	if err != nil {
@@ -43,11 +43,9 @@ func (database Database) AddLatencies(ctx context.Context, latencies []Latency) 
 	}
 	defer batch.Close()
 
-	for _, latency := range latencies {
-		err := batch.AppendStruct(&latency)
-		if err != nil {
-			return err
-		}
+	err = batch.AppendStruct(&latency)
+	if err != nil {
+		return err
 	}
 
 	err = batch.Send()
