@@ -76,14 +76,18 @@ func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *ht
 		return
 	}
 
-	json, err := json.Marshal(sessionToken)
-	if err != nil {
-		http.Error(writer, "internal server error", http.StatusInternalServerError)
-		return
+	cookie := http.Cookie{
+		Name:     "session_token",
+		Value:    sessionToken,
+		MaxAge:   3600,
+		Path:     "/v0/authorize/",
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
 	}
+	http.SetCookie(writer, &cookie)
 
-	writer.Header().Set("Content-Type", "application/json")
-	writer.Write(json)
+	writer.WriteHeader(http.StatusOK)
 }
 
 func (handler SessionHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
