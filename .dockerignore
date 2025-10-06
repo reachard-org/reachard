@@ -20,7 +20,10 @@
 
 *
 
+!**/*.css
 !**/*.go
+!**/*.html
+!**/*.js
 !**/*.sql
 !docker
 !go.mod

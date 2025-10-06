@@ -41,6 +41,7 @@ func NewServer() (Server, error) {
 	}
 
 	mux := http.NewServeMux()
+	mux.Handle("/v0/authorize/", handlers.NewAuthorizeHandler(db))
 	mux.Handle("/v0/session/{$}", handlers.NewSessionHandler(db))
 	mux.Handle("/v0/targets/{$}", handlers.NewTargetsHandler(db))
 	mux.Handle("/v0/targets/{id}/{$}", handlers.NewTargetsIDHandler(db))
