@@ -19,8 +19,22 @@
 // SPDX-License-Identifier: Apache-2.0
 
 const authenticationForm = document.getElementById("authentication-form");
-authenticationForm.addEventListener("submit", (event) => {
+authenticationForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  console.log("Hello there!");
+  const form = event.target;
+
+  const object = {
+    username: form.username.value,
+    password: form.password.value,
+  };
+  const json = JSON.stringify(object);
+
+  await fetch("/v0/session/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: json,
+  });
 });
