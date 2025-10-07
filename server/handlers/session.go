@@ -38,6 +38,26 @@ func NewSessionHandler(db database.Database) SessionHandler {
 	return SessionHandler{Handler{DB: db}}
 }
 
+func (handler SessionHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
+	ctx := request.Context()
+
+	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
+	if !authenticated {
+		return
+	}
+
+	err := handler.DB.PostgreSQL.DeleteSessionToken(ctx, sessionInfo.SessionToken)
+	if err != nil {
+		http.Error(writer, "internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (handler SessionHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
+	writer.Header().Set("Access-Control-Allow-Methods", "POST, DELETE")
+}
+
 func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *http.Request) {
 	rawRequestBody, err := io.ReadAll(request.Body)
 	if err != nil {
@@ -88,26 +108,6 @@ func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *ht
 	http.SetCookie(writer, &cookie)
 
 	writer.WriteHeader(http.StatusOK)
-}
-
-func (handler SessionHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-	writer.Header().Set("Access-Control-Allow-Methods", "POST, DELETE")
-}
-
-func (handler SessionHandler) HandleDelete(writer http.ResponseWriter, request *http.Request) {
-	ctx := request.Context()
-
-	sessionInfo, authenticated := handler.AuthenticateBySessionToken(writer, request)
-	if !authenticated {
-		return
-	}
-
-	err := handler.DB.PostgreSQL.DeleteSessionToken(ctx, sessionInfo.SessionToken)
-	if err != nil {
-		http.Error(writer, "internal server error", http.StatusInternalServerError)
-		return
-	}
 }
 
 func (handler SessionHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
