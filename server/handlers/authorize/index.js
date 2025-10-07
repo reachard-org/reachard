@@ -18,23 +18,63 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-const authenticationForm = document.getElementById("authentication-form");
-authenticationForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+class View {
+  constructor(refName, title) {
+    this.ref = document.getElementById(`${refName}-ref`);
+    this.title = `${title} | Reachard`;
+  }
 
-  const form = event.target;
+  async init() {}
 
-  const object = {
-    username: form.username.value,
-    password: form.password.value,
+  set() {
+    this.ref.checked = true;
+    document.title = this.title;
+  }
+}
+
+class AuthenticationView extends View {
+  constructor() {
+    super("authentication", "Authentication");
+  }
+
+  async init() {
+    const authenticationForm = document.getElementById("authentication-form");
+    authenticationForm.addEventListener("submit", (event) => this.logIn(event));
+  }
+
+  async logIn(event) {
+    event.preventDefault();
+
+    const form = event.target;
+
+    const object = {
+      username: form.username.value,
+      password: form.password.value,
+    };
+    const json = JSON.stringify(object);
+
+    await fetch("/v0/session/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: json,
+    });
+  }
+}
+
+class ViewManager {
+  views = {
+    authenticate: new AuthenticationView(),
   };
-  const json = JSON.stringify(object);
 
-  await fetch("/v0/session/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: json,
-  });
-});
+  async init() {
+    for (const view of Object.values(this.views)) {
+      view.init();
+    }
+
+    this.views.authenticate.set();
+  }
+}
+
+new ViewManager().init();
