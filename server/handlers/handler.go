@@ -47,12 +47,10 @@ type SessionInfo struct {
 	SessionToken postgresql.SessionToken
 }
 
-func (handler Handler) AuthenticateBySessionToken(
+func (handler Handler) AuthenticateByAccessToken(
 	writer http.ResponseWriter,
 	request *http.Request,
 ) (SessionInfo, bool) {
-	ctx := request.Context()
-
 	authorizationHeader := request.Header.Get("Authorization")
 	if authorizationHeader == "" {
 		http.Error(writer, "missing the Authorization header", http.StatusUnauthorized)
@@ -65,7 +63,24 @@ func (handler Handler) AuthenticateBySessionToken(
 		return SessionInfo{}, false
 	}
 
-	sessionToken := authorizationHeaderParts[1]
+	// TODO
+
+	return SessionInfo{}, false
+}
+
+func (handler Handler) AuthenticateBySessionToken(
+	writer http.ResponseWriter,
+	request *http.Request,
+) (SessionInfo, bool) {
+	ctx := request.Context()
+
+	sessionTokenCookie, err := request.Cookie("session_token")
+	if err != nil {
+		http.Error(writer, `missing the "session_token" cookie`, http.StatusUnauthorized)
+		return SessionInfo{}, false
+	}
+
+	sessionToken := sessionTokenCookie.Value
 	userId, err := handler.DB.PostgreSQL.AuthenticateBySessionToken(ctx, sessionToken)
 	if err != nil {
 		var errInternalServerError postgresql.ErrInternalServerError
