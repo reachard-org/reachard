@@ -53,9 +53,18 @@ func (handler SessionHandler) HandleDelete(writer http.ResponseWriter, request *
 	}
 }
 
+func (handler SessionHandler) HandleGet(writer http.ResponseWriter, request *http.Request) {
+	_, authenticated := handler.AuthenticateBySessionToken(writer, request)
+	if !authenticated {
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+}
+
 func (handler SessionHandler) HandleOptions(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
-	writer.Header().Set("Access-Control-Allow-Methods", "POST, DELETE")
+	writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE")
 }
 
 func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *http.Request) {
@@ -116,6 +125,8 @@ func (handler SessionHandler) ServeHTTP(writer http.ResponseWriter, request *htt
 	switch request.Method {
 	case "DELETE":
 		handler.HandleDelete(writer, request)
+	case "GET":
+		handler.HandleGet(writer, request)
 	case "OPTIONS":
 		handler.HandleOptions(writer, request)
 	case "POST":
