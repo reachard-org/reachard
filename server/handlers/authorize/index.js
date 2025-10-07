@@ -60,6 +60,8 @@ class AuthenticationView extends View {
       },
       body: json,
     });
+
+    new ViewManager().checkAuthStatus();
   }
 }
 
@@ -75,12 +77,26 @@ class ViewManager {
     authorization: new AuthorizationView(),
   };
 
+  async checkAuthStatus() {
+    try {
+      const response = await fetch("/v0/session/");
+
+      if (response.ok) {
+        this.views.authorization.set();
+      } else {
+        this.views.authenticate.set();
+      }
+    } catch {
+      this.views.authenticate.set();
+    }
+  }
+
   async init() {
     for (const view of Object.values(this.views)) {
       view.init();
     }
 
-    this.views.authenticate.set();
+    this.checkAuthStatus();
   }
 }
 
