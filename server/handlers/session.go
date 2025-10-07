@@ -100,7 +100,7 @@ func (handler SessionHandler) HandlePost(writer http.ResponseWriter, request *ht
 		Name:     "session_token",
 		Value:    sessionToken,
 		MaxAge:   3600,
-		Path:     "/v0/authorize/",
+		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
