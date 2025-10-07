@@ -63,9 +63,16 @@ class AuthenticationView extends View {
   }
 }
 
+class AuthorizationView extends View {
+  constructor() {
+    super("authorization", "Authorization");
+  }
+}
+
 class ViewManager {
   views = {
     authenticate: new AuthenticationView(),
+    authorization: new AuthorizationView(),
   };
 
   async init() {

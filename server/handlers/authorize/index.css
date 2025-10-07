@@ -36,7 +36,8 @@ body {
   display: none;
 }
 
-#authentication-ref:checked~#authentication-view {
+#authentication-ref:checked~#authentication-view,
+#authorization-ref:checked~#authorization-view {
   display: flex;
 }
 
