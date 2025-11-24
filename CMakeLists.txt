@@ -18,6 +18,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-.helix
+cmake_minimum_required(VERSION 4.0)
 
-build
+project(reachard VERSION 0.1.0 LANGUAGES C)
+
+add_executable(reachard src/main.c)

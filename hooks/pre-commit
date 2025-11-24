@@ -4,6 +4,7 @@ find . \
     -type f \
     -not -path "./.git/*" \
     -not -path "./.reuse/*" \
+    -not -path "./build/*" \
     -exec reuse annotate \
     --copyright "Pavel Sobolev" \
     --copyright-prefix string \
