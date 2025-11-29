@@ -20,6 +20,8 @@
 
 .helix
 
+.cache
+
 CMakeUserPresets.json
 
 build
