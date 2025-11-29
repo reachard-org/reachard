@@ -5,6 +5,7 @@ find . \
     -not -path "./.git/*" \
     -not -path "./.reuse/*" \
     -not -path "./build/*" \
+    -not -path "./CMakePresets.json" \
     -exec reuse annotate \
     --copyright "Pavel Sobolev" \
     --copyright-prefix string \

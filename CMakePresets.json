@@ -1,0 +1,14 @@
+{
+  "$schema": "https://gitlab.kitware.com/cmake/cmake/-/raw/master/Help/manual/presets/schema.json",
+  "version": 10,
+  "configurePresets": [
+    {
+      "name": "dev",
+      "displayName": "Development Configuration Preset",
+      "generator": "Ninja Multi-Config",
+      "binaryDir": "build",
+      "installDir": "install",
+      "cacheVariables": {}
+    }
+  ]
+}

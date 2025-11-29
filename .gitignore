@@ -20,4 +20,7 @@
 
 .helix
 
+CMakeUserPresets.json
+
 build
+install
