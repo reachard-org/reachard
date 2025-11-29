@@ -8,7 +8,9 @@
       "generator": "Ninja Multi-Config",
       "binaryDir": "build",
       "installDir": "install",
-      "cacheVariables": {}
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
     }
   ]
 }
