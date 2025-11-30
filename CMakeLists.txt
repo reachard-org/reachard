@@ -22,4 +22,6 @@ cmake_minimum_required(VERSION 4.0)
 
 project(reachard VERSION 0.1.0 LANGUAGES C)
 
-add_executable(reachard src/main.c)
+add_executable(reachard)
+target_compile_features(reachard PRIVATE c_std_23)
+target_sources(reachard PRIVATE src/main.c)
