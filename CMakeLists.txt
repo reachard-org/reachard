@@ -22,6 +22,11 @@ cmake_minimum_required(VERSION 4.0)
 
 project(reachard VERSION 0.1.0 LANGUAGES C)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+find_package(libmicrohttpd 1 REQUIRED)
+
 add_executable(reachard)
 target_compile_features(reachard PRIVATE c_std_23)
 target_sources(reachard PRIVATE src/main.c)
+target_link_libraries(reachard PRIVATE libmicrohttpd::MHD)
