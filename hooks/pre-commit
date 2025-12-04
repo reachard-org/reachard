@@ -25,7 +25,7 @@ reuse annotate \
     --copyright-prefix string \
     --year 2025 \
     --license "Apache-2.0" \
-    --template apache \
+    --template "Apache-2.0" \
     --skip-unrecognised \
     --merge-copyrights \
     --recursive .
