@@ -20,10 +20,45 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <microhttpd.h>
 #include <stdio.h>
+#include <string.h>
+
+#define PORT 7272
+
+enum MHD_Result
+reachard_handler (void *cls, struct MHD_Connection *connection,
+                  const char *url, const char *method, const char *version,
+                  const char *upload_data, size_t *upload_data_size,
+                  void **req_cls)
+{
+  const char *content = "<html><body>Hello there!</body></html>";
+
+  struct MHD_Response *response
+      = MHD_create_response_from_buffer_static (strlen (content), content);
+  const enum MHD_Result result
+      = MHD_queue_response (connection, MHD_HTTP_OK, response);
+
+  MHD_destroy_response (response);
+
+  return result;
+};
 
 int
 main ()
 {
-  printf ("Hello there!\n");
+  struct MHD_Daemon *daemon
+      = MHD_start_daemon (MHD_USE_INTERNAL_POLLING_THREAD, PORT, NULL, NULL,
+                          reachard_handler, NULL, MHD_OPTION_END);
+  if (!daemon)
+    return 1;
+
+  printf ("Server started. Press Enter to exit.\n");
+  getchar ();
+  printf ("\e[1F\e[2K");
+  fflush (stdout);
+
+  MHD_stop_daemon (daemon);
+
+  return 0;
 }
