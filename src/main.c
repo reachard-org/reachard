@@ -42,20 +42,20 @@ reachard_handler (void *cls, struct MHD_Connection *connection,
   MHD_destroy_response (response);
 
   return result;
-};
+}
 
 int
 main ()
 {
   struct MHD_Daemon *daemon
       = MHD_start_daemon (MHD_USE_INTERNAL_POLLING_THREAD, PORT, NULL, NULL,
-                          reachard_handler, NULL, MHD_OPTION_END);
+                          &reachard_handler, NULL, MHD_OPTION_END);
   if (!daemon)
     return 1;
 
   printf ("Server started. Press Enter to exit.\n");
   getchar ();
-  printf ("\e[1F\e[2K");
+  printf ("\x1B[1F\x1B[2K");
   fflush (stdout);
 
   MHD_stop_daemon (daemon);
