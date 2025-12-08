@@ -27,21 +27,26 @@
 #define PORT 7272
 
 static enum MHD_Result
+reachard_respond (struct MHD_Connection *connection, const char *content,
+                  const unsigned int status_code)
+{
+  struct MHD_Response *response
+      = MHD_create_response_from_buffer_static (strlen (content), content);
+  const enum MHD_Result result
+      = MHD_queue_response (connection, status_code, response);
+
+  MHD_destroy_response (response);
+
+  return result;
+}
+
+static enum MHD_Result
 reachard_handle_targets (void *cls, struct MHD_Connection *connection,
                          const char *url, const char *method,
                          const char *version, const char *upload_data,
                          size_t *upload_data_size, void **req_cls)
 {
-  const char *content = "hello from targets!";
-
-  struct MHD_Response *response
-      = MHD_create_response_from_buffer_static (strlen (content), content);
-  const enum MHD_Result result
-      = MHD_queue_response (connection, MHD_HTTP_BAD_REQUEST, response);
-
-  MHD_destroy_response (response);
-
-  return result;
+  return reachard_respond (connection, "hello from targets!", MHD_HTTP_OK);
 }
 
 enum reachard_endpoints
@@ -65,16 +70,8 @@ reachard_handle_first_call (void *cls, struct MHD_Connection *connection,
       return MHD_YES;
     }
 
-  const char *content = "this url is not supported";
-
-  struct MHD_Response *response
-      = MHD_create_response_from_buffer_static (strlen (content), content);
-  const enum MHD_Result result
-      = MHD_queue_response (connection, MHD_HTTP_BAD_REQUEST, response);
-
-  MHD_destroy_response (response);
-
-  return result;
+  return reachard_respond (connection, "this url is not supported",
+                           MHD_HTTP_BAD_REQUEST);
 }
 
 static enum MHD_Result
