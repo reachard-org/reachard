@@ -26,14 +26,28 @@
 
 #define PORT 7272
 
+struct reachard_request
+{
+  void *cls;
+  struct MHD_Connection *connection;
+  const char *url;
+  const char *method;
+  const char *version;
+  const char *upload_data;
+  size_t *upload_data_size;
+  void **req_cls;
+};
+
+typedef enum MHD_Result (*reachard_handler) (struct reachard_request *request);
+
 static enum MHD_Result
-reachard_respond (struct MHD_Connection *connection, const char *content,
+reachard_respond (struct reachard_request *request, const char *content,
                   const unsigned int status_code)
 {
   struct MHD_Response *response
       = MHD_create_response_from_buffer_static (strlen (content), content);
   const enum MHD_Result result
-      = MHD_queue_response (connection, status_code, response);
+      = MHD_queue_response (request->connection, status_code, response);
 
   MHD_destroy_response (response);
 
@@ -41,27 +55,21 @@ reachard_respond (struct MHD_Connection *connection, const char *content,
 }
 
 static enum MHD_Result
-reachard_handle_targets (void *cls, struct MHD_Connection *connection,
-                         const char *url, const char *method,
-                         const char *version, const char *upload_data,
-                         size_t *upload_data_size, void **req_cls)
+reachard_handle_targets (struct reachard_request *request)
 {
-  return reachard_respond (connection, "hello from targets!", MHD_HTTP_OK);
+  return reachard_respond (request, "hello from targets!", MHD_HTTP_OK);
 }
 
 static enum MHD_Result
-reachard_handle_first_call (void *cls, struct MHD_Connection *connection,
-                            const char *url, const char *method,
-                            const char *version, const char *upload_data,
-                            size_t *upload_data_size, void **req_cls)
+reachard_handle_first_call (struct reachard_request *request)
 {
-  if (strcmp (url, "/targets/") == 0)
+  if (strcmp (request->url, "/targets/") == 0)
     {
-      *req_cls = (void *)reachard_handle_targets;
+      *request->req_cls = (void *)reachard_handle_targets;
       return MHD_YES;
     }
 
-  return reachard_respond (connection, "this url is not supported",
+  return reachard_respond (request, "this url is not supported",
                            MHD_HTTP_BAD_REQUEST);
 }
 
@@ -72,16 +80,16 @@ reachard_handle (void *cls, struct MHD_Connection *connection, const char *url,
                  void **req_cls)
 {
   /* This function is called several times over the lifetime of a request */
+  struct reachard_request request
+      = { cls,         connection,       url,    method, version,
+          upload_data, upload_data_size, req_cls };
 
   /* First call has headers available only */
   if (*req_cls == NULL)
-    return reachard_handle_first_call (cls, connection, url, method, version,
-                                       upload_data, upload_data_size, req_cls);
+    return reachard_handle_first_call (&request);
 
   /* Second call has body available as well */
-  return ((MHD_AccessHandlerCallback)*req_cls) (cls, connection, url, method,
-                                                version, upload_data,
-                                                upload_data_size, req_cls);
+  return ((reachard_handler)*req_cls) (&request);
 }
 
 int
