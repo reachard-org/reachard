@@ -55,22 +55,30 @@ reachard_respond (struct reachard_request *request, const char *content,
 }
 
 static enum MHD_Result
-reachard_handle_targets (struct reachard_request *request)
+reachard_handle_targets_get (struct reachard_request *request)
 {
   return reachard_respond (request, "hello from targets!", MHD_HTTP_OK);
+}
+
+static enum MHD_Result
+reachard_handle_first_call_targets (struct reachard_request *request)
+{
+  if (strcmp (request->method, "GET") == 0)
+    {
+      *request->req_cls = (void *)reachard_handle_targets_get;
+      return MHD_YES;
+    }
+
+  return reachard_respond (request, "method not allowed", MHD_HTTP_OK);
 }
 
 static enum MHD_Result
 reachard_handle_first_call (struct reachard_request *request)
 {
   if (strcmp (request->url, "/targets/") == 0)
-    {
-      *request->req_cls = (void *)reachard_handle_targets;
-      return MHD_YES;
-    }
+    return reachard_handle_first_call_targets (request);
 
-  return reachard_respond (request, "this url is not supported",
-                           MHD_HTTP_BAD_REQUEST);
+  return reachard_respond (request, "url not allowed", MHD_HTTP_BAD_REQUEST);
 }
 
 static enum MHD_Result
