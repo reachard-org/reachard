@@ -49,15 +49,6 @@ reachard_handle_targets (void *cls, struct MHD_Connection *connection,
   return reachard_respond (connection, "hello from targets!", MHD_HTTP_OK);
 }
 
-enum reachard_endpoints
-{
-  targets
-};
-
-static const enum reachard_endpoints reachard_endpoints[] = {
-  targets,
-};
-
 static enum MHD_Result
 reachard_handle_first_call (void *cls, struct MHD_Connection *connection,
                             const char *url, const char *method,
@@ -66,7 +57,7 @@ reachard_handle_first_call (void *cls, struct MHD_Connection *connection,
 {
   if (strcmp (url, "/targets/") == 0)
     {
-      *req_cls = (void *)&reachard_endpoints[targets];
+      *req_cls = (void *)reachard_handle_targets;
       return MHD_YES;
     }
 
@@ -88,15 +79,9 @@ reachard_handle (void *cls, struct MHD_Connection *connection, const char *url,
                                        upload_data, upload_data_size, req_cls);
 
   /* Second call has body available as well */
-  const enum reachard_endpoints *reachard_endpoint = *req_cls;
-  switch (*reachard_endpoint)
-    {
-    case targets:
-      return reachard_handle_targets (cls, connection, url, method, version,
-                                      upload_data, upload_data_size, req_cls);
-    default:
-      return MHD_NO;
-    }
+  return ((MHD_AccessHandlerCallback)*req_cls) (cls, connection, url, method,
+                                                version, upload_data,
+                                                upload_data_size, req_cls);
 }
 
 int
