@@ -20,7 +20,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define _POSIX_C_SOURCE 199309L
+
 #include <microhttpd.h>
+#include <signal.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -100,6 +103,12 @@ reachard_handle (void *cls, struct MHD_Connection *connection, const char *url,
   return ((reachard_handler)*req_cls) (&request);
 }
 
+static void
+reachard_interrupt (int sig, siginfo_t *info, void *ucontext)
+{
+  printf ("\rShutting down!\n");
+}
+
 int
 main ()
 {
@@ -109,10 +118,13 @@ main ()
   if (!daemon)
     return 1;
 
-  printf ("Server started. Press Enter to exit.\n");
-  getchar ();
-  printf ("\x1B[1F\x1B[2K");
-  fflush (stdout);
+  const struct sigaction act
+      = { .sa_sigaction = &reachard_interrupt, .sa_flags = SA_SIGINFO };
+  sigaction (SIGINT, &act, NULL);
+  sigaction (SIGTERM, &act, NULL);
+
+  printf ("Listening on :%d\n", PORT);
+  pause ();
 
   MHD_stop_daemon (daemon);
 
