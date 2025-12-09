@@ -72,7 +72,8 @@ reachard_handle_first_call_targets (struct reachard_request *request)
       return MHD_YES;
     }
 
-  return reachard_respond (request, "method not allowed", MHD_HTTP_OK);
+  return reachard_respond (request, "method not allowed",
+                           MHD_HTTP_BAD_REQUEST);
 }
 
 static enum MHD_Result
