@@ -107,7 +107,7 @@ reachard_handle (void *cls, struct MHD_Connection *connection, const char *url,
 static void
 reachard_interrupt (int sig, siginfo_t *info, void *ucontext)
 {
-  printf ("\rShutting down!\n");
+  printf ("\rShutting down! [%d]\n", sig);
 }
 
 int
