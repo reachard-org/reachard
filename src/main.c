@@ -97,7 +97,7 @@ reachard_handle (void *cls, struct MHD_Connection *connection, const char *url,
           upload_data, upload_data_size, req_cls };
 
   /* First call has headers available only */
-  if (*req_cls == NULL)
+  if (!*req_cls)
     return reachard_handle_first_call (&request);
 
   /* Second call has body available as well */
