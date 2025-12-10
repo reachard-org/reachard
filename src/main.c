@@ -60,7 +60,13 @@ reachard_respond (struct reachard_request *request, const char *content,
 static enum MHD_Result
 reachard_handle_targets_get (struct reachard_request *request)
 {
-  return reachard_respond (request, "hello from targets!", MHD_HTTP_OK);
+  return reachard_respond (request, "hello from targets GET!", MHD_HTTP_OK);
+}
+
+static enum MHD_Result
+reachard_handle_targets_post (struct reachard_request *request)
+{
+  return reachard_respond (request, "hello from targets POST!", MHD_HTTP_OK);
 }
 
 static enum MHD_Result
@@ -69,6 +75,11 @@ reachard_handle_first_call_targets (struct reachard_request *request)
   if (strcmp (request->method, "GET") == 0)
     {
       *request->req_cls = (void *)reachard_handle_targets_get;
+      return MHD_YES;
+    }
+  if (strcmp (request->method, "POST") == 0)
+    {
+      *request->req_cls = (void *)reachard_handle_targets_post;
       return MHD_YES;
     }
 
