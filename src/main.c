@@ -44,7 +44,7 @@ struct reachard_request
 
 typedef enum MHD_Result (*reachard_handler) (struct reachard_request *request);
 
-struct reachard_connection
+struct reachard_connection_info
 {
   reachard_handler handle;
 };
@@ -80,11 +80,13 @@ reachard_handle_next_calls_with (struct reachard_request *request,
                                  reachard_handler handler)
 {
   if (!*request->req_cls)
-    if (!(*request->req_cls = malloc (sizeof (struct reachard_connection))))
-      return MHD_NO;
+    *request->req_cls = malloc (sizeof (struct reachard_connection_info));
 
-  struct reachard_connection *conn = *request->req_cls;
-  conn->handle = handler;
+  struct reachard_connection_info *conn_info = *request->req_cls;
+  if (!conn_info)
+    return MHD_NO;
+
+  conn_info->handle = handler;
 
   return MHD_YES;
 }
@@ -113,34 +115,34 @@ reachard_handle_first_call (struct reachard_request *request)
 }
 
 static enum MHD_Result
-reachard_handle (void *cls, struct MHD_Connection *connection, const char *url,
+reachard_handle (void *cls, struct MHD_Connection *conn, const char *url,
                  const char *method, const char *version,
                  const char *upload_data, size_t *upload_data_size,
                  void **req_cls)
 {
   /* This function is called several times over the lifetime of a request */
   struct reachard_request request
-      = { cls,         connection,       url,    method, version,
-          upload_data, upload_data_size, req_cls };
+      = { cls,    conn, url, method, version, upload_data, upload_data_size,
+          req_cls };
 
-  struct reachard_connection *conn = *req_cls;
+  struct reachard_connection_info *conn_info = *req_cls;
 
   /* First call has headers available only */
-  if (!conn)
+  if (!conn_info)
     return reachard_handle_first_call (&request);
 
   /* Second call has body available as well */
-  return conn->handle (&request);
+  return conn_info->handle (&request);
 }
 
 void
-reachard_complete (void *cls, struct MHD_Connection *connection,
-                   void **req_cls, enum MHD_RequestTerminationCode toe)
+reachard_complete (void *cls, struct MHD_Connection *conn, void **req_cls,
+                   enum MHD_RequestTerminationCode toe)
 {
-  struct reachard_connection *conn = *req_cls;
+  struct reachard_connection_info *conn_info = *req_cls;
 
-  if (conn)
-    free (conn);
+  if (conn_info)
+    free (conn_info);
 }
 
 static void
