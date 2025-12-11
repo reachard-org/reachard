@@ -49,6 +49,13 @@ struct reachard_connection_info
   reachard_handler handle;
 };
 
+static void
+reachard_connection_info_destroy (struct reachard_connection_info *conn_info)
+{
+  if (conn_info)
+    free (conn_info);
+}
+
 static enum MHD_Result
 reachard_respond (struct reachard_request *request, const char *content,
                   const unsigned int status_code)
@@ -139,10 +146,7 @@ void
 reachard_complete (void *cls, struct MHD_Connection *conn, void **req_cls,
                    enum MHD_RequestTerminationCode toe)
 {
-  struct reachard_connection_info *conn_info = *req_cls;
-
-  if (conn_info)
-    free (conn_info);
+  reachard_connection_info_destroy (*req_cls);
 }
 
 static void
