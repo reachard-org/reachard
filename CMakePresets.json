@@ -24,7 +24,7 @@
         "debug"
       ],
       "cacheVariables": {
-        "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer",
+        "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -fno-inline",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address"
       }
     }
