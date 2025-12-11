@@ -25,6 +25,7 @@
 #include <microhttpd.h>
 #include <signal.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define PORT 7272
@@ -42,6 +43,11 @@ struct reachard_request
 };
 
 typedef enum MHD_Result (*reachard_handler) (struct reachard_request *request);
+
+struct reachard_connection
+{
+  reachard_handler handle;
+};
 
 static enum MHD_Result
 reachard_respond (struct reachard_request *request, const char *content,
@@ -70,18 +76,28 @@ reachard_handle_targets_post (struct reachard_request *request)
 }
 
 static enum MHD_Result
+reachard_handle_next_calls_with (struct reachard_request *request,
+                                 reachard_handler handler)
+{
+  if (!*request->req_cls)
+    if (!(*request->req_cls = malloc (sizeof (struct reachard_connection))))
+      return MHD_NO;
+
+  struct reachard_connection *conn = *request->req_cls;
+  conn->handle = handler;
+
+  return MHD_YES;
+}
+
+static enum MHD_Result
 reachard_handle_first_call_targets (struct reachard_request *request)
 {
   if (strcmp (request->method, "GET") == 0)
-    {
-      *request->req_cls = (void *)reachard_handle_targets_get;
-      return MHD_YES;
-    }
+    return reachard_handle_next_calls_with (request,
+                                            &reachard_handle_targets_get);
   if (strcmp (request->method, "POST") == 0)
-    {
-      *request->req_cls = (void *)reachard_handle_targets_post;
-      return MHD_YES;
-    }
+    return reachard_handle_next_calls_with (request,
+                                            &reachard_handle_targets_post);
 
   return reachard_respond (request, "method not allowed",
                            MHD_HTTP_BAD_REQUEST);
@@ -107,12 +123,24 @@ reachard_handle (void *cls, struct MHD_Connection *connection, const char *url,
       = { cls,         connection,       url,    method, version,
           upload_data, upload_data_size, req_cls };
 
+  struct reachard_connection *conn = *req_cls;
+
   /* First call has headers available only */
-  if (!*req_cls)
+  if (!conn)
     return reachard_handle_first_call (&request);
 
   /* Second call has body available as well */
-  return ((reachard_handler)*req_cls) (&request);
+  return conn->handle (&request);
+}
+
+void
+reachard_complete (void *cls, struct MHD_Connection *connection,
+                   void **req_cls, enum MHD_RequestTerminationCode toe)
+{
+  struct reachard_connection *conn = *req_cls;
+
+  if (conn)
+    free (conn);
 }
 
 static void
@@ -126,7 +154,8 @@ main ()
 {
   struct MHD_Daemon *daemon
       = MHD_start_daemon (MHD_USE_INTERNAL_POLLING_THREAD, PORT, NULL, NULL,
-                          &reachard_handle, NULL, MHD_OPTION_END);
+                          &reachard_handle, NULL, MHD_OPTION_NOTIFY_COMPLETED,
+                          &reachard_complete, NULL, MHD_OPTION_END);
   if (!daemon)
     return 1;
 
