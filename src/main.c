@@ -114,7 +114,7 @@ reachard_handle_targets_post_data_iterator (
 }
 
 static enum MHD_Result
-reachard_handle_first_call_targets (struct reachard_request *request)
+reachard_handle_targets_first_call (struct reachard_request *request)
 {
   struct reachard_connection_info *conn_info
       = calloc (1, sizeof (struct reachard_connection_info));
@@ -154,7 +154,7 @@ static enum MHD_Result
 reachard_handle_first_call (struct reachard_request *request)
 {
   if (strcmp (request->url, "/targets/") == 0)
-    return reachard_handle_first_call_targets (request);
+    return reachard_handle_targets_first_call (request);
 
   return reachard_respond (request, "url not allowed", MHD_HTTP_BAD_REQUEST);
 }
