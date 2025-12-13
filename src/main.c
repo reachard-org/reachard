@@ -47,13 +47,20 @@ typedef enum MHD_Result (*reachard_handler) (struct reachard_request *request);
 struct reachard_connection_info
 {
   reachard_handler handle;
+  struct MHD_PostProcessor *postprocessor;
 };
 
 static void
 reachard_connection_info_destroy (struct reachard_connection_info *conn_info)
 {
-  if (conn_info)
-    free (conn_info);
+  if (!conn_info)
+    return;
+
+  if (conn_info->postprocessor)
+    MHD_destroy_post_processor (conn_info->postprocessor);
+
+  free (conn_info);
+  conn_info = NULL;
 }
 
 static enum MHD_Result
@@ -79,37 +86,68 @@ reachard_handle_targets_get (struct reachard_request *request)
 static enum MHD_Result
 reachard_handle_targets_post (struct reachard_request *request)
 {
-  return reachard_respond (request, "hello from targets POST!", MHD_HTTP_OK);
+  struct reachard_connection_info *conn_info = *request->req_cls;
+
+  if (*request->upload_data_size > 0)
+    {
+      const enum MHD_Result result
+          = MHD_post_process (conn_info->postprocessor, request->upload_data,
+                              *request->upload_data_size);
+      if (result != MHD_YES)
+        return MHD_NO;
+
+      *request->upload_data_size = 0;
+
+      return MHD_YES;
+    }
+  else
+    return reachard_respond (request, "hello from targets POST!", MHD_HTTP_OK);
 }
 
-static enum MHD_Result
-reachard_handle_next_calls_with (struct reachard_request *request,
-                                 reachard_handler handler)
+enum MHD_Result
+reachard_handle_targets_post_data_iterator (
+    void *cls, enum MHD_ValueKind kind, const char *key, const char *filename,
+    const char *content_type, const char *transfer_encoding, const char *data,
+    uint64_t off, size_t size)
 {
-  if (!*request->req_cls)
-    *request->req_cls = malloc (sizeof (struct reachard_connection_info));
-
-  struct reachard_connection_info *conn_info = *request->req_cls;
-  if (!conn_info)
-    return MHD_NO;
-
-  conn_info->handle = handler;
-
   return MHD_YES;
 }
 
 static enum MHD_Result
 reachard_handle_first_call_targets (struct reachard_request *request)
 {
-  if (strcmp (request->method, "GET") == 0)
-    return reachard_handle_next_calls_with (request,
-                                            &reachard_handle_targets_get);
-  if (strcmp (request->method, "POST") == 0)
-    return reachard_handle_next_calls_with (request,
-                                            &reachard_handle_targets_post);
+  struct reachard_connection_info *conn_info
+      = calloc (1, sizeof (struct reachard_connection_info));
+  if (!conn_info)
+    return MHD_NO;
 
-  return reachard_respond (request, "method not allowed",
-                           MHD_HTTP_BAD_REQUEST);
+  if (strcmp (request->method, "GET") == 0)
+    conn_info->handle = &reachard_handle_targets_get;
+  if (strcmp (request->method, "POST") == 0)
+    {
+      conn_info->handle = &reachard_handle_targets_post;
+
+      conn_info->postprocessor = MHD_create_post_processor (
+          request->connection, 512,
+          &reachard_handle_targets_post_data_iterator, NULL);
+
+      if (!conn_info->postprocessor)
+        {
+          free (conn_info);
+          return MHD_NO;
+        }
+    }
+
+  if (!conn_info->handle)
+    {
+      free (conn_info);
+      return reachard_respond (request, "method not allowed",
+                               MHD_HTTP_BAD_REQUEST);
+    }
+
+  *request->req_cls = conn_info;
+
+  return MHD_YES;
 }
 
 static enum MHD_Result
@@ -138,7 +176,7 @@ reachard_handle (void *cls, struct MHD_Connection *conn, const char *url,
   if (!conn_info)
     return reachard_handle_first_call (&request);
 
-  /* Second call has body available as well */
+  /* The following calls make body available as well */
   return conn_info->handle (&request);
 }
 
