@@ -41,6 +41,39 @@ struct reachard_request {
 
 typedef enum MHD_Result (*reachard_handler)(struct reachard_request *request);
 
+struct reachard_targets_list_item {
+    struct reachard_targets_list_item *next;
+    int id;
+};
+
+struct reachard_targets_list {
+    struct reachard_targets_list_item *head, *tail;
+};
+
+static void
+reachard_targets_list_add(struct reachard_targets_list *list, int id) {
+    struct reachard_targets_list_item *item =
+        calloc(1, sizeof(struct reachard_targets_list_item));
+    item->id = id;
+
+    if (!list->head) {
+        list->head = item;
+        list->tail = item;
+    } else {
+        list->tail->next = item;
+        list->tail = item;
+    }
+}
+
+static void
+reachard_targets_list_destroy(struct reachard_targets_list list) {
+    struct reachard_targets_list_item *current, *next;
+    for (current = list.head; current; current = next) {
+        next = current->next;
+        free(current);
+    }
+}
+
 struct reachard_connection_info {
     reachard_handler handle;
     struct MHD_PostProcessor *postprocessor;
@@ -110,6 +143,13 @@ reachard_handle_targets_post_data_iterator(
     const char *filename, const char *content_type, const char *transfer_encoding,
     const char *data, uint64_t off, size_t size
 ) {
+    struct reachard_targets_list *targets_list = cls;
+
+    if (strcmp(key, "id") == 0) {
+        const int id = atoi(data);
+        reachard_targets_list_add(targets_list, id);
+    }
+
     return MHD_YES;
 }
 
@@ -130,7 +170,7 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
             request->conn,
             512,
             &reachard_handle_targets_post_data_iterator,
-            NULL
+            request->cls
         );
 
         if (!conn_info->postprocessor) {
@@ -202,10 +242,12 @@ reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
 
 int
 main() {
+    struct reachard_targets_list targets_list = {0};
+
     struct MHD_Daemon *daemon = MHD_start_daemon(
         MHD_USE_INTERNAL_POLLING_THREAD, PORT,
         NULL, NULL,
-        &reachard_handle, NULL,
+        &reachard_handle, &targets_list,
         MHD_OPTION_NOTIFY_COMPLETED, &reachard_complete, NULL,
         MHD_OPTION_END
     );
@@ -224,6 +266,7 @@ main() {
     pause();
 
     MHD_stop_daemon(daemon);
+    reachard_targets_list_destroy(targets_list);
 
     return 0;
 }
