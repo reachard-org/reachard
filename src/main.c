@@ -123,8 +123,7 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
 
     if (strcmp(request->method, "GET") == 0) {
         conn_info->handle = &reachard_handle_targets_get;
-    }
-    if (strcmp(request->method, "POST") == 0) {
+    } else if (strcmp(request->method, "POST") == 0) {
         conn_info->handle = &reachard_handle_targets_post;
 
         conn_info->postprocessor = MHD_create_post_processor(
