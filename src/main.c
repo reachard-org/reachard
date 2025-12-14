@@ -66,6 +66,19 @@ reachard_targets_list_add(struct reachard_targets_list *list, int id) {
 }
 
 static void
+reachard_targets_list_delete(struct reachard_targets_list *list, int id) {
+    struct reachard_targets_list_item *prev, *current;
+    for (current = list->head; current; current = current->next) {
+        if (current->id == id) {
+            prev->next = current->next;
+            free(current);
+            break;
+        }
+        prev = current;
+    }
+}
+
+static void
 reachard_targets_list_destroy(struct reachard_targets_list list) {
     struct reachard_targets_list_item *current, *next;
     for (current = list.head; current; current = next) {
@@ -115,22 +128,53 @@ reachard_handle_targets_get(struct reachard_request *request) {
 }
 
 static enum MHD_Result
-reachard_handle_targets_post(struct reachard_request *request) {
+reachard_handle_processing(struct reachard_request *request) {
     struct reachard_connection_info *conn_info = *request->req_cls;
 
+    const enum MHD_Result result = MHD_post_process(
+        conn_info->postprocessor,
+        request->upload_data,
+        *request->upload_data_size
+    );
+    if (result != MHD_YES) {
+        return MHD_NO;
+    }
+
+    *request->upload_data_size = 0;
+
+    return MHD_YES;
+}
+
+static enum MHD_Result
+reachard_handle_targets_delete(struct reachard_request *request) {
     if (*request->upload_data_size > 0) {
-        const enum MHD_Result result = MHD_post_process(
-            conn_info->postprocessor,
-            request->upload_data,
-            *request->upload_data_size
-        );
-        if (result != MHD_YES) {
-            return MHD_NO;
-        }
+        return reachard_handle_processing(request);
+    }
 
-        *request->upload_data_size = 0;
+    return reachard_respond(request, "hello from targets DELETE!", MHD_HTTP_OK);
+}
 
-        return MHD_YES;
+enum MHD_Result
+reachard_handle_targets_delete_data_iterator(
+    void *cls,
+    enum MHD_ValueKind kind, const char *key,
+    const char *filename, const char *content_type, const char *transfer_encoding,
+    const char *data, uint64_t off, size_t size
+) {
+    struct reachard_targets_list *targets_list = cls;
+
+    if (strcmp(key, "id") == 0) {
+        const int id = atoi(data);
+        reachard_targets_list_delete(targets_list, id);
+    }
+
+    return MHD_YES;
+}
+
+static enum MHD_Result
+reachard_handle_targets_post(struct reachard_request *request) {
+    if (*request->upload_data_size > 0) {
+        return reachard_handle_processing(request);
     }
 
     return reachard_respond(request, "hello from targets POST!", MHD_HTTP_OK);
@@ -170,6 +214,20 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
             request->conn,
             512,
             &reachard_handle_targets_post_data_iterator,
+            request->cls
+        );
+
+        if (!conn_info->postprocessor) {
+            free(conn_info);
+            return MHD_NO;
+        }
+    } else if (strcmp(request->method, "DELETE") == 0) {
+        conn_info->handle = &reachard_handle_targets_delete;
+
+        conn_info->postprocessor = MHD_create_post_processor(
+            request->conn,
+            512,
+            &reachard_handle_targets_delete_data_iterator,
             request->cls
         );
 
