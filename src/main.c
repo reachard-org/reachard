@@ -51,6 +51,15 @@ struct reachard_targets_list {
 };
 
 static void
+reachard_targets_list_print(struct reachard_targets_list *list) {
+    struct reachard_targets_list_item *current;
+    for (current = list->head; current; current = current->next) {
+        printf("%d -> ", current->id);
+    }
+    printf("\n");
+}
+
+static void
 reachard_targets_list_add(struct reachard_targets_list *list, int id) {
     struct reachard_targets_list_item *item =
         calloc(1, sizeof(struct reachard_targets_list_item));
@@ -124,6 +133,9 @@ reachard_respond(
 
 static enum MHD_Result
 reachard_handle_targets_get(struct reachard_request *request) {
+    struct reachard_targets_list *targets_list = request->cls;
+    reachard_targets_list_print(targets_list);
+
     return reachard_respond(request, "hello from targets GET!", MHD_HTTP_OK);
 }
 
