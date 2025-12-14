@@ -20,7 +20,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define _POSIX_C_SOURCE 199309L
+#define _POSIX_C_SOURCE 200809L
 
 #include <microhttpd.h>
 #include <signal.h>
@@ -50,13 +50,20 @@ struct reachard_targets_list {
     struct reachard_targets_list_item *head, *tail;
 };
 
-static void
+static char *
 reachard_targets_list_print(struct reachard_targets_list *list) {
+    char *result;
+    size_t result_size = 0;
+    FILE *stream = open_memstream(&result, &result_size);
+
     struct reachard_targets_list_item *current;
     for (current = list->head; current; current = current->next) {
-        printf("%d -> ", current->id);
+        fprintf(stream, "%d -> ", current->id);
     }
-    printf("\n");
+    fprintf(stream, "\n");
+    fclose(stream);
+
+    return result;
 }
 
 static void
@@ -132,11 +139,29 @@ reachard_respond(
 }
 
 static enum MHD_Result
+reachard_respond_with_free(
+    struct reachard_request *request,
+    char *content,
+    const unsigned int status_code
+) {
+    struct MHD_Response *response =
+        MHD_create_response_from_buffer_with_free_callback_cls(
+            strlen(content), content, &free, content
+        );
+    const enum MHD_Result result =
+        MHD_queue_response(request->conn, status_code, response);
+
+    MHD_destroy_response(response);
+
+    return result;
+}
+
+static enum MHD_Result
 reachard_handle_targets_get(struct reachard_request *request) {
     struct reachard_targets_list *targets_list = request->cls;
-    reachard_targets_list_print(targets_list);
+    char *target_list_printed = reachard_targets_list_print(targets_list);
 
-    return reachard_respond(request, "hello from targets GET!", MHD_HTTP_OK);
+    return reachard_respond_with_free(request, target_list_printed, MHD_HTTP_OK);
 }
 
 static enum MHD_Result
