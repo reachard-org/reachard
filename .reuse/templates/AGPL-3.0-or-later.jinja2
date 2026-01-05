@@ -1,5 +1,7 @@
 Reachard
-Copyright 2026 Pavel Sobolev
+{% for copyright_line in copyright_lines %}
+{{ copyright_line }}
+{% endfor %}
 
 This file is part of the Reachard project, located at
 <https://reachard.paveloom.dev/>.
@@ -17,4 +19,9 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-SPDX-License-Identifier: AGPL-3.0-or-later
+{% for contributor_line in contributor_lines %}
+SPDX-FileContributor: {{ contributor_line }}
+{% endfor %}
+{% for expression in spdx_expressions %}
+SPDX-License-Identifier: {{ expression }}
+{% endfor %}
