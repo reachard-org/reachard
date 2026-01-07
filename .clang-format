@@ -22,7 +22,7 @@
 # clang-format v21
 
 AlignAfterOpenBracket: BlockIndent
+AllowShortIfStatementsOnASingleLine: WithoutElse
 BreakAfterReturnType: All
 ColumnLimit: 0
 IndentWidth: 4
-InsertBraces: true
