@@ -21,11 +21,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include "server/server.h"
+#include "server/serve.h"
 
 #define PORT 7272
 
 int
 main() {
-    return reachard_server_start(PORT);
+    return reachard_serve(PORT);
 }

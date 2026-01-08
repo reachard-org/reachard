@@ -31,12 +31,12 @@
 #include "handle.h"
 
 static void
-reachard_server_interrupt(int sig, siginfo_t *info, void *ucontext) {
+reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
     printf("\rShutting down! [%d]\n", sig);
 }
 
 int
-reachard_server_start(const int port) {
+reachard_serve(const int port) {
     struct reachard_targets_list targets_list = {0};
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
@@ -51,7 +51,7 @@ reachard_server_start(const int port) {
     }
 
     const struct sigaction act = {
-        .sa_sigaction = &reachard_server_interrupt,
+        .sa_sigaction = &reachard_interrupt,
         .sa_flags = SA_SIGINFO
     };
     sigaction(SIGINT, &act, NULL);
