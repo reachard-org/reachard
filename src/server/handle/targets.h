@@ -25,26 +25,7 @@
 
 #include <microhttpd.h>
 
-#include "request.h"
-
-typedef enum MHD_Result (*reachard_handler)(struct reachard_request *request);
-
-struct reachard_connection_info {
-    reachard_handler handle;
-    struct MHD_PostProcessor *postprocessor;
-};
+#include "../request.h"
 
 enum MHD_Result
-reachard_handle(
-    void *cls, struct MHD_Connection *conn,
-    const char *url, const char *method, const char *version,
-    const char *upload_data, size_t *upload_data_size,
-    void **req_cls
-);
-
-void
-reachard_handle_complete(
-    void *cls, struct MHD_Connection *conn,
-    void **req_cls,
-    enum MHD_RequestTerminationCode toe
-);
+reachard_handle_targets_first_call(struct reachard_request *request);

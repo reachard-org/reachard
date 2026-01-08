@@ -29,14 +29,9 @@
 
 #include <microhttpd.h>
 
-#include "state.h"
+#include "handle/targets.h"
 
 #include "handle.h"
-
-struct reachard_connection_info {
-    reachard_handler handle;
-    struct MHD_PostProcessor *postprocessor;
-};
 
 static void
 reachard_connection_info_destroy(struct reachard_connection_info *conn_info) {
@@ -50,136 +45,6 @@ reachard_connection_info_destroy(struct reachard_connection_info *conn_info) {
 
     free(conn_info);
     conn_info = NULL;
-}
-
-static enum MHD_Result
-reachard_handle_targets_get(struct reachard_request *request) {
-    struct reachard_targets_list *targets_list = request->cls;
-    char *target_list_printed = reachard_targets_list_print(targets_list);
-
-    return reachard_request_respond_with_free(request, target_list_printed, MHD_HTTP_OK);
-}
-
-static enum MHD_Result
-reachard_handle_processing(struct reachard_request *request) {
-    struct reachard_connection_info *conn_info = *request->req_cls;
-
-    const enum MHD_Result result = MHD_post_process(
-        conn_info->postprocessor,
-        request->upload_data,
-        *request->upload_data_size
-    );
-    if (result != MHD_YES) {
-        return MHD_NO;
-    }
-
-    *request->upload_data_size = 0;
-
-    return MHD_YES;
-}
-
-static enum MHD_Result
-reachard_handle_targets_delete(struct reachard_request *request) {
-    if (*request->upload_data_size > 0) {
-        return reachard_handle_processing(request);
-    }
-
-    return reachard_request_respond(request, "hello from targets DELETE!", MHD_HTTP_OK);
-}
-
-enum MHD_Result
-reachard_handle_targets_delete_data_iterator(
-    void *cls,
-    enum MHD_ValueKind kind, const char *key,
-    const char *filename, const char *content_type, const char *transfer_encoding,
-    const char *data, uint64_t off, size_t size
-) {
-    struct reachard_targets_list *targets_list = cls;
-
-    if (strcmp(key, "id") == 0) {
-        const int id = atoi(data);
-        reachard_targets_list_delete(targets_list, id);
-    }
-
-    return MHD_YES;
-}
-
-static enum MHD_Result
-reachard_handle_targets_post(struct reachard_request *request) {
-    if (*request->upload_data_size > 0) {
-        return reachard_handle_processing(request);
-    }
-
-    return reachard_request_respond(request, "hello from targets POST!", MHD_HTTP_OK);
-}
-
-enum MHD_Result
-reachard_handle_targets_post_data_iterator(
-    void *cls,
-    enum MHD_ValueKind kind, const char *key,
-    const char *filename, const char *content_type, const char *transfer_encoding,
-    const char *data, uint64_t off, size_t size
-) {
-    struct reachard_targets_list *targets_list = cls;
-
-    if (strcmp(key, "id") == 0) {
-        const int id = atoi(data);
-        reachard_targets_list_add(targets_list, id);
-    }
-
-    return MHD_YES;
-}
-
-static enum MHD_Result
-reachard_handle_targets_first_call(struct reachard_request *request) {
-    struct reachard_connection_info *conn_info =
-        calloc(1, sizeof(struct reachard_connection_info));
-    if (!conn_info) {
-        return MHD_NO;
-    }
-
-    if (strcmp(request->method, "GET") == 0) {
-        conn_info->handle = &reachard_handle_targets_get;
-    } else if (strcmp(request->method, "POST") == 0) {
-        conn_info->handle = &reachard_handle_targets_post;
-
-        conn_info->postprocessor = MHD_create_post_processor(
-            request->conn,
-            512,
-            &reachard_handle_targets_post_data_iterator,
-            request->cls
-        );
-
-        if (!conn_info->postprocessor) {
-            free(conn_info);
-            return MHD_NO;
-        }
-    } else if (strcmp(request->method, "DELETE") == 0) {
-        conn_info->handle = &reachard_handle_targets_delete;
-
-        conn_info->postprocessor = MHD_create_post_processor(
-            request->conn,
-            512,
-            &reachard_handle_targets_delete_data_iterator,
-            request->cls
-        );
-
-        if (!conn_info->postprocessor) {
-            free(conn_info);
-            return MHD_NO;
-        }
-    }
-
-    if (!conn_info->handle) {
-        free(conn_info);
-        return reachard_request_respond(
-            request, "method not allowed", MHD_HTTP_BAD_REQUEST
-        );
-    }
-
-    *request->req_cls = conn_info;
-
-    return MHD_YES;
 }
 
 static enum MHD_Result

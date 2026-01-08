@@ -36,6 +36,7 @@ target_sources(
   PRIVATE src/main.c
   PRIVATE
     src/server/handle.c
+    src/server/handle/targets.c
     src/server/request.c
     src/server/serve.c
     src/server/state.c
