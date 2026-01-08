@@ -280,7 +280,7 @@ reachard_handle(
     return conn_info->handle(&request);
 }
 
-void
+static void
 reachard_complete(
     void *cls, struct MHD_Connection *conn,
     void **req_cls,
