@@ -27,4 +27,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(libmicrohttpd 1 REQUIRED)
 
-add_subdirectory("src")
+add_executable(reachard)
+target_compile_features(reachard PRIVATE c_std_23)
+target_link_libraries(reachard PRIVATE libmicrohttpd::MHD)
+
+target_sources(reachard PRIVATE src/main.c src/server/server.c)
