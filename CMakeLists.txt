@@ -31,4 +31,8 @@ add_executable(reachard)
 target_compile_features(reachard PRIVATE c_std_23)
 target_link_libraries(reachard PRIVATE libmicrohttpd::MHD)
 
-target_sources(reachard PRIVATE src/main.c src/server/server.c)
+target_sources(
+  reachard
+  PRIVATE src/main.c
+  PRIVATE src/server/server.c src/server/request.c
+)

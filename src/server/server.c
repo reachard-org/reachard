@@ -30,18 +30,9 @@
 
 #include <microhttpd.h>
 
+#include "request.h"
+
 #include "server.h"
-
-struct reachard_request {
-    void *cls;
-    struct MHD_Connection *conn;
-    const char *url, *method, *version;
-    const char *upload_data;
-    size_t *upload_data_size;
-    void **req_cls;
-};
-
-typedef enum MHD_Result (*reachard_handler)(struct reachard_request *request);
 
 struct reachard_targets_list_item {
     struct reachard_targets_list_item *next;
@@ -125,45 +116,11 @@ reachard_connection_info_destroy(struct reachard_connection_info *conn_info) {
 }
 
 static enum MHD_Result
-reachard_respond(
-    struct reachard_request *request,
-    const char *content,
-    const unsigned int status_code
-) {
-    struct MHD_Response *response =
-        MHD_create_response_from_buffer_static(strlen(content), content);
-    const enum MHD_Result result =
-        MHD_queue_response(request->conn, status_code, response);
-
-    MHD_destroy_response(response);
-
-    return result;
-}
-
-static enum MHD_Result
-reachard_respond_with_free(
-    struct reachard_request *request,
-    char *content,
-    const unsigned int status_code
-) {
-    struct MHD_Response *response =
-        MHD_create_response_from_buffer_with_free_callback_cls(
-            strlen(content), content, &free, content
-        );
-    const enum MHD_Result result =
-        MHD_queue_response(request->conn, status_code, response);
-
-    MHD_destroy_response(response);
-
-    return result;
-}
-
-static enum MHD_Result
 reachard_handle_targets_get(struct reachard_request *request) {
     struct reachard_targets_list *targets_list = request->cls;
     char *target_list_printed = reachard_targets_list_print(targets_list);
 
-    return reachard_respond_with_free(request, target_list_printed, MHD_HTTP_OK);
+    return reachard_request_respond_with_free(request, target_list_printed, MHD_HTTP_OK);
 }
 
 static enum MHD_Result
@@ -190,7 +147,7 @@ reachard_handle_targets_delete(struct reachard_request *request) {
         return reachard_handle_processing(request);
     }
 
-    return reachard_respond(request, "hello from targets DELETE!", MHD_HTTP_OK);
+    return reachard_request_respond(request, "hello from targets DELETE!", MHD_HTTP_OK);
 }
 
 enum MHD_Result
@@ -216,7 +173,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
         return reachard_handle_processing(request);
     }
 
-    return reachard_respond(request, "hello from targets POST!", MHD_HTTP_OK);
+    return reachard_request_respond(request, "hello from targets POST!", MHD_HTTP_OK);
 }
 
 enum MHD_Result
@@ -278,7 +235,7 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
 
     if (!conn_info->handle) {
         free(conn_info);
-        return reachard_respond(
+        return reachard_request_respond(
             request, "method not allowed", MHD_HTTP_BAD_REQUEST
         );
     }
@@ -294,7 +251,7 @@ reachard_handle_first_call(struct reachard_request *request) {
         return reachard_handle_targets_first_call(request);
     }
 
-    return reachard_respond(request, "url not allowed", MHD_HTTP_BAD_REQUEST);
+    return reachard_request_respond(request, "url not allowed", MHD_HTTP_BAD_REQUEST);
 }
 
 static enum MHD_Result
