@@ -22,27 +22,14 @@
 set(_pkg_name ${CMAKE_FIND_PACKAGE_NAME})
 set(_target_name ${_pkg_name})
 
-find_package(${_pkg_name} ${${_pkg_name}_FIND_VERSION} REQUIRED CONFIG)
-
-string(TOUPPER ${_pkg_name}_INCLUDE_DIR INCLUDE_DIR_VAR)
-string(TOUPPER ${_pkg_name}_LIBRARY LIBRARY_VAR)
+find_package(${_pkg_name} QUIET CONFIG)
 
 include(FindPackageHandleStandardArgs)
 
-find_package_handle_standard_args(
-  ${_pkg_name}
-  REQUIRED_VARS ${INCLUDE_DIR_VAR} ${LIBRARY_VAR}
-  VERSION_VAR ${_pkg_name}_VERSION
-)
+find_package_handle_standard_args(${_pkg_name} HANDLE_COMPONENTS CONFIG_MODE)
 
 if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::${_target_name})
-  add_library(${_pkg_name}::${_target_name} UNKNOWN IMPORTED)
-  set_target_properties(
-    ${_pkg_name}::${_target_name}
-    PROPERTIES
-      IMPORTED_LOCATION "${${LIBRARY_VAR}}"
-      INTERFACE_INCLUDE_DIRECTORIES "${${INCLUDE_DIR_VAR}}"
-  )
+  add_library(${_pkg_name}::${_target_name} ALIAS cjson)
 endif()
 
 mark_as_advanced(${_pkg_name}_DIR)
