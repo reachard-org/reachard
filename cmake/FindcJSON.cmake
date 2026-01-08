@@ -19,26 +19,29 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-cmake_minimum_required(VERSION 4.0)
+set(_pkg_name ${CMAKE_FIND_PACKAGE_NAME})
 
-project(reachard VERSION 0.1.0 LANGUAGES C)
+find_package(${_pkg_name} ${${_pkg_name}_FIND_VERSION} REQUIRED CONFIG)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+string(TOUPPER ${_pkg_name}_INCLUDE_DIR INCLUDE_DIR_VAR)
+string(TOUPPER ${_pkg_name}_LIBRARY LIBRARY_VAR)
 
-find_package(cJSON 1 REQUIRED)
-find_package(libmicrohttpd 1 REQUIRED)
+include(FindPackageHandleStandardArgs)
 
-add_executable(reachard)
-target_compile_features(reachard PRIVATE c_std_23)
-target_link_libraries(reachard PRIVATE cJSON::cJSON libmicrohttpd::MHD)
-
-target_sources(
-  reachard
-  PRIVATE src/main.c
-  PRIVATE
-    src/server/handle.c
-    src/server/handle/targets.c
-    src/server/request.c
-    src/server/serve.c
-    src/server/state.c
+find_package_handle_standard_args(
+  ${_pkg_name}
+  REQUIRED_VARS ${INCLUDE_DIR_VAR} ${LIBRARY_VAR}
+  VERSION_VAR ${_pkg_name}_VERSION
 )
+
+if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::cJSON)
+  add_library(${_pkg_name}::cJSON UNKNOWN IMPORTED)
+  set_target_properties(
+    ${_pkg_name}::cJSON
+    PROPERTIES
+      IMPORTED_LOCATION "${${LIBRARY_VAR}}"
+      INTERFACE_INCLUDE_DIRECTORIES "${${INCLUDE_DIR_VAR}}"
+  )
+endif()
+
+mark_as_advanced(${_pkg_name}_DIR)
