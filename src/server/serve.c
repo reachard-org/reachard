@@ -29,6 +29,9 @@
 #include <microhttpd.h>
 
 #include "handle.h"
+#include "state.h"
+
+#include "serve.h"
 
 static void
 reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {

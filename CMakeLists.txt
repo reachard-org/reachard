@@ -34,5 +34,9 @@ target_link_libraries(reachard PRIVATE libmicrohttpd::MHD)
 target_sources(
   reachard
   PRIVATE src/main.c
-  PRIVATE src/server/handle.c src/server/request.c src/server/serve.c
+  PRIVATE
+    src/server/handle.c
+    src/server/request.c
+    src/server/serve.c
+    src/server/state.c
 )

@@ -29,60 +29,9 @@
 
 #include <microhttpd.h>
 
+#include "state.h"
+
 #include "handle.h"
-
-static char *
-reachard_targets_list_print(struct reachard_targets_list *list) {
-    char *result;
-    size_t result_size = 0;
-    FILE *stream = open_memstream(&result, &result_size);
-
-    struct reachard_targets_list_item *current;
-    for (current = list->head; current; current = current->next) {
-        fprintf(stream, "%d -> ", current->id);
-    }
-    fprintf(stream, "\n");
-    fclose(stream);
-
-    return result;
-}
-
-static void
-reachard_targets_list_add(struct reachard_targets_list *list, int id) {
-    struct reachard_targets_list_item *item =
-        calloc(1, sizeof(struct reachard_targets_list_item));
-    item->id = id;
-
-    if (!list->head) {
-        list->head = item;
-        list->tail = item;
-    } else {
-        list->tail->next = item;
-        list->tail = item;
-    }
-}
-
-static void
-reachard_targets_list_delete(struct reachard_targets_list *list, int id) {
-    struct reachard_targets_list_item *prev, *current;
-    for (current = list->head; current; current = current->next) {
-        if (current->id == id) {
-            prev->next = current->next;
-            free(current);
-            break;
-        }
-        prev = current;
-    }
-}
-
-void
-reachard_targets_list_destroy(struct reachard_targets_list list) {
-    struct reachard_targets_list_item *current, *next;
-    for (current = list.head; current; current = next) {
-        next = current->next;
-        free(current);
-    }
-}
 
 struct reachard_connection_info {
     reachard_handler handle;
