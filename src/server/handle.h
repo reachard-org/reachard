@@ -23,29 +23,35 @@
 
 #pragma once
 
-#include <stddef.h>
-
 #include <microhttpd.h>
 
-struct reachard_request {
-    void *cls;
-    struct MHD_Connection *conn;
-    const char *url, *method, *version;
-    const char *upload_data;
-    size_t *upload_data_size;
-    void **req_cls;
+#include "request.h"
+
+typedef enum MHD_Result (*reachard_handler)(struct reachard_request *request);
+
+enum MHD_Result
+reachard_handle(
+    void *cls, struct MHD_Connection *conn,
+    const char *url, const char *method, const char *version,
+    const char *upload_data, size_t *upload_data_size,
+    void **req_cls
+);
+
+void
+reachard_handle_complete(
+    void *cls, struct MHD_Connection *conn,
+    void **req_cls,
+    enum MHD_RequestTerminationCode toe
+);
+
+struct reachard_targets_list_item {
+    struct reachard_targets_list_item *next;
+    int id;
 };
 
-enum MHD_Result
-reachard_request_respond(
-    struct reachard_request *request,
-    const char *content,
-    const unsigned int status_code
-);
+struct reachard_targets_list {
+    struct reachard_targets_list_item *head, *tail;
+};
 
-enum MHD_Result
-reachard_request_respond_with_free(
-    struct reachard_request *request,
-    char *content,
-    const unsigned int status_code
-);
+void
+reachard_targets_list_destroy(struct reachard_targets_list list);
