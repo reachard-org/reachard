@@ -20,6 +20,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 set(_pkg_name ${CMAKE_FIND_PACKAGE_NAME})
+set(_target_name MHD)
 
 find_package(PkgConfig)
 if(PkgConfig_FOUND)
@@ -49,10 +50,10 @@ find_package_handle_standard_args(
   VERSION_VAR ${_pkg_name}_VERSION
 )
 
-if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::MHD)
-  add_library(${_pkg_name}::MHD UNKNOWN IMPORTED)
+if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::${_target_name})
+  add_library(${_pkg_name}::${_target_name} UNKNOWN IMPORTED)
   set_target_properties(
-    ${_pkg_name}::MHD
+    ${_pkg_name}::${_target_name}
     PROPERTIES
       IMPORTED_LOCATION "${${_pkg_name}_LIBRARY}"
       INTERFACE_COMPILE_OPTIONS "${PC_${_pkg_name}_CFLAGS_OTHER}"

@@ -20,6 +20,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 set(_pkg_name ${CMAKE_FIND_PACKAGE_NAME})
+set(_target_name ${_pkg_name})
 
 find_package(${_pkg_name} ${${_pkg_name}_FIND_VERSION} REQUIRED CONFIG)
 
@@ -34,10 +35,10 @@ find_package_handle_standard_args(
   VERSION_VAR ${_pkg_name}_VERSION
 )
 
-if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::cJSON)
-  add_library(${_pkg_name}::cJSON UNKNOWN IMPORTED)
+if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::${_target_name})
+  add_library(${_pkg_name}::${_target_name} UNKNOWN IMPORTED)
   set_target_properties(
-    ${_pkg_name}::cJSON
+    ${_pkg_name}::${_target_name}
     PROPERTIES
       IMPORTED_LOCATION "${${LIBRARY_VAR}}"
       INTERFACE_INCLUDE_DIRECTORIES "${${INCLUDE_DIR_VAR}}"
