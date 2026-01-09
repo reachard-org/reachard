@@ -33,25 +33,6 @@
 #include "targets.h"
 
 static enum MHD_Result
-reachard_handle_targets_get(struct reachard_request *request) {
-    struct reachard_targets_list *targets_list = request->cls;
-
-    cJSON *targets = cJSON_CreateArray();
-
-    struct reachard_targets_list_item *current;
-    for (current = targets_list->head; current; current = current->next) {
-        cJSON *target = cJSON_CreateObject();
-        cJSON_AddNumberToObject(target, "id", current->id);
-        cJSON_AddItemToArray(targets, target);
-    }
-
-    char *body = cJSON_PrintUnformatted(targets);
-    cJSON_Delete(targets);
-
-    return reachard_request_respond_with_free(request, body, MHD_HTTP_OK);
-}
-
-static enum MHD_Result
 reachard_handle_targets_delete(struct reachard_request *request) {
     struct reachard_targets_list *targets_list = request->cls;
     struct reachard_connection_info *conn_info = *request->req_cls;
@@ -76,6 +57,25 @@ reachard_handle_targets_delete(struct reachard_request *request) {
 
     cJSON_Delete(object);
     return reachard_request_respond(request, "", MHD_HTTP_OK);
+}
+
+static enum MHD_Result
+reachard_handle_targets_get(struct reachard_request *request) {
+    struct reachard_targets_list *targets_list = request->cls;
+
+    cJSON *targets = cJSON_CreateArray();
+
+    struct reachard_targets_list_item *current;
+    for (current = targets_list->head; current; current = current->next) {
+        cJSON *target = cJSON_CreateObject();
+        cJSON_AddNumberToObject(target, "id", current->id);
+        cJSON_AddItemToArray(targets, target);
+    }
+
+    char *body = cJSON_PrintUnformatted(targets);
+    cJSON_Delete(targets);
+
+    return reachard_request_respond_with_free(request, body, MHD_HTTP_OK);
 }
 
 static enum MHD_Result
@@ -113,12 +113,12 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
         return MHD_NO;
     }
 
-    if (strcmp(request->method, "GET") == 0) {
+    if (strcmp(request->method, "DELETE") == 0) {
+        conn_info->handle = &reachard_handle_targets_delete;
+    } else if (strcmp(request->method, "GET") == 0) {
         conn_info->handle = &reachard_handle_targets_get;
     } else if (strcmp(request->method, "POST") == 0) {
         conn_info->handle = &reachard_handle_targets_post;
-    } else if (strcmp(request->method, "DELETE") == 0) {
-        conn_info->handle = &reachard_handle_targets_delete;
     }
 
     if (!conn_info->handle) {
