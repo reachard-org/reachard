@@ -39,10 +39,6 @@ reachard_connection_info_destroy(struct reachard_connection_info *conn_info) {
         return;
     }
 
-    if (conn_info->postprocessor) {
-        MHD_destroy_post_processor(conn_info->postprocessor);
-    }
-
     free(conn_info->body);
     free(conn_info);
     conn_info = NULL;
