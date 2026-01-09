@@ -31,11 +31,11 @@
 enum MHD_Result
 reachard_request_respond(
     struct reachard_request *request,
-    const char *content,
+    const char *body,
     const unsigned int status_code
 ) {
     struct MHD_Response *response =
-        MHD_create_response_from_buffer_static(strlen(content), content);
+        MHD_create_response_from_buffer_static(strlen(body), body);
     const enum MHD_Result result =
         MHD_queue_response(request->conn, status_code, response);
 
@@ -47,12 +47,12 @@ reachard_request_respond(
 enum MHD_Result
 reachard_request_respond_with_free(
     struct reachard_request *request,
-    char *content,
+    char *body,
     const unsigned int status_code
 ) {
     struct MHD_Response *response =
         MHD_create_response_from_buffer_with_free_callback_cls(
-            strlen(content), content, &free, content
+            strlen(body), body, &free, body
         );
     const enum MHD_Result result =
         MHD_queue_response(request->conn, status_code, response);
