@@ -37,6 +37,9 @@ struct reachard_request {
 };
 
 enum MHD_Result
+reachard_request_expect_json(struct reachard_request *request);
+
+enum MHD_Result
 reachard_request_respond_plain(
     struct reachard_request *request,
     const char *body,

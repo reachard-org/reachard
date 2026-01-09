@@ -28,6 +28,26 @@
 
 #include "request.h"
 
+static enum MHD_Result
+reachard_request_expect_content_type(struct reachard_request *request, const char *content_type) {
+    const char *actual_content_type = MHD_lookup_connection_value(
+        request->conn, MHD_HEADER_KIND, MHD_HTTP_HEADER_CONTENT_TYPE
+    );
+
+    if (strcmp(actual_content_type, content_type)) {
+        return reachard_request_respond_plain(
+            request, "unsupported media type", MHD_HTTP_UNSUPPORTED_MEDIA_TYPE
+        );
+    }
+
+    return MHD_YES;
+}
+
+enum MHD_Result
+reachard_request_expect_json(struct reachard_request *request) {
+    return reachard_request_expect_content_type(request, "application/json");
+}
+
 enum MHD_Result
 reachard_request_respond_plain(
     struct reachard_request *request,
