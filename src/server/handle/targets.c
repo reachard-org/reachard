@@ -97,28 +97,35 @@ reachard_handle_targets_delete_data_iterator(
 
 static enum MHD_Result
 reachard_handle_targets_post(struct reachard_request *request) {
+    struct reachard_targets_list *targets_list = request->cls;
+    struct reachard_connection_info *conn_info = *request->req_cls;
+
     if (*request->upload_data_size > 0) {
-        return reachard_handle_processing(request);
+        conn_info->body = realloc(conn_info->body, conn_info->body_size + *request->upload_data_size + 1);
+        memcpy(conn_info->body, request->upload_data, *request->upload_data_size);
+        conn_info->body_size += *request->upload_data_size;
+        conn_info->body[conn_info->body_size] = '\0';
+        *request->upload_data_size = 0;
+
+        return MHD_YES;
     }
 
-    return reachard_request_respond(request, "hello from targets POST!", MHD_HTTP_OK);
-}
-
-enum MHD_Result
-reachard_handle_targets_post_data_iterator(
-    void *cls,
-    enum MHD_ValueKind kind, const char *key,
-    const char *filename, const char *content_type, const char *transfer_encoding,
-    const char *data, uint64_t off, size_t size
-) {
-    struct reachard_targets_list *targets_list = cls;
-
-    if (strcmp(key, "id") == 0) {
-        const int id = atoi(data);
-        reachard_targets_list_add(targets_list, id);
+    cJSON *object = cJSON_ParseWithOpts(conn_info->body, NULL, true);
+    if (object == NULL) {
+        return reachard_request_respond(request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST);
     }
 
-    return MHD_YES;
+    const cJSON *id_item = cJSON_GetObjectItemCaseSensitive(object, "id");
+    if (!cJSON_IsNumber(id_item)) {
+        cJSON_Delete(object);
+        return reachard_request_respond(request, "failed to parse target ID", MHD_HTTP_BAD_REQUEST);
+    }
+
+    const int id = id_item->valueint;
+    reachard_targets_list_add(targets_list, id);
+
+    cJSON_Delete(object);
+    return reachard_request_respond(request, "", MHD_HTTP_OK);
 }
 
 enum MHD_Result
@@ -133,18 +140,6 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
         conn_info->handle = &reachard_handle_targets_get;
     } else if (strcmp(request->method, "POST") == 0) {
         conn_info->handle = &reachard_handle_targets_post;
-
-        conn_info->postprocessor = MHD_create_post_processor(
-            request->conn,
-            512,
-            &reachard_handle_targets_post_data_iterator,
-            request->cls
-        );
-
-        if (!conn_info->postprocessor) {
-            free(conn_info);
-            return MHD_NO;
-        }
     } else if (strcmp(request->method, "DELETE") == 0) {
         conn_info->handle = &reachard_handle_targets_delete;
 
