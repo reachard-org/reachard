@@ -21,28 +21,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#define _POSIX_C_SOURCE 200809L
-
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "state.h"
-
-char *
-reachard_targets_list_print(struct reachard_targets_list *list) {
-    char *result;
-    size_t result_size = 0;
-    FILE *stream = open_memstream(&result, &result_size);
-
-    struct reachard_targets_list_item *current;
-    for (current = list->head; current; current = current->next) {
-        fprintf(stream, "%d -> ", current->id);
-    }
-    fprintf(stream, "\n");
-    fclose(stream);
-
-    return result;
-}
 
 void
 reachard_targets_list_add(struct reachard_targets_list *list, int id) {

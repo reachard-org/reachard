@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cjson/cJSON.h>
 #include <microhttpd.h>
 
 #include "../handle.h"
@@ -34,9 +35,20 @@
 static enum MHD_Result
 reachard_handle_targets_get(struct reachard_request *request) {
     struct reachard_targets_list *targets_list = request->cls;
-    char *target_list_printed = reachard_targets_list_print(targets_list);
 
-    return reachard_request_respond_with_free(request, target_list_printed, MHD_HTTP_OK);
+    cJSON *targets = cJSON_CreateArray();
+
+    struct reachard_targets_list_item *current;
+    for (current = targets_list->head; current; current = current->next) {
+        cJSON *target = cJSON_CreateObject();
+        cJSON_AddNumberToObject(target, "id", current->id);
+        cJSON_AddItemToArray(targets, target);
+    }
+
+    char *body = cJSON_PrintUnformatted(targets);
+    cJSON_Delete(targets);
+
+    return reachard_request_respond_with_free(request, body, MHD_HTTP_OK);
 }
 
 static enum MHD_Result

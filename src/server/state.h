@@ -32,9 +32,6 @@ struct reachard_targets_list {
     struct reachard_targets_list_item *head, *tail;
 };
 
-char *
-reachard_targets_list_print(struct reachard_targets_list *list);
-
 void
 reachard_targets_list_add(struct reachard_targets_list *list, int id);
 
