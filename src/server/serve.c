@@ -43,7 +43,7 @@ reachard_serve(const int port) {
     struct reachard_targets_list targets_list = {0};
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
-        MHD_USE_INTERNAL_POLLING_THREAD, port,
+        MHD_USE_EPOLL_INTERNAL_THREAD, port,
         NULL, NULL,
         &reachard_handle, &targets_list,
         MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, NULL,

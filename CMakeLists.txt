@@ -26,7 +26,7 @@ project(reachard VERSION 0.1.0 LANGUAGES C)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(cJSON 1 REQUIRED)
-find_package(libmicrohttpd 1 REQUIRED)
+find_package(libmicrohttpd 1 REQUIRED) # Must have `epoll` support enabled
 
 add_executable(reachard)
 target_compile_features(reachard PRIVATE c_std_23)
