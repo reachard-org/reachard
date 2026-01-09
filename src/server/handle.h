@@ -31,9 +31,12 @@ typedef enum MHD_Result (*reachard_handler)(struct reachard_request *request);
 
 struct reachard_connection_info {
     reachard_handler handle;
-    char *body;
-    size_t body_size;
+    char *upload_data;
+    size_t upload_data_size;
 };
+
+enum MHD_Result
+reachard_handle_upload_data(struct reachard_request *request);
 
 enum MHD_Result
 reachard_handle(

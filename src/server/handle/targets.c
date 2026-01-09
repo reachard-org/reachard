@@ -52,28 +52,15 @@ reachard_handle_targets_get(struct reachard_request *request) {
 }
 
 static enum MHD_Result
-reachard_handle_processing(struct reachard_request *request) {
-    struct reachard_connection_info *conn_info = *request->req_cls;
-
-    conn_info->body = realloc(conn_info->body, conn_info->body_size + *request->upload_data_size + 1);
-    memcpy(conn_info->body, request->upload_data, *request->upload_data_size);
-    conn_info->body_size += *request->upload_data_size;
-    conn_info->body[conn_info->body_size] = '\0';
-    *request->upload_data_size = 0;
-
-    return MHD_YES;
-}
-
-static enum MHD_Result
 reachard_handle_targets_delete(struct reachard_request *request) {
     struct reachard_targets_list *targets_list = request->cls;
     struct reachard_connection_info *conn_info = *request->req_cls;
 
     if (*request->upload_data_size > 0) {
-        return reachard_handle_processing(request);
+        return reachard_handle_upload_data(request);
     }
 
-    cJSON *object = cJSON_ParseWithOpts(conn_info->body, NULL, true);
+    cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, NULL, true);
     if (object == NULL) {
         return reachard_request_respond(request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST);
     }
@@ -97,10 +84,10 @@ reachard_handle_targets_post(struct reachard_request *request) {
     struct reachard_connection_info *conn_info = *request->req_cls;
 
     if (*request->upload_data_size > 0) {
-        return reachard_handle_processing(request);
+        return reachard_handle_upload_data(request);
     }
 
-    cJSON *object = cJSON_ParseWithOpts(conn_info->body, NULL, true);
+    cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, NULL, true);
     if (object == NULL) {
         return reachard_request_respond(request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST);
     }

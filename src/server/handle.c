@@ -39,9 +39,22 @@ reachard_connection_info_destroy(struct reachard_connection_info *conn_info) {
         return;
     }
 
-    free(conn_info->body);
+    free(conn_info->upload_data);
     free(conn_info);
     conn_info = NULL;
+}
+
+enum MHD_Result
+reachard_handle_upload_data(struct reachard_request *request) {
+    struct reachard_connection_info *conn_info = *request->req_cls;
+
+    conn_info->upload_data = realloc(conn_info->upload_data, conn_info->upload_data_size + *request->upload_data_size + 1);
+    memcpy(conn_info->upload_data, request->upload_data, *request->upload_data_size);
+    conn_info->upload_data_size += *request->upload_data_size;
+    conn_info->upload_data[conn_info->upload_data_size] = '\0';
+    *request->upload_data_size = 0;
+
+    return MHD_YES;
 }
 
 static enum MHD_Result
