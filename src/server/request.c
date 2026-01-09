@@ -29,13 +29,16 @@
 #include "request.h"
 
 enum MHD_Result
-reachard_request_respond(
+reachard_request_respond_plain(
     struct reachard_request *request,
     const char *body,
     const unsigned int status_code
 ) {
     struct MHD_Response *response =
         MHD_create_response_from_buffer_static(strlen(body), body);
+    MHD_add_response_header(
+        response, MHD_HTTP_HEADER_CONTENT_TYPE, "text/plain"
+    );
     const enum MHD_Result result =
         MHD_queue_response(request->conn, status_code, response);
 
@@ -45,7 +48,7 @@ reachard_request_respond(
 }
 
 enum MHD_Result
-reachard_request_respond_with_free(
+reachard_request_respond_json(
     struct reachard_request *request,
     char *body,
     const unsigned int status_code
@@ -54,6 +57,10 @@ reachard_request_respond_with_free(
         MHD_create_response_from_buffer_with_free_callback_cls(
             strlen(body), body, &free, body
         );
+    MHD_add_response_header(
+        response, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json"
+    );
+
     const enum MHD_Result result =
         MHD_queue_response(request->conn, status_code, response);
 

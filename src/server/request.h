@@ -37,14 +37,14 @@ struct reachard_request {
 };
 
 enum MHD_Result
-reachard_request_respond(
+reachard_request_respond_plain(
     struct reachard_request *request,
     const char *body,
     const unsigned int status_code
 );
 
 enum MHD_Result
-reachard_request_respond_with_free(
+reachard_request_respond_json(
     struct reachard_request *request,
     char *body,
     const unsigned int status_code

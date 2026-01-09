@@ -70,7 +70,7 @@ reachard_handle_first_call(struct reachard_request *request) {
         return reachard_handle_targets_first_call(request);
     }
 
-    return reachard_request_respond(request, "url not allowed", MHD_HTTP_BAD_REQUEST);
+    return reachard_request_respond_plain(request, "url not allowed", MHD_HTTP_BAD_REQUEST);
 }
 
 enum MHD_Result
