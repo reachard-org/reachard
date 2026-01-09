@@ -59,6 +59,13 @@ reachard_handle_upload_data(struct reachard_request *request) {
 
 static enum MHD_Result
 reachard_handle_first_call(struct reachard_request *request) {
+    struct reachard_connection_info *conn_info =
+        calloc(1, sizeof(struct reachard_connection_info));
+    if (!conn_info) {
+        return MHD_NO;
+    }
+    *request->req_cls = conn_info;
+
     if (strcmp(request->url, "/targets/") == 0) {
         return reachard_handle_targets_first_call(request);
     }

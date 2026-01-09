@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <stdlib.h>
 #include <string.h>
 
 #include <cjson/cJSON.h>
@@ -107,28 +106,20 @@ reachard_handle_targets_post(struct reachard_request *request) {
 
 enum MHD_Result
 reachard_handle_targets_first_call(struct reachard_request *request) {
-    struct reachard_connection_info *conn_info =
-        calloc(1, sizeof(struct reachard_connection_info));
-    if (!conn_info) {
-        return MHD_NO;
-    }
+    struct reachard_connection_info *conn_info = *request->req_cls;
 
     if (strcmp(request->method, "DELETE") == 0) {
         conn_info->handle = &reachard_handle_targets_delete;
-    } else if (strcmp(request->method, "GET") == 0) {
+        return MHD_YES;
+    }
+    if (strcmp(request->method, "GET") == 0) {
         conn_info->handle = &reachard_handle_targets_get;
-    } else if (strcmp(request->method, "POST") == 0) {
+        return MHD_YES;
+    }
+    if (strcmp(request->method, "POST") == 0) {
         conn_info->handle = &reachard_handle_targets_post;
+        return MHD_YES;
     }
 
-    if (!conn_info->handle) {
-        free(conn_info);
-        return reachard_request_respond(
-            request, "method not allowed", MHD_HTTP_BAD_REQUEST
-        );
-    }
-
-    *request->req_cls = conn_info;
-
-    return MHD_YES;
+    return reachard_request_respond(request, "method not allowed", MHD_HTTP_BAD_REQUEST);
 }
