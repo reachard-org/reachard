@@ -48,8 +48,15 @@ enum MHD_Result
 reachard_handle_upload_data(struct reachard_request *request) {
     struct reachard_connection_info *conn_info = *request->req_cls;
 
-    conn_info->upload_data = realloc(conn_info->upload_data, conn_info->upload_data_size + *request->upload_data_size + 1);
-    memcpy(conn_info->upload_data, request->upload_data, *request->upload_data_size);
+    conn_info->upload_data = realloc(
+        conn_info->upload_data,
+        conn_info->upload_data_size + *request->upload_data_size + 1
+    );
+    memcpy(
+        conn_info->upload_data,
+        request->upload_data,
+        *request->upload_data_size
+    );
     conn_info->upload_data_size += *request->upload_data_size;
     conn_info->upload_data[conn_info->upload_data_size] = '\0';
     *request->upload_data_size = 0;
@@ -70,7 +77,9 @@ reachard_handle_first_call(struct reachard_request *request) {
         return reachard_handle_targets_first_call(request);
     }
 
-    return reachard_request_respond_plain(request, "url not allowed", MHD_HTTP_BAD_REQUEST);
+    return reachard_request_respond_plain(
+        request, "url not allowed", MHD_HTTP_BAD_REQUEST
+    );
 }
 
 enum MHD_Result

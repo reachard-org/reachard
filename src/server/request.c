@@ -29,7 +29,10 @@
 #include "request.h"
 
 static enum MHD_Result
-reachard_request_expect_content_type(struct reachard_request *request, const char *content_type) {
+reachard_request_expect_content_type(
+    struct reachard_request *request,
+    const char *content_type
+) {
     const char *actual_content_type = MHD_lookup_connection_value(
         request->conn, MHD_HEADER_KIND, MHD_HTTP_HEADER_CONTENT_TYPE
     );
