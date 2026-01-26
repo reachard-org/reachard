@@ -27,10 +27,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(cJSON 1 REQUIRED)
 find_package(libmicrohttpd 1 REQUIRED) # Must have `epoll` support enabled
+find_package(PostgreSQL 18 REQUIRED)
 
 add_executable(reachard)
 target_compile_features(reachard PRIVATE c_std_23)
-target_link_libraries(reachard PRIVATE cJSON::cJSON libmicrohttpd::MHD)
+target_link_libraries(
+  reachard
+  PRIVATE cJSON::cJSON libmicrohttpd::MHD PostgreSQL::PostgreSQL
+)
 
 target_sources(
   reachard
