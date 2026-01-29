@@ -21,12 +21,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include "server/server.h"
+#include <libpq-fe.h>
 
-#define PORT 7272
-#define DB_URL "postgresql://postgres@"
+#pragma once
 
-int
-main() {
-    return reachard_serve(PORT, DB_URL);
-}
+struct reachard_db {
+    PGconn *conn;
+};
+
+bool
+reachard_db_connect(struct reachard_db *db, const char *connstring);
+
+void
+reachard_db_disconnect(struct reachard_db *db);

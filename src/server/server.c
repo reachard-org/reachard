@@ -28,6 +28,7 @@
 
 #include <microhttpd.h>
 
+#include "../database/database.h"
 #include "handle.h"
 #include "state.h"
 
@@ -39,7 +40,12 @@ reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
 }
 
 int
-reachard_serve(const int port) {
+reachard_serve(const int port, const char *db_url) {
+    struct reachard_db db = {0};
+    if (!reachard_db_connect(&db, db_url)) {
+        return 1;
+    }
+
     struct reachard_targets_list targets_list = {0};
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
@@ -65,6 +71,7 @@ reachard_serve(const int port) {
 
     MHD_stop_daemon(daemon);
     reachard_targets_list_destroy(targets_list);
+    reachard_db_disconnect(&db);
 
     return 0;
 }

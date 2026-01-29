@@ -24,4 +24,4 @@
 #pragma once
 
 int
-reachard_serve(const int port);
+reachard_serve(const int port, const char *db_url);
