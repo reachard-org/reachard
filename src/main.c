@@ -21,12 +21,29 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include "server/server.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-#define PORT 7272
-#define DB_URL "postgresql://postgres@"
+#include "server/server.h"
 
 int
 main() {
-    return reachard_serve(PORT, DB_URL);
+    char *port_str = getenv("REACHARD_PORT");
+    int port = 7272;
+
+    if (port_str) {
+        port = atoi(port_str);
+        if (!port) {
+            fprintf(stderr, "couldn't parse `REACHARD_PORT` as a number\n");
+            return 1;
+        }
+    }
+
+    char *db_url = getenv("REACHARD_DB_URL");
+
+    if (!db_url) {
+        db_url = "postgresql://postgres@";
+    }
+
+    return reachard_serve(port, db_url);
 }
