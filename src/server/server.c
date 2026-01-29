@@ -56,6 +56,7 @@ reachard_serve(const int port, const char *db_url) {
         MHD_OPTION_END
     );
     if (!daemon) {
+        fprintf(stderr, "failed to start the daemon\n");
         return 1;
     }
 
