@@ -21,7 +21,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include "server/serve.h"
+#include "server/server.h"
 
 #define PORT 7272
 
