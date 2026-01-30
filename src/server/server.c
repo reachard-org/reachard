@@ -41,12 +41,15 @@ reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
 
 int
 reachard_serve(const int port, const char *db_url) {
-    struct reachard_db db = {0};
-    if (!reachard_db_connect(&db, db_url)) {
-        return 1;
-    }
+    int result = 1;
 
+    struct reachard_db db = {0};
     struct reachard_targets_list targets_list = {0};
+
+    if (!reachard_db_connect(&db, db_url)) {
+        fprintf(stderr, "failed to connect to the database\n");
+        goto cleanup;
+    }
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
         MHD_USE_EPOLL_INTERNAL_THREAD, port,
@@ -57,7 +60,7 @@ reachard_serve(const int port, const char *db_url) {
     );
     if (!daemon) {
         fprintf(stderr, "failed to start the daemon\n");
-        return 1;
+        goto cleanup;
     }
 
     const struct sigaction act = {
@@ -71,8 +74,11 @@ reachard_serve(const int port, const char *db_url) {
     pause();
 
     MHD_stop_daemon(daemon);
-    reachard_targets_list_destroy(targets_list);
-    reachard_db_disconnect(&db);
+    result = 0;
 
-    return 0;
+cleanup:
+    reachard_db_disconnect(&db);
+    reachard_targets_list_destroy(targets_list);
+
+    return result;
 }
