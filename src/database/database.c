@@ -30,14 +30,32 @@
 // See https://www.postgresql.org/docs/current/libpq-connect.html
 bool
 reachard_db_connect(struct reachard_db *db, const char *connstring) {
-    PGconn *conn = PQconnectdb(connstring);
+    PGconn *conn = {0};
+    PGresult *res = {0};
+
+    conn = PQconnectdb(connstring);
     if (PQstatus(conn) != CONNECTION_OK) {
         fprintf(stderr, "%s", PQerrorMessage(conn));
-        PQfinish(conn);
-        return false;
+        goto failure;
     }
+
+    res = PQexec(
+        conn, "SELECT pg_catalog.set_config('search_path', 'v0', false)"
+    );
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
+        goto failure;
+    }
+    PQclear(res);
+
     db->conn = conn;
+
     return true;
+
+failure:
+    PQclear(res);
+    PQfinish(conn);
+    return false;
 }
 
 void
