@@ -45,5 +45,4 @@ target_sources(
     src/server/handle/targets.c
     src/server/request.c
     src/server/server.c
-    src/server/state.c
 )

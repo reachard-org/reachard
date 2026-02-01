@@ -21,19 +21,20 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 #include <cjson/cJSON.h>
 #include <microhttpd.h>
 
+#include "../../database/targets.h"
 #include "../handle.h"
-#include "../state.h"
 
 #include "targets.h"
 
 static enum MHD_Result
 reachard_handle_targets_delete(struct reachard_request *request) {
-    struct reachard_targets_list *targets_list = request->cls;
+    struct reachard_db *db = request->cls;
     struct reachard_connection_info *conn_info = *request->req_cls;
 
     if (*request->upload_data_size > 0) {
@@ -41,18 +42,22 @@ reachard_handle_targets_delete(struct reachard_request *request) {
     }
 
     cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, NULL, true);
-    if (object == NULL) {
-        return reachard_request_respond_plain(request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST);
+    if (!object) {
+        return reachard_request_respond_plain(
+            request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
+        );
     }
 
     const cJSON *id_item = cJSON_GetObjectItemCaseSensitive(object, "id");
     if (!cJSON_IsNumber(id_item)) {
         cJSON_Delete(object);
-        return reachard_request_respond_plain(request, "failed to parse target ID", MHD_HTTP_BAD_REQUEST);
+        return reachard_request_respond_plain(
+            request, "failed to parse target ID", MHD_HTTP_BAD_REQUEST
+        );
     }
 
     const int id = id_item->valueint;
-    reachard_targets_list_delete(targets_list, id);
+    reachard_db_targets_delete(db, id);
 
     cJSON_Delete(object);
     return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
@@ -60,26 +65,30 @@ reachard_handle_targets_delete(struct reachard_request *request) {
 
 static enum MHD_Result
 reachard_handle_targets_get(struct reachard_request *request) {
-    struct reachard_targets_list *targets_list = request->cls;
+    struct reachard_db *db = request->cls;
 
-    cJSON *targets = cJSON_CreateArray();
+    size_t count;
+    struct reachard_db_target *targets;
+    reachard_db_targets_get(db, &targets, &count);
 
-    struct reachard_targets_list_item *current;
-    for (current = targets_list->head; current; current = current->next) {
+    cJSON *array = cJSON_CreateArray();
+    for (size_t i = 0; i < count; i++) {
         cJSON *target = cJSON_CreateObject();
-        cJSON_AddNumberToObject(target, "id", current->id);
-        cJSON_AddItemToArray(targets, target);
+        cJSON_AddNumberToObject(target, "id", targets[i].id);
+        cJSON_AddStringToObject(target, "name", targets[i].name);
+        cJSON_AddItemToArray(array, target);
     }
 
-    char *body = cJSON_PrintUnformatted(targets);
-    cJSON_Delete(targets);
+    char *body = cJSON_PrintUnformatted(array);
 
+    cJSON_Delete(array);
+    reachard_db_targets_free(targets, count);
     return reachard_request_respond_json(request, body, MHD_HTTP_OK);
 }
 
 static enum MHD_Result
 reachard_handle_targets_post(struct reachard_request *request) {
-    struct reachard_targets_list *targets_list = request->cls;
+    struct reachard_db *db = request->cls;
     struct reachard_connection_info *conn_info = *request->req_cls;
 
     if (*request->upload_data_size > 0) {
@@ -87,18 +96,22 @@ reachard_handle_targets_post(struct reachard_request *request) {
     }
 
     cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, NULL, true);
-    if (object == NULL) {
-        return reachard_request_respond_plain(request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST);
+    if (!object) {
+        return reachard_request_respond_plain(
+            request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
+        );
     }
 
-    const cJSON *id_item = cJSON_GetObjectItemCaseSensitive(object, "id");
-    if (!cJSON_IsNumber(id_item)) {
+    const cJSON *name_item = cJSON_GetObjectItemCaseSensitive(object, "name");
+    if (!cJSON_IsString(name_item)) {
         cJSON_Delete(object);
-        return reachard_request_respond_plain(request, "failed to parse target ID", MHD_HTTP_BAD_REQUEST);
+        return reachard_request_respond_plain(
+            request, "failed to parse target name", MHD_HTTP_BAD_REQUEST
+        );
     }
 
-    const int id = id_item->valueint;
-    reachard_targets_list_add(targets_list, id);
+    const char *name = name_item->valuestring;
+    reachard_db_targets_add(db, name);
 
     cJSON_Delete(object);
     return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
@@ -121,5 +134,7 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
         return reachard_request_expect_json(request);
     }
 
-    return reachard_request_respond_plain(request, "method not allowed", MHD_HTTP_BAD_REQUEST);
+    return reachard_request_respond_plain(
+        request, "method not allowed", MHD_HTTP_BAD_REQUEST
+    );
 }

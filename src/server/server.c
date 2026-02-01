@@ -30,7 +30,6 @@
 
 #include "../database/database.h"
 #include "handle.h"
-#include "state.h"
 
 #include "server.h"
 
@@ -44,7 +43,6 @@ reachard_serve(const int port, const char *db_url) {
     int result = 1;
 
     struct reachard_db db = {0};
-    struct reachard_targets_list targets_list = {0};
 
     if (!reachard_db_connect(&db, db_url)) {
         fprintf(stderr, "failed to connect to the database\n");
@@ -54,7 +52,7 @@ reachard_serve(const int port, const char *db_url) {
     struct MHD_Daemon *daemon = MHD_start_daemon(
         MHD_USE_EPOLL_INTERNAL_THREAD, port,
         NULL, NULL,
-        &reachard_handle, &targets_list,
+        &reachard_handle, &db,
         MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, NULL,
         MHD_OPTION_END
     );
@@ -78,7 +76,5 @@ reachard_serve(const int port, const char *db_url) {
 
 cleanup:
     reachard_db_disconnect(&db);
-    reachard_targets_list_destroy(targets_list);
-
     return result;
 }
