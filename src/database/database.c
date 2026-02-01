@@ -27,6 +27,7 @@
 
 #include "database.h"
 
+// See https://www.postgresql.org/docs/current/libpq-connect.html
 bool
 reachard_db_connect(struct reachard_db *db, const char *connstring) {
     PGconn *conn = PQconnectdb(connstring);

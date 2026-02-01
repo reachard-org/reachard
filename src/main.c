@@ -42,7 +42,7 @@ main() {
     char *db_url = getenv("REACHARD_DB_URL");
 
     if (!db_url) {
-        db_url = "postgresql://postgres@";
+        db_url = "postgresql://reachard@/reachard";
     }
 
     return reachard_serve(port, db_url);
