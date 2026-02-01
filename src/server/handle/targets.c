@@ -111,10 +111,15 @@ reachard_handle_targets_post(struct reachard_request *request) {
     }
 
     const char *name = name_item->valuestring;
-    reachard_db_targets_add(db, name);
-
+    const int id = reachard_db_targets_add(db, name);
     cJSON_Delete(object);
-    return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
+
+    object = cJSON_CreateObject();
+    cJSON_AddNumberToObject(object, "id", id);
+    char *body = cJSON_PrintUnformatted(object);
+    cJSON_Delete(object);
+
+    return reachard_request_respond_json(request, body, MHD_HTTP_OK);
 }
 
 enum MHD_Result
