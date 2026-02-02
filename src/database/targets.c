@@ -90,7 +90,7 @@ reachard_db_targets_get(
 ) {
     PGresult *res = {0};
 
-    res = PQexec(db->conn, "SELECT * FROM targets");
+    res = PQexec(db->conn, "SELECT id, name FROM targets");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "failed to get targets\n");
         PQclear(res);
