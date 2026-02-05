@@ -40,7 +40,7 @@ reachard_db_targets_free(struct reachard_db_target *targets, size_t count) {
 
 int
 reachard_db_targets_add(struct reachard_db *db, const char *name) {
-    PGresult *res = {0};
+    PGresult *res = NULL;
 
     const char *paramValues[1] = {name};
     res = PQexecParams(
@@ -62,7 +62,7 @@ reachard_db_targets_add(struct reachard_db *db, const char *name) {
 
 bool
 reachard_db_targets_delete(struct reachard_db *db, const int id) {
-    PGresult *res = {0};
+    PGresult *res = NULL;
 
     char id_str[20] = {0};
     snprintf(id_str, sizeof(id_str), "%d", id);
@@ -88,7 +88,7 @@ reachard_db_targets_get(
     struct reachard_db_target **targets,
     size_t *count
 ) {
-    PGresult *res = {0};
+    PGresult *res = NULL;
 
     res = PQexec(db->conn, "SELECT id, name FROM targets");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
