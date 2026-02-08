@@ -19,9 +19,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# neocmakelsp v0.9.0
+# neocmakelsp v0.10.0
 
-command_upcase = "lowercase"
+command_case = "lower_case"
 enable_external_cmake_lint = false
 line_max_words = 80
 
