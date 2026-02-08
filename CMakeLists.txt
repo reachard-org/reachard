@@ -39,7 +39,10 @@ target_link_libraries(
 target_sources(
   reachard
   PRIVATE src/main.c
-  PRIVATE src/database/database.c src/database/targets.c
+  PRIVATE
+    src/database/database.c
+    src/database/migrations.c
+    src/database/targets.c
   PRIVATE
     src/server/handle.c
     src/server/handle/targets.c

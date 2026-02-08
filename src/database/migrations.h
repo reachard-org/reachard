@@ -21,47 +21,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <stdio.h>
-
-#include <libpq-fe.h>
+#pragma once
 
 #include "database.h"
 
-// See https://www.postgresql.org/docs/current/libpq-connect.html
 bool
-reachard_db_connect(struct reachard_db *db, const char *connstring) {
-    PGconn *conn = NULL;
-    PGresult *res = NULL;
-
-    conn = PQconnectdb(connstring);
-    if (PQstatus(conn) != CONNECTION_OK) {
-        fprintf(stderr, "%s", PQerrorMessage(conn));
-        goto failure;
-    }
-
-    res = PQexec(
-        conn,
-        "SELECT pg_catalog.set_config("
-        "    'search_path', '" REACHARD_DB_SCHEMA "', false"
-        ")"
-    );
-    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        fprintf(stderr, "%s", PQresultErrorMessage(res));
-        goto failure;
-    }
-    PQclear(res);
-
-    db->conn = conn;
-
-    return true;
-
-failure:
-    PQclear(res);
-    PQfinish(conn);
-    return false;
-}
-
-void
-reachard_db_disconnect(struct reachard_db *db) {
-    PQfinish(db->conn);
-}
+reachard_db_migrate(struct reachard_db *db);

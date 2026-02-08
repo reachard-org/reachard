@@ -29,6 +29,7 @@
 #include <microhttpd.h>
 
 #include "../database/database.h"
+#include "../database/migrations.h"
 #include "handle.h"
 
 #include "server.h"
@@ -42,17 +43,22 @@ int
 reachard_serve(const int port, const char *db_url) {
     int result = 1;
 
-    struct reachard_db db = {0};
+    struct reachard_db *db = &(struct reachard_db){0};
 
-    if (!reachard_db_connect(&db, db_url)) {
+    if (!reachard_db_connect(db, db_url)) {
         fprintf(stderr, "failed to connect to the database\n");
+        goto cleanup;
+    }
+
+    if (!reachard_db_migrate(db)) {
+        fprintf(stderr, "failed to apply migrations to the database\n");
         goto cleanup;
     }
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
         MHD_USE_EPOLL_INTERNAL_THREAD, port,
         NULL, NULL,
-        &reachard_handle, &db,
+        &reachard_handle, db,
         MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, NULL,
         MHD_OPTION_END
     );
@@ -75,6 +81,6 @@ reachard_serve(const int port, const char *db_url) {
     result = 0;
 
 cleanup:
-    reachard_db_disconnect(&db);
+    reachard_db_disconnect(db);
     return result;
 }

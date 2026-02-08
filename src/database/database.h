@@ -25,6 +25,9 @@
 
 #pragma once
 
+#define REACHARD_DB_SCHEMA "reachard"
+#define REACHARD_DB_VERSION_TABLE "version"
+
 struct reachard_db {
     PGconn *conn;
 };
