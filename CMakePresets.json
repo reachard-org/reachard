@@ -10,7 +10,7 @@
       "installDir": "install",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_C_FLAGS_DEBUG": "-Wall -Wextra -Werror -pedantic -pedantic-errors -Wno-unused-parameter -Wno-error=unused-function -Wno-error=unused-variable -Og -ggdb3",
         "CMAKE_EXE_LINKER_FLAGS": "-no-pie",
