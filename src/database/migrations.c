@@ -31,7 +31,7 @@
 
 static int
 reachard_db_get_schema_version(struct reachard_db *db) {
-    PGresult *res = NULL;
+    PGresult *res = 0;
 
     res = PQexec(
         db->conn,
@@ -81,7 +81,7 @@ reachard_db_apply_migration(
     const int version,
     const char *migration
 ) {
-    PGresult *res = NULL;
+    PGresult *res = 0;
 
     res = PQexec(db->conn, "BEGIN");
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
@@ -104,7 +104,7 @@ reachard_db_apply_migration(
     const char *paramValues = {version_str};
     res = PQexecParams(
         db->conn, "UPDATE " REACHARD_DB_VERSION_TABLE " SET value = $1",
-        1, NULL, &paramValues, NULL, NULL, 0
+        1, 0, &paramValues, 0, 0, 0
     );
     PQclear(res);
 

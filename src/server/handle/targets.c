@@ -41,7 +41,7 @@ reachard_handle_targets_delete(struct reachard_request *request) {
         return reachard_handle_upload_data(request);
     }
 
-    cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, NULL, true);
+    cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
     if (!object) {
         return reachard_request_respond_plain(
             request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
@@ -95,7 +95,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
         return reachard_handle_upload_data(request);
     }
 
-    cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, NULL, true);
+    cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
     if (!object) {
         return reachard_request_respond_plain(
             request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST

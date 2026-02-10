@@ -57,9 +57,9 @@ reachard_serve(const int port, const char *db_url) {
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
         MHD_USE_EPOLL_INTERNAL_THREAD, port,
-        NULL, NULL,
+        0, 0,
         &reachard_handle, db,
-        MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, NULL,
+        MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, 0,
         MHD_OPTION_END
     );
     if (!daemon) {
@@ -71,8 +71,8 @@ reachard_serve(const int port, const char *db_url) {
         .sa_sigaction = &reachard_interrupt,
         .sa_flags = SA_SIGINFO
     };
-    sigaction(SIGINT, &act, NULL);
-    sigaction(SIGTERM, &act, NULL);
+    sigaction(SIGINT, &act, 0);
+    sigaction(SIGTERM, &act, 0);
 
     printf("Listening on :%d\n", port);
     pause();

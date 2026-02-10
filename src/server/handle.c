@@ -41,7 +41,7 @@ reachard_connection_info_destroy(struct reachard_connection_info *conn_info) {
 
     free(conn_info->upload_data);
     free(conn_info);
-    conn_info = NULL;
+    conn_info = 0;
 }
 
 enum MHD_Result

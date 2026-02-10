@@ -30,8 +30,8 @@
 // See https://www.postgresql.org/docs/current/libpq-connect.html
 bool
 reachard_db_connect(struct reachard_db *db, const char *connstring) {
-    PGconn *conn = NULL;
-    PGresult *res = NULL;
+    PGconn *conn = 0;
+    PGresult *res = 0;
 
     conn = PQconnectdb(connstring);
     if (PQstatus(conn) != CONNECTION_OK) {
