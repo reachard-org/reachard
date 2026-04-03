@@ -22,6 +22,7 @@
 # clang-format v22
 
 AlignAfterOpenBracket: BlockIndent
+AllowShortBlocksOnASingleLine: Empty
 BreakAfterReturnType: All
 BreakBeforeCloseBracketLoop: true
 ColumnLimit: 0 # This allows for free order of parameters in functions
