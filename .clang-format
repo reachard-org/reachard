@@ -19,9 +19,10 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-# clang-format v21
+# clang-format v22
 
 AlignAfterOpenBracket: BlockIndent
 BreakAfterReturnType: All
+BreakBeforeCloseBracketLoop: true
 ColumnLimit: 0 # This allows for free order of parameters in functions
 IndentWidth: 4
