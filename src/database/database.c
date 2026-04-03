@@ -41,9 +41,7 @@ reachard_db_connect(struct reachard_db *db, const char *connstring) {
 
     res = PQexec(
         conn,
-        "SELECT pg_catalog.set_config("
-        "    'search_path', '" REACHARD_DB_SCHEMA "', false"
-        ")"
+        "SELECT pg_catalog.set_config('search_path', 'reachard', false)"
     );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "%s", PQresultErrorMessage(res));

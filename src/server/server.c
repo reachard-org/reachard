@@ -29,7 +29,7 @@
 #include <microhttpd.h>
 
 #include "../database/database.h"
-#include "../database/migrations.h"
+#include "../database/migrate.h"
 #include "handle.h"
 
 #include "server.h"

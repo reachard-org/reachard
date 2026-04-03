@@ -27,7 +27,7 @@
 
 #include "database.h"
 
-#include "migrations.h"
+#include "migrate.h"
 
 static int
 reachard_db_get_schema_version(struct reachard_db *db) {
@@ -36,8 +36,7 @@ reachard_db_get_schema_version(struct reachard_db *db) {
     res = PQexec(
         db->conn,
         "SELECT 1 FROM information_schema.tables WHERE "
-        "table_schema = '" REACHARD_DB_SCHEMA "' AND "
-        "table_name = '" REACHARD_DB_VERSION_TABLE "'"
+        "table_schema = 'reachard' AND table_name = 'version'"
     );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(
@@ -103,7 +102,7 @@ reachard_db_apply_migration(
 
     const char *paramValues = {version_str};
     res = PQexecParams(
-        db->conn, "UPDATE " REACHARD_DB_VERSION_TABLE " SET value = $1",
+        db->conn, "UPDATE version SET value = $1",
         1, 0, &paramValues, 0, 0, 0
     );
     PQclear(res);
@@ -122,6 +121,14 @@ failure:
     return false;
 }
 
+static const char migration1[] = {
+#embed "migrations/1.sql" suffix(, 0)
+};
+
+static const char *migrations[] = {
+    [1] = migration1
+};
+
 bool
 reachard_db_migrate(struct reachard_db *db) {
     const int current_version = reachard_db_get_schema_version(db);
@@ -130,14 +137,6 @@ reachard_db_migrate(struct reachard_db *db) {
         return false;
     }
 
-    const char *migrations[] = {
-        [1] = "CREATE SCHEMA " REACHARD_DB_SCHEMA ";\n"
-              "CREATE TABLE " REACHARD_DB_VERSION_TABLE " (\n"
-              "    value INTEGER PRIMARY KEY\n"
-              ");\n"
-              "INSERT INTO " REACHARD_DB_VERSION_TABLE " (value)\n"
-              "VALUES (1)"
-    };
     const int n_migrations = sizeof(migrations) / sizeof(migrations[0]);
 
     for (
