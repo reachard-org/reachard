@@ -22,7 +22,6 @@
 # clang-format v21
 
 AlignAfterOpenBracket: BlockIndent
-AllowShortIfStatementsOnASingleLine: WithoutElse
 BreakAfterReturnType: All
 ColumnLimit: 0 # This allows for free order of parameters in functions
 IndentWidth: 4
