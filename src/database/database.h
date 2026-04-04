@@ -21,9 +21,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <libpq-fe.h>
-
 #pragma once
+
+#include <libpq-fe.h>
 
 struct reachard_db {
     PGconn *conn;

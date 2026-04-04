@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <stddef.h>
+
 #include "database.h"
 
 struct reachard_db_target {

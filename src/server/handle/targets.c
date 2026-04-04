@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <stdlib.h>
 #include <string.h>
 
 #include <cjson/cJSON.h>
@@ -29,6 +28,7 @@
 
 #include "../../database/targets.h"
 #include "../handle.h"
+#include "../request.h"
 
 #include "targets.h"
 
