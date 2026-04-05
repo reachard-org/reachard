@@ -29,9 +29,9 @@
 
 #include <microhttpd.h>
 
-#include "../database/database.h"
-#include "../database/migrate.h"
-#include "handle.h"
+#include <database/database.h>
+#include <database/migrate.h>
+#include <server/handle.h>
 
 #include "server.h"
 

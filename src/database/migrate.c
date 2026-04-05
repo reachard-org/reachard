@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "database.h"
+#include <database/database.h>
 
 #include "migrate.h"
 

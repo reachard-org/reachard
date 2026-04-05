@@ -45,4 +45,5 @@ target_sources(
     src/server/handle/targets.c
     src/server/request.c
     src/server/server.c
+  PRIVATE FILE_SET HEADERS BASE_DIRS ${CMAKE_SOURCE_DIR}/src
 )

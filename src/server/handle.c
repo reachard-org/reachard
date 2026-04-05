@@ -28,7 +28,8 @@
 
 #include <microhttpd.h>
 
-#include "handle/targets.h"
+#include <server/handle/targets.h>
+#include <server/request.h>
 
 #include "handle.h"
 

@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include "database.h"
+#include <database/database.h>
 
 bool
 reachard_db_migrate(struct reachard_db *db);

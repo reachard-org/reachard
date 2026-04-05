@@ -27,7 +27,7 @@
 
 #include <microhttpd.h>
 
-#include "request.h"
+#include <server/request.h>
 
 typedef enum MHD_Result (*reachard_handler)(struct reachard_request *request);
 

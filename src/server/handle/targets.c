@@ -26,9 +26,9 @@
 #include <cjson/cJSON.h>
 #include <microhttpd.h>
 
-#include "../../database/targets.h"
-#include "../handle.h"
-#include "../request.h"
+#include <database/targets.h>
+#include <server/handle.h>
+#include <server/request.h>
 
 #include "targets.h"
 

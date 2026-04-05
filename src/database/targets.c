@@ -27,7 +27,7 @@
 
 #include <libpq-fe.h>
 
-#include "database.h"
+#include <database/database.h>
 
 #include "targets.h"
 

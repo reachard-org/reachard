@@ -25,7 +25,7 @@
 
 #include <stddef.h>
 
-#include "database.h"
+#include <database/database.h>
 
 struct reachard_db_target {
     int id;
