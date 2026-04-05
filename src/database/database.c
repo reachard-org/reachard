@@ -45,6 +45,7 @@ reachard_db_connect(struct reachard_db *db, const char *connstring) {
     );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "%s", PQresultErrorMessage(res));
+        fprintf(stderr, "failed to set the search path");
         goto failure;
     }
     PQclear(res);

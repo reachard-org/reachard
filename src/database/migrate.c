@@ -40,11 +40,11 @@ reachard_db_get_schema_version(struct reachard_db *db) {
         "table_schema = 'reachard' AND table_name = 'version'"
     );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(
             stderr,
             "failed to check the existence of the version table\n"
         );
-        fprintf(stderr, "%s", PQresultErrorMessage(res));
         goto failure;
     }
 
@@ -56,11 +56,11 @@ reachard_db_get_schema_version(struct reachard_db *db) {
 
     res = PQexec(db->conn, "SELECT value from version");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(
             stderr,
             "failed to retrieve the schema version from the version table\n"
         );
-        fprintf(stderr, "%s", PQresultErrorMessage(res));
         goto failure;
     }
 
@@ -92,8 +92,8 @@ reachard_db_apply_migration(
 
     res = PQexec(db->conn, migration);
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        fprintf(stderr, "failed to apply the migration\n");
         fprintf(stderr, "%s", PQresultErrorMessage(res));
+        fprintf(stderr, "failed to apply the migration\n");
         goto failure;
     }
     PQclear(res);
