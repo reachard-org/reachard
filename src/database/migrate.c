@@ -28,6 +28,7 @@
 #include <database/database.h>
 
 #include "migrate.h"
+#include "migrations.h"
 
 static int
 reachard_db_get_schema_version(struct reachard_db *db) {
@@ -121,14 +122,6 @@ failure:
     return false;
 }
 
-static const char migration1[] = {
-#embed "migrations/1.sql" suffix(, 0)
-};
-
-static const char *migrations[] = {
-    [1] = migration1
-};
-
 bool
 reachard_db_migrate(struct reachard_db *db) {
     const int current_version = reachard_db_get_schema_version(db);
@@ -137,10 +130,8 @@ reachard_db_migrate(struct reachard_db *db) {
         return false;
     }
 
-    const int n_migrations = sizeof(migrations) / sizeof(migrations[0]);
-
     for (
-        int version = current_version + 1; version < n_migrations; version++
+        int version = current_version + 1; version <= n_migrations; version++
     ) {
         const char *migration = migrations[version];
         if (!reachard_db_apply_migration(db, version, migration)) {

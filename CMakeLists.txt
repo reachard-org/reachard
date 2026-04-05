@@ -29,13 +29,35 @@ find_package(cJSON 1 REQUIRED)
 find_package(libmicrohttpd 1 REQUIRED) # Must have `epoll` support enabled
 find_package(PostgreSQL 18 REQUIRED)
 
+add_executable(gen_migrations)
+target_compile_features(gen_migrations PRIVATE c_std_23)
+target_sources(gen_migrations PRIVATE generators/migrations.c)
+
+file(GLOB MIGRATION_FILES CONFIGURE_DEPENDS src/database/migrations/*.sql)
+set(MIGRATIONS_HEADER ${CMAKE_SOURCE_DIR}/src/database/migrations.h)
+set(MIGRATION_FILES_LIST "${CMAKE_BINARY_DIR}/migrations.txt")
+
+if(EXISTS "${MIGRATION_FILES_LIST}")
+  file(READ "${MIGRATION_FILES_LIST}" OLD_MIGRATION_FILES)
+endif()
+
+if(NOT "${MIGRATION_FILES}" STREQUAL "${OLD_MIGRATION_FILES}")
+  file(WRITE "${MIGRATION_FILES_LIST}" "${MIGRATION_FILES}")
+endif()
+
+add_custom_command(
+  OUTPUT ${MIGRATIONS_HEADER}
+  DEPENDS "${MIGRATION_FILES}" ${MIGRATION_FILES_LIST}
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/src/database
+  COMMAND gen_migrations migrations
+)
+
 add_executable(reachard)
 target_compile_features(reachard PRIVATE c_std_23)
 target_link_libraries(
   reachard
   PRIVATE cJSON::cJSON libmicrohttpd::MHD PostgreSQL::PostgreSQL
 )
-
 target_sources(
   reachard
   PRIVATE src/main.c
@@ -45,5 +67,8 @@ target_sources(
     src/server/handle/targets.c
     src/server/request.c
     src/server/server.c
-  PRIVATE FILE_SET HEADERS BASE_DIRS ${CMAKE_SOURCE_DIR}/src
+  PRIVATE
+    FILE_SET HEADERS
+      BASE_DIRS ${CMAKE_SOURCE_DIR}/src
+      FILES ${MIGRATIONS_HEADER}
 )

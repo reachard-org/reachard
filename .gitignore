@@ -31,3 +31,5 @@ CMakeUserPresets.json
 
 build
 install
+
+/src/database/migrations.h
