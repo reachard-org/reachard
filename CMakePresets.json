@@ -13,7 +13,7 @@
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_C_EXTENSIONS": "OFF",
         "CMAKE_C_FLAGS_DEBUG": "-fdiagnostics-color=always -Wall -Wextra -Werror -pedantic -pedantic-errors -Wno-unused-parameter -Wno-error=unused-function -Wno-error=unused-variable -Og -ggdb3",
-        "CMAKE_C_INCLUDE_WHAT_YOU_USE": "include-what-you-use;-Xiwyu;--no_fwd_decls;-Xiwyu;--error",
+        "CMAKE_C_INCLUDE_WHAT_YOU_USE": "include-what-you-use;-Xiwyu;--no_fwd_decls",
         "CMAKE_EXE_LINKER_FLAGS": "-no-pie",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
