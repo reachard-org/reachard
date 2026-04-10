@@ -36,30 +36,42 @@
 #include "server.h"
 
 static void
+reachard_cleanup(struct reachard_server *server) {
+    reachard_db_disconnect(&server->db);
+}
+
+bool
+reachard_init(struct reachard_server *server, const char *db_url) {
+    if (!reachard_db_connect(&server->db, db_url)) {
+        fprintf(stderr, "failed to connect to the database\n");
+        goto failure;
+    }
+
+    if (!reachard_db_migrate(&server->db)) {
+        fprintf(stderr, "failed to apply migrations to the database\n");
+        goto failure;
+    }
+
+    return true;
+
+failure:
+    reachard_cleanup(server);
+    return false;
+}
+
+static void
 reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
     printf("\rShutting down! [%d]\n", sig);
 }
 
-int
-reachard_serve(const int port, const char *db_url) {
-    int result = 1;
-
-    struct reachard_db *db = &(struct reachard_db){0};
-
-    if (!reachard_db_connect(db, db_url)) {
-        fprintf(stderr, "failed to connect to the database\n");
-        goto cleanup;
-    }
-
-    if (!reachard_db_migrate(db)) {
-        fprintf(stderr, "failed to apply migrations to the database\n");
-        goto cleanup;
-    }
+bool
+reachard_serve(struct reachard_server *server, const int port) {
+    bool result = false;
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
         MHD_USE_EPOLL_INTERNAL_THREAD, port,
         0, 0,
-        &reachard_handle, db,
+        &reachard_handle, &server->db,
         MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, 0,
         MHD_OPTION_END
     );
@@ -79,9 +91,9 @@ reachard_serve(const int port, const char *db_url) {
     pause();
 
     MHD_stop_daemon(daemon);
-    result = 0;
+    result = true;
 
 cleanup:
-    reachard_db_disconnect(db);
+    reachard_cleanup(server);
     return result;
 }

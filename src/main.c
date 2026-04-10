@@ -45,5 +45,11 @@ main() {
         db_url = "postgresql://reachard@/reachard";
     }
 
-    return reachard_serve(port, db_url);
+    struct reachard_server *server = &(struct reachard_server){0};
+    if (!reachard_init(server, db_url)) {
+        fprintf(stderr, "failed to initialize the server\n");
+        return 1;
+    }
+
+    return reachard_serve(server, port);
 }

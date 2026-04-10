@@ -23,5 +23,14 @@
 
 #pragma once
 
-int
-reachard_serve(const int port, const char *db_url);
+#include <database/database.h>
+
+struct reachard_server {
+    struct reachard_db db;
+};
+
+bool
+reachard_init(struct reachard_server *server, const char *db_url);
+
+bool
+reachard_serve(struct reachard_server *server, const int port);
