@@ -128,7 +128,7 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
 
     if (strcmp(request->method, "DELETE") == 0) {
         conn_info->handle = &reachard_handle_targets_delete;
-        return reachard_request_expect_json(request);
+        return MHD_YES;
     }
     if (strcmp(request->method, "GET") == 0) {
         conn_info->handle = &reachard_handle_targets_get;
@@ -136,7 +136,7 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
     }
     if (strcmp(request->method, "POST") == 0) {
         conn_info->handle = &reachard_handle_targets_post;
-        return reachard_request_expect_json(request);
+        return MHD_YES;
     }
 
     return reachard_request_respond_plain(
