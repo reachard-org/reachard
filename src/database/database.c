@@ -29,7 +29,7 @@
 
 // See https://www.postgresql.org/docs/current/libpq-connect.html
 bool
-reachard_db_connect(struct reachard_db *db, const char *connstring) {
+reachard_db_init(struct reachard_db *db, const char *connstring) {
     PGconn *conn = 0;
     PGresult *res = 0;
 
@@ -61,6 +61,6 @@ failure:
 }
 
 void
-reachard_db_disconnect(struct reachard_db *db) {
+reachard_db_cleanup(struct reachard_db *db) {
     PQfinish(db->conn);
 }

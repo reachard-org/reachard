@@ -37,12 +37,12 @@
 
 static void
 reachard_cleanup(struct reachard_server *server) {
-    reachard_db_disconnect(&server->db);
+    reachard_db_cleanup(&server->db);
 }
 
 bool
 reachard_init(struct reachard_server *server, const char *db_url) {
-    if (!reachard_db_connect(&server->db, db_url)) {
+    if (!reachard_db_init(&server->db, db_url)) {
         fprintf(stderr, "failed to connect to the database\n");
         goto failure;
     }

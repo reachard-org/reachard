@@ -30,7 +30,7 @@ struct reachard_db {
 };
 
 bool
-reachard_db_connect(struct reachard_db *db, const char *connstring);
+reachard_db_init(struct reachard_db *db, const char *connstring);
 
 void
-reachard_db_disconnect(struct reachard_db *db);
+reachard_db_cleanup(struct reachard_db *db);
