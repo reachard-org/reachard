@@ -76,6 +76,8 @@ reachard_handle_targets_get(struct reachard_request *request) {
         cJSON *target = cJSON_CreateObject();
         cJSON_AddNumberToObject(target, "id", targets[i].id);
         cJSON_AddStringToObject(target, "name", targets[i].name);
+        cJSON_AddStringToObject(target, "url", targets[i].url);
+        cJSON_AddNumberToObject(target, "interval", targets[i].interval);
         cJSON_AddItemToArray(array, target);
     }
 
@@ -95,23 +97,51 @@ reachard_handle_targets_post(struct reachard_request *request) {
         return reachard_handle_upload_data(request);
     }
 
-    cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
+    struct reachard_db_target target = {0};
+
+    cJSON *object = 0;
+    cJSON *item = 0;
+
+    object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
     if (!object) {
         return reachard_request_respond_plain(
             request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
         );
     }
 
-    const cJSON *name_item = cJSON_GetObjectItemCaseSensitive(object, "name");
-    if (!cJSON_IsString(name_item)) {
+    item = cJSON_GetObjectItemCaseSensitive(object, "name");
+    if (!cJSON_IsString(item)) {
         cJSON_Delete(object);
         return reachard_request_respond_plain(
             request, "failed to parse target name", MHD_HTTP_BAD_REQUEST
         );
     }
+    target.name = item->valuestring;
 
-    const char *name = name_item->valuestring;
-    const int id = reachard_db_targets_add(db, name);
+    item = cJSON_GetObjectItemCaseSensitive(object, "url");
+    if (!cJSON_IsString(item)) {
+        cJSON_Delete(object);
+        return reachard_request_respond_plain(
+            request, "failed to parse target url", MHD_HTTP_BAD_REQUEST
+        );
+    }
+    target.url = item->valuestring;
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "interval");
+    if (item) {
+        if (!cJSON_IsNumber(item)) {
+            cJSON_Delete(object);
+            return reachard_request_respond_plain(
+                request,
+                "failed to parse target interval", MHD_HTTP_BAD_REQUEST
+            );
+        }
+        target.interval = item->valueint;
+    } else {
+        target.interval = 5;
+    }
+
+    const int id = reachard_db_targets_add(db, target);
     cJSON_Delete(object);
 
     object = cJSON_CreateObject();

@@ -30,13 +30,18 @@
 struct reachard_db_target {
     int id;
     char *name;
+    char *url;
+    int interval;
 };
 
 void
 reachard_db_targets_free(struct reachard_db_target *targets, size_t count);
 
 int
-reachard_db_targets_add(struct reachard_db *db, const char *name);
+reachard_db_targets_add(
+    struct reachard_db *db,
+    struct reachard_db_target target
+);
 
 bool
 reachard_db_targets_delete(struct reachard_db *db, const int id);

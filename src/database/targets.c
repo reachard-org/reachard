@@ -35,18 +35,29 @@ void
 reachard_db_targets_free(struct reachard_db_target *targets, size_t count) {
     for (size_t i = 0; i < count; i++) {
         free(targets[i].name);
+        free(targets[i].url);
     }
     free(targets);
 }
 
 int
-reachard_db_targets_add(struct reachard_db *db, const char *name) {
+reachard_db_targets_add(
+    struct reachard_db *db,
+    struct reachard_db_target target
+) {
     PGresult *res = 0;
 
-    const char *paramValues[1] = {name};
+    char interval[12] = {0};
+    snprintf(interval, sizeof(interval), "%d", target.interval);
+
+    const char *paramValues[] = {target.name, target.url, interval};
+    const size_t paramValuesN = sizeof(paramValues) / sizeof(paramValues[0]);
+
     res = PQexecParams(
-        db->conn, "INSERT INTO targets VALUES (DEFAULT, $1) RETURNING id",
-        1, 0, paramValues, 0, 0, 0
+        db->conn, "INSERT INTO targets\n"
+                  "VALUES (DEFAULT, $1, $2, $3)\n"
+                  "RETURNING id",
+        paramValuesN, 0, paramValues, 0, 0, 0
     );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "failed to add a target\n");
@@ -91,7 +102,8 @@ reachard_db_targets_get(
 ) {
     PGresult *res = 0;
 
-    res = PQexec(db->conn, "SELECT id, name FROM targets");
+    res = PQexec(db->conn, "SELECT id, name, url, interval FROM targets\n"
+                           "ORDER BY id");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "failed to get targets\n");
         PQclear(res);
@@ -107,9 +119,19 @@ reachard_db_targets_get(
     *count = ntargets;
     *targets = calloc(ntargets, sizeof(struct reachard_db_target));
 
+    char *value = 0;
     for (int i = 0; i < ntargets; i++) {
-        (*targets)[i].id = atoi(PQgetvalue(res, i, 0));
-        (*targets)[i].name = strdup(PQgetvalue(res, i, 1));
+        value = PQgetvalue(res, i, 0);
+        (*targets)[i].id = atoi(value);
+
+        value = PQgetvalue(res, i, 1);
+        (*targets)[i].name = strdup(value);
+
+        value = PQgetvalue(res, i, 2);
+        (*targets)[i].url = strdup(value);
+
+        value = PQgetvalue(res, i, 3);
+        (*targets)[i].interval = atoi(value);
     }
 
     PQclear(res);
