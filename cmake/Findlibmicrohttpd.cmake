@@ -20,7 +20,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 set(_pkg_name ${CMAKE_FIND_PACKAGE_NAME})
+
 set(_target_name MHD)
+set(_header_name microhttpd.h)
+set(_library_name microhttpd)
 
 find_package(PkgConfig)
 if(PkgConfig_FOUND)
@@ -29,14 +32,14 @@ endif()
 
 find_path(
   ${_pkg_name}_INCLUDE_DIR
-  NAMES microhttpd.h
+  NAMES ${_header_name}
   HINTS PC_${_pkg_name}_INCLUDE_DIRS
   PATH_SUFFIXES ${_pkg_name}
 )
 
 find_library(
   ${_pkg_name}_LIBRARY
-  NAMES microhttpd
+  NAMES ${_library_name}
   HINTS PC_${_pkg_name}_LIBRARY_DIRS
 )
 
