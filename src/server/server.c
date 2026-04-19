@@ -26,41 +26,28 @@
 #include <microhttpd.h>
 
 #include <database/database.h>
-#include <database/migrate.h>
 #include <server/handle.h>
 
 #include "server.h"
 
-void
-reachard_server_cleanup(struct reachard_server *server) {
-    reachard_db_cleanup(&server->db);
-}
-
 int
-reachard_server_init(struct reachard_server *server, const char *db_url) {
-    if (!reachard_db_init(&server->db, db_url)) {
-        fprintf(stderr, "failed to connect to the database\n");
-        goto failure;
-    }
-
-    if (!reachard_db_migrate(&server->db)) {
-        fprintf(stderr, "failed to apply migrations to the database\n");
-        goto failure;
-    }
+reachard_server_init(
+    struct reachard_server *server,
+    struct reachard_db *db,
+    uint16_t port
+) {
+    server->db = db;
+    server->port = port;
 
     return 0;
-
-failure:
-    reachard_server_cleanup(server);
-    return 1;
 }
 
 int
-reachard_server_start(struct reachard_server *server, const int port) {
+reachard_server_start(struct reachard_server *server) {
     server->daemon = MHD_start_daemon(
-        MHD_USE_EPOLL_INTERNAL_THREAD, port,
+        MHD_USE_EPOLL_INTERNAL_THREAD, server->port,
         0, 0,
-        &reachard_handle, &server->db,
+        &reachard_handle, server->db,
         MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, 0,
         MHD_OPTION_END
     );

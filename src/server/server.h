@@ -23,21 +23,25 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include <database/database.h>
 
 struct reachard_server {
-    struct reachard_db db;
+    struct reachard_db *db;
+    uint16_t port;
     struct MHD_Daemon *daemon;
 };
 
-void
-reachard_server_cleanup(struct reachard_server *server);
+int
+reachard_server_init(
+    struct reachard_server *server,
+    struct reachard_db *db,
+    uint16_t port
+);
 
 int
-reachard_server_init(struct reachard_server *server, const char *db_url);
-
-int
-reachard_server_start(struct reachard_server *server, const int port);
+reachard_server_start(struct reachard_server *server);
 
 void
 reachard_server_stop(struct reachard_server *server);

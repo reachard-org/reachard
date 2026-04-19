@@ -36,6 +36,7 @@ reachard_db_init(struct reachard_db *db, const char *connstring) {
     conn = PQconnectdb(connstring);
     if (PQstatus(conn) != CONNECTION_OK) {
         fprintf(stderr, "%s", PQerrorMessage(conn));
+        fprintf(stderr, "failed to connect to the database\n");
         goto failure;
     }
 
@@ -45,7 +46,7 @@ reachard_db_init(struct reachard_db *db, const char *connstring) {
     );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "%s", PQresultErrorMessage(res));
-        fprintf(stderr, "failed to set the search path");
+        fprintf(stderr, "failed to set the search path\n");
         goto failure;
     }
     PQclear(res);

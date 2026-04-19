@@ -26,6 +26,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "database/database.h"
+#include "database/migrate.h"
 #include "server/server.h"
 
 static void
@@ -66,13 +68,25 @@ main() {
         db_url = "postgresql://reachard@/reachard";
     }
 
-    struct reachard_server *server = &(struct reachard_server){0};
-    if (reachard_server_init(server, db_url)) {
-        fprintf(stderr, "failed to initialize the server\n");
+    struct reachard_db *db = &(struct reachard_db){};
+
+    if (!reachard_db_init(db, db_url)) {
+        fprintf(stderr, "failed to initialize the database\n");
         goto cleanup;
     }
 
-    reachard_server_start(server, port);
+    if (!reachard_db_migrate(db)) {
+        fprintf(stderr, "failed to apply migrations to the database\n");
+        goto cleanup;
+    }
+
+    struct reachard_server *server = &(struct reachard_server){};
+    reachard_server_init(server, db, port);
+
+    if (reachard_server_start(server)) {
+        fprintf(stderr, "failed to start the server\n");
+        goto cleanup;
+    };
 
     printf("Listening on :%d\n", port);
     reachard_wait();
@@ -82,6 +96,6 @@ main() {
     result = 0;
 
 cleanup:
-    reachard_server_cleanup(server);
+    reachard_db_cleanup(db);
     return result;
 }
