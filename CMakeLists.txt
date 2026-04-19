@@ -32,7 +32,6 @@ find_package(libuv 1 REQUIRED)
 find_package(PostgreSQL 18 REQUIRED)
 
 add_executable(gen_migrations)
-target_compile_features(gen_migrations PRIVATE c_std_23)
 target_sources(gen_migrations PRIVATE generators/migrations.c)
 
 file(GLOB MIGRATION_FILES CONFIGURE_DEPENDS src/database/migrations/*.sql)
