@@ -27,10 +27,17 @@
 
 struct reachard_server {
     struct reachard_db db;
+    struct MHD_Daemon *daemon;
 };
+
+void
+reachard_server_cleanup(struct reachard_server *server);
 
 int
 reachard_server_init(struct reachard_server *server, const char *db_url);
 
 int
 reachard_server_start(struct reachard_server *server, const int port);
+
+void
+reachard_server_stop(struct reachard_server *server);

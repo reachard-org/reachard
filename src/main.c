@@ -21,13 +21,34 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "server/server.h"
 
+static void
+reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
+    printf("\rShutting down! [%d]\n", sig);
+}
+
+static void
+reachard_wait() {
+    const struct sigaction act = {
+        .sa_sigaction = &reachard_interrupt,
+        .sa_flags = SA_SIGINFO
+    };
+    sigaction(SIGINT, &act, 0);
+    sigaction(SIGTERM, &act, 0);
+
+    pause();
+}
+
 int
 main() {
+    int result = 1;
+
     char *port_str = getenv("REACHARD_PORT");
     int port = 7272;
 
@@ -48,8 +69,19 @@ main() {
     struct reachard_server *server = &(struct reachard_server){0};
     if (reachard_server_init(server, db_url)) {
         fprintf(stderr, "failed to initialize the server\n");
-        return 1;
+        goto cleanup;
     }
 
-    return reachard_server_start(server, port);
+    reachard_server_start(server, port);
+
+    printf("Listening on :%d\n", port);
+    reachard_wait();
+
+    reachard_server_stop(server);
+
+    result = 0;
+
+cleanup:
+    reachard_server_cleanup(server);
+    return result;
 }

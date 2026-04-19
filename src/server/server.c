@@ -21,9 +21,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <signal.h>
 #include <stdio.h>
-#include <unistd.h>
 
 #include <microhttpd.h>
 
@@ -33,7 +31,7 @@
 
 #include "server.h"
 
-static void
+void
 reachard_server_cleanup(struct reachard_server *server) {
     reachard_db_cleanup(&server->db);
 }
@@ -57,41 +55,24 @@ failure:
     return 1;
 }
 
-static void
-reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
-    printf("\rShutting down! [%d]\n", sig);
-}
-
 int
 reachard_server_start(struct reachard_server *server, const int port) {
-    int result = 1;
-
-    struct MHD_Daemon *daemon = MHD_start_daemon(
+    server->daemon = MHD_start_daemon(
         MHD_USE_EPOLL_INTERNAL_THREAD, port,
         0, 0,
         &reachard_handle, &server->db,
         MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, 0,
         MHD_OPTION_END
     );
-    if (!daemon) {
+    if (!server->daemon) {
         fprintf(stderr, "failed to start the daemon\n");
-        goto cleanup;
+        return 1;
     }
 
-    const struct sigaction act = {
-        .sa_sigaction = &reachard_interrupt,
-        .sa_flags = SA_SIGINFO
-    };
-    sigaction(SIGINT, &act, 0);
-    sigaction(SIGTERM, &act, 0);
+    return 0;
+}
 
-    printf("Listening on :%d\n", port);
-    pause();
-
-    MHD_stop_daemon(daemon);
-    result = 0;
-
-cleanup:
-    reachard_server_cleanup(server);
-    return result;
+void
+reachard_server_stop(struct reachard_server *server) {
+    MHD_stop_daemon(server->daemon);
 }
