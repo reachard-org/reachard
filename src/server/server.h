@@ -29,8 +29,8 @@ struct reachard_server {
     struct reachard_db db;
 };
 
-bool
+int
 reachard_server_init(struct reachard_server *server, const char *db_url);
 
-bool
+int
 reachard_server_start(struct reachard_server *server, const int port);

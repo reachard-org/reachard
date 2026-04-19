@@ -38,7 +38,7 @@ reachard_server_cleanup(struct reachard_server *server) {
     reachard_db_cleanup(&server->db);
 }
 
-bool
+int
 reachard_server_init(struct reachard_server *server, const char *db_url) {
     if (!reachard_db_init(&server->db, db_url)) {
         fprintf(stderr, "failed to connect to the database\n");
@@ -50,11 +50,11 @@ reachard_server_init(struct reachard_server *server, const char *db_url) {
         goto failure;
     }
 
-    return true;
+    return 0;
 
 failure:
     reachard_server_cleanup(server);
-    return false;
+    return 1;
 }
 
 static void
@@ -62,9 +62,9 @@ reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
     printf("\rShutting down! [%d]\n", sig);
 }
 
-bool
+int
 reachard_server_start(struct reachard_server *server, const int port) {
-    bool result = false;
+    int result = 1;
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
         MHD_USE_EPOLL_INTERNAL_THREAD, port,
@@ -89,7 +89,7 @@ reachard_server_start(struct reachard_server *server, const int port) {
     pause();
 
     MHD_stop_daemon(daemon);
-    result = true;
+    result = 0;
 
 cleanup:
     reachard_server_cleanup(server);

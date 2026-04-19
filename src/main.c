@@ -46,7 +46,7 @@ main() {
     }
 
     struct reachard_server *server = &(struct reachard_server){0};
-    if (!reachard_server_init(server, db_url)) {
+    if (reachard_server_init(server, db_url)) {
         fprintf(stderr, "failed to initialize the server\n");
         return 1;
     }
