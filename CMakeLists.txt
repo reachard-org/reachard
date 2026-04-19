@@ -54,6 +54,7 @@ add_custom_command(
 )
 
 add_executable(reachard)
+target_compile_definitions(reachard PRIVATE _POSIX_C_SOURCE=202405L)
 target_compile_features(reachard PRIVATE c_std_23)
 target_link_libraries(
   reachard
