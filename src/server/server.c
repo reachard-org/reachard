@@ -34,12 +34,12 @@
 #include "server.h"
 
 static void
-reachard_cleanup(struct reachard_server *server) {
+reachard_server_cleanup(struct reachard_server *server) {
     reachard_db_cleanup(&server->db);
 }
 
 bool
-reachard_init(struct reachard_server *server, const char *db_url) {
+reachard_server_init(struct reachard_server *server, const char *db_url) {
     if (!reachard_db_init(&server->db, db_url)) {
         fprintf(stderr, "failed to connect to the database\n");
         goto failure;
@@ -53,7 +53,7 @@ reachard_init(struct reachard_server *server, const char *db_url) {
     return true;
 
 failure:
-    reachard_cleanup(server);
+    reachard_server_cleanup(server);
     return false;
 }
 
@@ -63,7 +63,7 @@ reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
 }
 
 bool
-reachard_serve(struct reachard_server *server, const int port) {
+reachard_server_start(struct reachard_server *server, const int port) {
     bool result = false;
 
     struct MHD_Daemon *daemon = MHD_start_daemon(
@@ -92,6 +92,6 @@ reachard_serve(struct reachard_server *server, const int port) {
     result = true;
 
 cleanup:
-    reachard_cleanup(server);
+    reachard_server_cleanup(server);
     return result;
 }

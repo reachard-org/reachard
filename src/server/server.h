@@ -30,7 +30,7 @@ struct reachard_server {
 };
 
 bool
-reachard_init(struct reachard_server *server, const char *db_url);
+reachard_server_init(struct reachard_server *server, const char *db_url);
 
 bool
-reachard_serve(struct reachard_server *server, const int port);
+reachard_server_start(struct reachard_server *server, const int port);
