@@ -72,7 +72,7 @@ reachard_db_targets_add(
     return id;
 }
 
-bool
+int
 reachard_db_targets_delete(struct reachard_db *db, const int id) {
     PGresult *res = 0;
 
@@ -85,16 +85,16 @@ reachard_db_targets_delete(struct reachard_db *db, const int id) {
         1, 0, paramValues, 0, 0, 0
     );
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        fprintf(stderr, "failed to delete a target\n");
+        fprintf(stderr, "failed to run the delete query\n");
         PQclear(res);
-        return false;
+        return 1;
     }
     PQclear(res);
 
-    return true;
+    return 0;
 }
 
-bool
+int
 reachard_db_targets_get(
     struct reachard_db *db,
     struct reachard_db_target **targets,
@@ -105,7 +105,7 @@ reachard_db_targets_get(
     res = PQexec(db->conn, "SELECT id, name, url, interval FROM targets\n"
                            "ORDER BY id");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
-        fprintf(stderr, "failed to get targets\n");
+        fprintf(stderr, "failed to run the select query\n");
         PQclear(res);
         return 1;
     }

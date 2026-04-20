@@ -25,5 +25,5 @@
 
 #include <database/database.h>
 
-bool
+int
 reachard_db_migrate(struct reachard_db *db);

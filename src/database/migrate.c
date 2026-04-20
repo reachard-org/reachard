@@ -75,7 +75,7 @@ failure:
     return -1;
 }
 
-static bool
+static int
 reachard_db_apply_migration(
     struct reachard_db *db,
     const int version,
@@ -122,27 +122,27 @@ failure:
     return false;
 }
 
-bool
+int
 reachard_db_migrate(struct reachard_db *db) {
     const int current_version = reachard_db_get_schema_version(db);
     if (current_version < 0) {
         fprintf(stderr, "failed to get the schema version\n");
-        return false;
+        return 1;
     }
 
     for (
         int version = current_version + 1; version <= n_migrations; version++
     ) {
         const char *migration = migrations[version];
-        if (!reachard_db_apply_migration(db, version, migration)) {
+        if (reachard_db_apply_migration(db, version, migration)) {
             fprintf(
                 stderr,
                 "failed to apply migration to version %d\n",
                 version
             );
-            return false;
+            return 1;
         }
     }
 
-    return true;
+    return 0;
 }

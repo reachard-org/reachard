@@ -28,7 +28,7 @@
 #include "database.h"
 
 // See https://www.postgresql.org/docs/current/libpq-connect.html
-bool
+int
 reachard_db_init(struct reachard_db *db, const char *connstring) {
     PGconn *conn = 0;
     PGresult *res = 0;
@@ -53,12 +53,12 @@ reachard_db_init(struct reachard_db *db, const char *connstring) {
 
     db->conn = conn;
 
-    return true;
+    return 0;
 
 failure:
     PQclear(res);
     PQfinish(conn);
-    return false;
+    return 1;
 }
 
 void

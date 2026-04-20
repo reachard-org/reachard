@@ -70,12 +70,12 @@ main() {
 
     struct reachard_db *db = &(struct reachard_db){};
 
-    if (!reachard_db_init(db, db_url)) {
+    if (reachard_db_init(db, db_url)) {
         fprintf(stderr, "failed to initialize the database\n");
         goto cleanup;
     }
 
-    if (!reachard_db_migrate(db)) {
+    if (reachard_db_migrate(db)) {
         fprintf(stderr, "failed to apply migrations to the database\n");
         goto cleanup;
     }

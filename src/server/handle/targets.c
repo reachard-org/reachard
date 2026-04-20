@@ -57,7 +57,14 @@ reachard_handle_targets_delete(struct reachard_request *request) {
     }
 
     const int id = id_item->valueint;
-    reachard_db_targets_delete(db, id);
+    if (reachard_db_targets_delete(db, id)) {
+        cJSON_Delete(object);
+        return reachard_request_respond_plain(
+            request,
+            "failed to delete the target",
+            MHD_HTTP_INTERNAL_SERVER_ERROR
+        );
+    };
 
     cJSON_Delete(object);
     return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
@@ -69,7 +76,13 @@ reachard_handle_targets_get(struct reachard_request *request) {
 
     size_t count;
     struct reachard_db_target *targets;
-    reachard_db_targets_get(db, &targets, &count);
+    if (reachard_db_targets_get(db, &targets, &count)) {
+        return reachard_request_respond_plain(
+            request,
+            "failed to get targets",
+            MHD_HTTP_INTERNAL_SERVER_ERROR
+        );
+    };
 
     cJSON *array = cJSON_CreateArray();
     for (size_t i = 0; i < count; i++) {

@@ -29,7 +29,7 @@ struct reachard_db {
     PGconn *conn;
 };
 
-bool
+int
 reachard_db_init(struct reachard_db *db, const char *connstring);
 
 void

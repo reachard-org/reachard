@@ -43,10 +43,10 @@ reachard_db_targets_add(
     struct reachard_db_target target
 );
 
-bool
+int
 reachard_db_targets_delete(struct reachard_db *db, const int id);
 
-bool
+int
 reachard_db_targets_get(
     struct reachard_db *db,
     struct reachard_db_target **targets,
