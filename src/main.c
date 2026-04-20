@@ -64,7 +64,7 @@ reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
 }
 
 static void
-reachard_wait() {
+reachard_pause() {
     const struct sigaction act = {
         .sa_sigaction = &reachard_interrupt,
         .sa_flags = SA_SIGINFO
@@ -103,7 +103,7 @@ main() {
     };
 
     printf("Listening on :%d\n", env->port);
-    reachard_wait();
+    reachard_pause();
 
     reachard_server_stop(server);
 
