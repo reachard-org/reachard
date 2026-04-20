@@ -28,6 +28,7 @@
 #include <libpq-fe.h>
 
 #include <database/database.h>
+#include <utils/constants.h>
 
 #include "targets.h"
 
@@ -47,7 +48,7 @@ reachard_db_targets_add(
 ) {
     PGresult *res = 0;
 
-    char interval[12] = {0};
+    char interval[REACHARD_INT_STR_LEN] = {0};
     snprintf(interval, sizeof(interval), "%d", target.interval);
 
     const char *paramValues[] = {target.name, target.url, interval};
@@ -76,7 +77,7 @@ int
 reachard_db_targets_delete(struct reachard_db *db, const int id) {
     PGresult *res = 0;
 
-    char id_str[20] = {0};
+    char id_str[REACHARD_INT_STR_LEN] = {0};
     snprintf(id_str, sizeof(id_str), "%d", id);
 
     const char *paramValues[1] = {id_str};

@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 #include <database/database.h>
+#include <utils/constants.h>
 
 #include "migrate.h"
 #include "migrations.h"
@@ -98,7 +99,7 @@ reachard_db_apply_migration(
     }
     PQclear(res);
 
-    char version_str[20] = {0};
+    char version_str[REACHARD_INT_STR_LEN] = {0};
     snprintf(version_str, sizeof(version_str), "%d", version);
 
     const char *paramValues = {version_str};
