@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "checker/checker.h"
 #include "database/database.h"
 #include "database/migrate.h"
 #include "server/server.h"
@@ -97,15 +98,27 @@ main() {
     struct reachard_server *server = &(struct reachard_server){};
     reachard_server_init(server, db, env->port);
 
+    struct reachard_checker *checker = &(struct reachard_checker){};
+    if (reachard_checker_init(checker)) {
+        fprintf(stderr, "failed to initialize the checker");
+        goto cleanup;
+    };
+
     if (reachard_server_start(server)) {
         fprintf(stderr, "failed to start the server\n");
         goto cleanup;
     };
 
+    if (reachard_checker_start(checker)) {
+        fprintf(stderr, "failed to start the checker");
+        goto cleanup;
+    }
+
     printf("Listening on :%d\n", env->port);
     reachard_pause();
 
     reachard_server_stop(server);
+    reachard_checker_stop(checker);
 
     result = 0;
 
