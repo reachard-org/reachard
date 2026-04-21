@@ -54,6 +54,8 @@ static int
 reachard_client_run(void *arg) {
     struct reachard_client *client = arg;
 
+    uv_thread_setname("client");
+
     uv_idle_t *idle = &(uv_idle_t){};
 
     uv_idle_init(&client->loop, idle);
