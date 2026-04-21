@@ -26,12 +26,12 @@
 #include <threads.h>
 #include <uv.h>
 
-#include "checker.h"
+#include "client.h"
 
 int
-reachard_checker_init(struct reachard_checker *checker) {
-    if (uv_loop_init(&checker->loop)) {
-        fprintf(stderr, "failed to initialize the checker loop\n");
+reachard_client_init(struct reachard_client *client) {
+    if (uv_loop_init(&client->loop)) {
+        fprintf(stderr, "failed to initialize the client loop\n");
         return 1;
     }
 
@@ -51,25 +51,25 @@ wait_for_a_while(uv_idle_t *handle) {
 }
 
 static int
-reachard_checker_run(void *arg) {
-    struct reachard_checker *checker = arg;
+reachard_client_run(void *arg) {
+    struct reachard_client *client = arg;
 
     uv_idle_t *idle = &(uv_idle_t){};
 
-    uv_idle_init(&checker->loop, idle);
+    uv_idle_init(&client->loop, idle);
     uv_idle_start(idle, wait_for_a_while);
 
-    uv_run(&checker->loop, UV_RUN_DEFAULT);
+    uv_run(&client->loop, UV_RUN_DEFAULT);
 
-    fprintf(stderr, "checker finished!\n");
+    fprintf(stderr, "client finished!\n");
 
     return 0;
 }
 
 int
-reachard_checker_start(struct reachard_checker *checker) {
-    if (thrd_create(&checker->thrd, reachard_checker_run, checker)) {
-        fprintf(stderr, "failed to create the checker thread\n");
+reachard_client_start(struct reachard_client *client) {
+    if (thrd_create(&client->thrd, reachard_client_run, client)) {
+        fprintf(stderr, "failed to create the client thread\n");
         return 1;
     };
 
@@ -77,7 +77,7 @@ reachard_checker_start(struct reachard_checker *checker) {
 }
 
 void
-reachard_checker_stop(struct reachard_checker *checker) {
-    thrd_join(checker->thrd, 0);
-    uv_loop_close(&checker->loop);
+reachard_client_stop(struct reachard_client *client) {
+    thrd_join(client->thrd, 0);
+    uv_loop_close(&client->loop);
 }

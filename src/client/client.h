@@ -27,16 +27,16 @@
 
 #include <uv.h>
 
-struct reachard_checker {
+struct reachard_client {
     uv_loop_t loop;
     thrd_t thrd;
 };
 
 int
-reachard_checker_init(struct reachard_checker *checker);
+reachard_client_init(struct reachard_client *client);
 
 int
-reachard_checker_start(struct reachard_checker *checker);
+reachard_client_start(struct reachard_client *client);
 
 void
-reachard_checker_stop(struct reachard_checker *checker);
+reachard_client_stop(struct reachard_client *client);
