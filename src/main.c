@@ -80,49 +80,49 @@ int
 main() {
     int result = 1;
 
-    struct reachard_env *env = &(struct reachard_env){};
-    reachard_env_init(env);
+    struct reachard_env env;
+    reachard_env_init(&env);
 
-    struct reachard_db *db = &(struct reachard_db){};
+    struct reachard_db db;
 
-    if (reachard_db_init(db, env->db_url)) {
+    if (reachard_db_init(&db, env.db_url)) {
         fprintf(stderr, "failed to initialize the database\n");
         goto cleanup;
     }
 
-    if (reachard_db_migrate(db)) {
+    if (reachard_db_migrate(&db)) {
         fprintf(stderr, "failed to apply migrations to the database\n");
         goto cleanup;
     }
 
-    struct reachard_server *server = &(struct reachard_server){};
-    reachard_server_init(server, db, env->port);
+    struct reachard_server server;
+    reachard_server_init(&server, &db, env.port);
 
-    struct reachard_client *client = &(struct reachard_client){};
-    if (reachard_client_init(client)) {
+    struct reachard_client client;
+    if (reachard_client_init(&client)) {
         fprintf(stderr, "failed to initialize the client");
         goto cleanup;
     };
 
-    if (reachard_server_start(server)) {
+    if (reachard_server_start(&server)) {
         fprintf(stderr, "failed to start the server\n");
         goto cleanup;
     };
 
-    if (reachard_client_start(client)) {
+    if (reachard_client_start(&client)) {
         fprintf(stderr, "failed to start the client");
         goto cleanup;
     }
 
-    printf("Listening on :%d\n", env->port);
+    printf("Listening on :%d\n", env.port);
     reachard_pause();
 
-    reachard_server_stop(server);
-    reachard_client_stop(client);
+    reachard_server_stop(&server);
+    reachard_client_stop(&client);
 
     result = 0;
 
 cleanup:
-    reachard_db_cleanup(db);
+    reachard_db_cleanup(&db);
     return result;
 }

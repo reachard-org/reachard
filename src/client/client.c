@@ -56,10 +56,9 @@ reachard_client_run(void *arg) {
 
     uv_thread_setname("client");
 
-    uv_idle_t *idle = &(uv_idle_t){};
-
-    uv_idle_init(&client->loop, idle);
-    uv_idle_start(idle, wait_for_a_while);
+    uv_idle_t idle;
+    uv_idle_init(&client->loop, &idle);
+    uv_idle_start(&idle, wait_for_a_while);
 
     uv_run(&client->loop, UV_RUN_DEFAULT);
 
