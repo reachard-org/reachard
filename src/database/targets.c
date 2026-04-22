@@ -48,7 +48,7 @@ reachard_db_targets_add(
 ) {
     PGresult *res = 0;
 
-    char interval[REACHARD_INT_STR_LEN] = {0};
+    char interval[REACHARD_INT_STR_LEN];
     snprintf(interval, sizeof(interval), "%d", target.interval);
 
     const char *paramValues[] = {target.name, target.url, interval};
@@ -77,7 +77,7 @@ int
 reachard_db_targets_delete(struct reachard_db *db, const int id) {
     PGresult *res = 0;
 
-    char id_str[REACHARD_INT_STR_LEN] = {0};
+    char id_str[REACHARD_INT_STR_LEN];
     snprintf(id_str, sizeof(id_str), "%d", id);
 
     const char *paramValues[1] = {id_str};
@@ -120,7 +120,7 @@ reachard_db_targets_get(
     *count = ntargets;
     *targets = calloc(ntargets, sizeof(struct reachard_db_target));
 
-    char *value = 0;
+    char *value;
     for (int i = 0; i < ntargets; i++) {
         value = PQgetvalue(res, i, 0);
         (*targets)[i].id = atoi(value);

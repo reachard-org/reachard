@@ -110,10 +110,10 @@ reachard_handle_targets_post(struct reachard_request *request) {
         return reachard_handle_upload_data(request);
     }
 
-    struct reachard_db_target target = {0};
+    struct reachard_db_target target;
 
-    cJSON *object = 0;
-    cJSON *item = 0;
+    cJSON *object;
+    cJSON *item;
 
     object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
     if (!object) {

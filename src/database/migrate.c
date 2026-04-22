@@ -99,7 +99,7 @@ reachard_db_apply_migration(
     }
     PQclear(res);
 
-    char version_str[REACHARD_INT_STR_LEN] = {0};
+    char version_str[REACHARD_INT_STR_LEN];
     snprintf(version_str, sizeof(version_str), "%d", version);
 
     const char *paramValues = {version_str};

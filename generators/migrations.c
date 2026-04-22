@@ -56,8 +56,8 @@ main(int argc, char **argv) {
 
     int result = 1;
 
-    regex_t regex = {0};
-    regmatch_t pmatch[1] = {0};
+    regex_t regex;
+    regmatch_t pmatch[1];
 
     const char *dir = argv[1];
     DIR *dirp = opendir(dir);
@@ -71,7 +71,7 @@ main(int argc, char **argv) {
     }
 
     int n_migrations = 0;
-    struct dirent *de = 0;
+    struct dirent *de;
     while ((de = readdir(dirp))) {
         if (de->d_type != DT_REG) {
             continue;
