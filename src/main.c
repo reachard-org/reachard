@@ -124,5 +124,6 @@ main() {
 
 cleanup:
     reachard_db_cleanup(&db);
+    reachard_client_cleanup(&client);
     return result;
 }

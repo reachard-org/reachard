@@ -22,8 +22,8 @@
  */
 
 #include <stdio.h>
-
 #include <threads.h>
+
 #include <uv.h>
 
 #include "client.h"
@@ -38,16 +38,9 @@ reachard_client_init(struct reachard_client *client) {
     return 0;
 }
 
-thread_local int counter = 0;
-
-void
-wait_for_a_while(uv_idle_t *handle) {
-    counter++;
-
-    if (counter >= 10e6) {
-        uv_idle_stop(handle);
-        uv_close((uv_handle_t *)handle, 0);
-    }
+static void
+timer_print(uv_timer_t *timer) {
+    fprintf(stderr, "hello from the timer!\n");
 }
 
 static int
@@ -56,9 +49,9 @@ reachard_client_run(void *arg) {
 
     uv_thread_setname("client");
 
-    uv_idle_t idle;
-    uv_idle_init(&client->loop, &idle);
-    uv_idle_start(&idle, wait_for_a_while);
+    uv_timer_t timer;
+    uv_timer_init(&client->loop, &timer);
+    uv_timer_start(&timer, timer_print, 0, 1000);
 
     uv_run(&client->loop, UV_RUN_DEFAULT);
 
@@ -77,8 +70,27 @@ reachard_client_start(struct reachard_client *client) {
     return 0;
 }
 
+static void
+reachard_client_close_handle(uv_handle_t *handle, void *arg) {
+    uv_close(handle, 0);
+}
+
 void
 reachard_client_stop(struct reachard_client *client) {
+    // Close every active handle
+    uv_walk(&client->loop, &reachard_client_close_handle, 0);
+
+    // Wake the event loop up immediately
+    uv_async_t async;
+    uv_async_init(&client->loop, &async, 0);
+    uv_async_send(&async);
+    uv_close((uv_handle_t *)&async, 0);
+
+    // Wait for the event loop to finish
     thrd_join(client->thrd, 0);
+}
+
+void
+reachard_client_cleanup(struct reachard_client *client) {
     uv_loop_close(&client->loop);
 }
