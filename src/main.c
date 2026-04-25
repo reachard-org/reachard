@@ -87,12 +87,12 @@ main() {
 
     if (reachard_db_init(&db, env.db_url)) {
         fprintf(stderr, "failed to initialize the database\n");
-        goto cleanup;
+        goto cleanup_db;
     }
 
     if (reachard_db_migrate(&db)) {
         fprintf(stderr, "failed to apply migrations to the database\n");
-        goto cleanup;
+        goto cleanup_db;
     }
 
     struct reachard_server server;
@@ -101,7 +101,7 @@ main() {
     struct reachard_client client;
     if (reachard_client_init(&client)) {
         fprintf(stderr, "failed to initialize the client");
-        goto cleanup;
+        goto cleanup_client;
     };
 
     if (reachard_server_start(&server)) {
@@ -123,7 +123,9 @@ main() {
     result = 0;
 
 cleanup:
-    reachard_db_cleanup(&db);
+cleanup_client:
     reachard_client_cleanup(&client);
+cleanup_db:
+    reachard_db_cleanup(&db);
     return result;
 }
