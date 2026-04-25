@@ -62,6 +62,6 @@ failure:
 }
 
 void
-reachard_db_cleanup(struct reachard_db *db) {
+reachard_db_deinit(struct reachard_db *db) {
     PQfinish(db->conn);
 }

@@ -42,4 +42,4 @@ void
 reachard_client_stop(struct reachard_client *client);
 
 void
-reachard_client_cleanup(struct reachard_client *client);
+reachard_client_deinit(struct reachard_client *client);

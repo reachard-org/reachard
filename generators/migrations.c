@@ -67,7 +67,7 @@ main(int argc, char **argv) {
     const char *pattern = "^([0-9]*)\\.sql$";
     if (regcomp(&regex, pattern, REG_EXTENDED)) {
         fprintf(stderr, "failed to compile regex\n");
-        goto cleanup;
+        goto deinit;
     }
 
     int n_migrations = 0;
@@ -103,7 +103,7 @@ main(int argc, char **argv) {
 
     result = 0;
 
-cleanup:
+deinit:
     regfree(&regex);
     fclose(filep);
     closedir(dirp);

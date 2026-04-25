@@ -33,4 +33,4 @@ int
 reachard_db_init(struct reachard_db *db, const char *connstring);
 
 void
-reachard_db_cleanup(struct reachard_db *db);
+reachard_db_deinit(struct reachard_db *db);
