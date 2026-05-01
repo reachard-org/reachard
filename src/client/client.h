@@ -25,10 +25,13 @@
 
 #include <threads.h>
 
+#include <curl/curl.h>
 #include <uv.h>
 
 struct reachard_client {
     uv_loop_t loop;
+    CURLM *multi;
+    uv_timer_t timer;
     thrd_t thrd;
 };
 
