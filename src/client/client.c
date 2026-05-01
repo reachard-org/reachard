@@ -63,9 +63,17 @@ check_completed(CURLM *multi) {
 
         CURL *easy = message->easy_handle;
 
-        int status;
-        curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &status);
-        fprintf(stderr, "finished the transfer with status code %d\n", status);
+        CURLcode err = message->data.result;
+        if (err) {
+            fprintf(stderr, "%s\n", curl_easy_strerror(err));
+            fprintf(stderr, "transfer failed with error code %d\n", err);
+        } else {
+            int status;
+            curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &status);
+            fprintf(
+                stderr, "finished the transfer with status code %d\n", status
+            );
+        }
 
         curl_multi_remove_handle(multi, easy);
         curl_easy_cleanup(easy);
