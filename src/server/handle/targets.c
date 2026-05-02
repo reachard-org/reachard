@@ -76,7 +76,7 @@ reachard_handle_targets_get(struct reachard_request *request) {
 
     size_t count;
     struct reachard_db_target *targets;
-    if (reachard_db_targets_get(db, &targets, &count)) {
+    if (reachard_db_targets_get_all(db, &targets, &count)) {
         return reachard_request_respond_plain(
             request,
             "failed to get targets",

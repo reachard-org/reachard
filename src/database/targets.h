@@ -48,6 +48,11 @@ reachard_db_targets_delete(struct reachard_db *db, const int id);
 
 int
 reachard_db_targets_get(
+    struct reachard_db *db, struct reachard_db_target *target, int id
+);
+
+int
+reachard_db_targets_get_all(
     struct reachard_db *db,
     struct reachard_db_target **targets,
     size_t *count

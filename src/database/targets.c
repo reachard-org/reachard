@@ -95,8 +95,56 @@ reachard_db_targets_delete(struct reachard_db *db, const int id) {
     return 0;
 }
 
+static void
+parse_target(struct reachard_db_target *target, PGresult *res, int col) {
+    char *value;
+
+    value = PQgetvalue(res, col, 0);
+    target->id = atoi(value);
+
+    value = PQgetvalue(res, col, 1);
+    target->name = strdup(value);
+
+    value = PQgetvalue(res, col, 2);
+    target->url = strdup(value);
+
+    value = PQgetvalue(res, col, 3);
+    target->interval = atoi(value);
+}
+
 int
 reachard_db_targets_get(
+    struct reachard_db *db, struct reachard_db_target *target, int id
+) {
+    PGresult *res = 0;
+
+    char id_str[REACHARD_INT_STR_LEN];
+    snprintf(id_str, sizeof(id_str), "%d", id);
+
+    const char *paramValues[1] = {id_str};
+    res = PQexecParams(db->conn, "SELECT id, name, url, interval FROM targets\n"
+                                 "WHERE id = $1",
+                       1, 0, paramValues, 0, 0, 0);
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "failed to run the select query\n");
+        PQclear(res);
+        return 1;
+    }
+
+    const int ntargets = PQntuples(res);
+    if (!ntargets) {
+        fprintf(stderr, "there is no such target\n");
+        PQclear(res);
+        return 1;
+    }
+    parse_target(target, res, 0);
+
+    PQclear(res);
+    return 0;
+}
+
+int
+reachard_db_targets_get_all(
     struct reachard_db *db,
     struct reachard_db_target **targets,
     size_t *count
@@ -120,19 +168,8 @@ reachard_db_targets_get(
     *count = ntargets;
     *targets = calloc(ntargets, sizeof(struct reachard_db_target));
 
-    char *value;
     for (int i = 0; i < ntargets; i++) {
-        value = PQgetvalue(res, i, 0);
-        (*targets)[i].id = atoi(value);
-
-        value = PQgetvalue(res, i, 1);
-        (*targets)[i].name = strdup(value);
-
-        value = PQgetvalue(res, i, 2);
-        (*targets)[i].url = strdup(value);
-
-        value = PQgetvalue(res, i, 3);
-        (*targets)[i].interval = atoi(value);
+        parse_target((*targets + i), res, i);
     }
 
     PQclear(res);
