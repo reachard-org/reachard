@@ -21,16 +21,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+#include "targets.h"
+
+#include <database/database.h>
+#include <utils/constants.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <libpq-fe.h>
-
-#include <database/database.h>
-#include <utils/constants.h>
-
-#include "targets.h"
 
 void
 reachard_db_targets_free(struct reachard_db_target *targets, size_t count) {

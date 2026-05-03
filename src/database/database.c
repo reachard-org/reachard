@@ -21,11 +21,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+#include "database.h"
+
 #include <stdio.h>
 
 #include <libpq-fe.h>
-
-#include "database.h"
 
 // See https://www.postgresql.org/docs/current/libpq-connect.html
 int

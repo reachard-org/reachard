@@ -23,13 +23,13 @@
 
 #include "client.h"
 
+#include <client/state.h>
+#include <client/targets.h>
+
 #include <stdio.h>
 #include <threads.h>
 
 #include <uv.h>
-
-#include <client/state.h>
-#include <client/targets.h>
 
 int
 reachard_client_init(struct reachard_client *client, struct reachard_db *db) {

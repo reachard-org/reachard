@@ -23,11 +23,11 @@
 
 #pragma once
 
+#include <server/request.h>
+
 #include <stddef.h>
 
 #include <microhttpd.h>
-
-#include <server/request.h>
 
 typedef enum MHD_Result (*reachard_handler)(struct reachard_request *request);
 

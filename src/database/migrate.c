@@ -21,15 +21,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <libpq-fe.h>
+#include "migrate.h"
+
+#include <database/database.h>
+#include <database/migrations.h>
+#include <utils/constants.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <database/database.h>
-#include <utils/constants.h>
-
-#include "migrate.h"
-#include "migrations.h"
+#include <libpq-fe.h>
 
 static int
 reachard_db_get_schema_version(struct reachard_db *db) {

@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include <stddef.h>
-
 #include <database/database.h>
+
+#include <stddef.h>
 
 struct reachard_db_target {
     int id;

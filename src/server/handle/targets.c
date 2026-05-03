@@ -21,16 +21,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <string.h>
-
-#include <cjson/cJSON.h>
-#include <microhttpd.h>
+#include "targets.h"
 
 #include <database/targets.h>
 #include <server/handle.h>
 #include <server/request.h>
 
-#include "targets.h"
+#include <string.h>
+
+#include <cjson/cJSON.h>
+#include <microhttpd.h>
 
 static enum MHD_Result
 reachard_handle_targets_delete(struct reachard_request *request) {

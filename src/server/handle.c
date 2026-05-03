@@ -21,15 +21,15 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <stdlib.h>
-#include <string.h>
-
-#include <microhttpd.h>
+#include "handle.h"
 
 #include <server/handle/targets.h>
 #include <server/request.h>
 
-#include "handle.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include <microhttpd.h>
 
 static void
 reachard_connection_info_destroy(struct reachard_connection_info *conn_info) {

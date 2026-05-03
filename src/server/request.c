@@ -21,12 +21,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+#include "request.h"
+
 #include <stdlib.h>
 #include <string.h>
 
 #include <microhttpd.h>
-
-#include "request.h"
 
 enum MHD_Result
 reachard_request_respond_plain(

@@ -21,16 +21,16 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
+#include "client/client.h"
+#include "database/database.h"
+#include "database/migrate.h"
+#include "server/server.h"
+
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "client/client.h"
-#include "database/database.h"
-#include "database/migrate.h"
-#include "server/server.h"
 
 struct reachard_env {
     uint16_t port;

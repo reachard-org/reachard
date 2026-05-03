@@ -21,14 +21,14 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include <stdio.h>
-
-#include <microhttpd.h>
+#include "server.h"
 
 #include <database/database.h>
 #include <server/handle.h>
 
-#include "server.h"
+#include <stdio.h>
+
+#include <microhttpd.h>
 
 int
 reachard_server_init(

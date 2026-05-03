@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include <stdint.h>
-
 #include <database/database.h>
+
+#include <stdint.h>
 
 struct reachard_server {
     struct reachard_db *db;

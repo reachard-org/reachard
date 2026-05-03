@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include <microhttpd.h>
-
 #include <server/request.h>
+
+#include <microhttpd.h>
 
 enum MHD_Result
 reachard_handle_targets_first_call(struct reachard_request *request);

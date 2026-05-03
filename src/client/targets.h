@@ -23,9 +23,9 @@
 
 #pragma once
 
-#include <uv.h>
-
 #include <client/state.h>
+
+#include <uv.h>
 
 struct reachard_client_target {
     uv_timer_t timer;
