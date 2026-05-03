@@ -99,7 +99,7 @@ main() {
     reachard_server_init(&server, &db, env.port);
 
     struct reachard_client client;
-    if (reachard_client_init(&client)) {
+    if (reachard_client_init(&client, &db)) {
         fprintf(stderr, "failed to initialize the client");
         goto deinit_client;
     };
