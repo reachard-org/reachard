@@ -29,6 +29,7 @@
 #include <uv.h>
 
 #include <client/state.h>
+#include <client/targets.h>
 
 int
 reachard_client_init(struct reachard_client *client, struct reachard_db *db) {
@@ -54,6 +55,8 @@ start(void *arg) {
 
     reachard_client_state_prepare(&client->state);
 
+    reachard_client_target_init(&client->state, &client->target, 1);
+
     uv_run(&client->loop, UV_RUN_DEFAULT);
 
     fprintf(stderr, "client finished!\n");
@@ -76,6 +79,8 @@ reachard_client_start(struct reachard_client *client) {
 static void
 stop(uv_async_t *async) {
     struct reachard_client *client = async->data;
+
+    reachard_client_target_deinit(&client->target);
 
     reachard_client_state_clear(&client->state);
 

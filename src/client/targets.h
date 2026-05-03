@@ -23,28 +23,21 @@
 
 #pragma once
 
-#include <client/state.h>
-#include <client/targets.h>
-
-#include <threads.h>
-
 #include <uv.h>
 
-struct reachard_client {
-    struct reachard_client_state state;
-    struct reachard_client_target target;
-    uv_loop_t loop;
-    thrd_t thrd;
+#include <client/state.h>
+
+struct reachard_client_target {
+    uv_timer_t timer;
+    int id;
 };
 
 int
-reachard_client_init(struct reachard_client *client, struct reachard_db *db);
-
-int
-reachard_client_start(struct reachard_client *client);
-
-void
-reachard_client_stop(struct reachard_client *client);
+reachard_client_target_init(
+    struct reachard_client_state *state,
+    struct reachard_client_target *target,
+    int id
+);
 
 void
-reachard_client_deinit(struct reachard_client *client);
+reachard_client_target_deinit(struct reachard_client_target *target);
