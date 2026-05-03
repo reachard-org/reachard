@@ -61,6 +61,7 @@ reachard_db_targets_add(
         paramValuesN, 0, paramValues, 0, 0, 0
     );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to add a target\n");
         PQclear(res);
         return 0;
@@ -86,6 +87,7 @@ reachard_db_targets_delete(struct reachard_db *db, const int id) {
         1, 0, paramValues, 0, 0, 0
     );
     if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to run the delete query\n");
         PQclear(res);
         return 1;
@@ -126,6 +128,7 @@ reachard_db_targets_get(
                                  "WHERE id = $1",
                        1, 0, paramValues, 0, 0, 0);
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to run the select query\n");
         PQclear(res);
         return 1;
@@ -137,6 +140,7 @@ reachard_db_targets_get(
         PQclear(res);
         return 1;
     }
+
     parse_target(target, res, 0);
 
     PQclear(res);
@@ -154,6 +158,7 @@ reachard_db_targets_get_all(
     res = PQexec(db->conn, "SELECT id, name, url, interval FROM targets\n"
                            "ORDER BY id");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to run the select query\n");
         PQclear(res);
         return 1;
