@@ -21,43 +21,15 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include "client/client.h"
-#include "database/database.h"
-#include "database/migrate.h"
-#include "server/server.h"
+#include <client/client.h>
+#include <database/database.h>
+#include <database/migrate.h>
+#include <env/env.h>
+#include <server/server.h>
 
 #include <signal.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-
-struct reachard_env {
-    uint16_t port;
-    char *db_url;
-};
-
-static int
-reachard_env_init(struct reachard_env *env) {
-    char *port_str = getenv("REACHARD_PORT");
-    int port = 7272;
-    if (port_str) {
-        port = atoi(port_str);
-        if (!port) {
-            fprintf(stderr, "couldn't parse `REACHARD_PORT` as a number\n");
-            return 1;
-        }
-    }
-    env->port = port;
-
-    char *db_url = getenv("REACHARD_DB_URL");
-    if (!db_url) {
-        db_url = "postgresql://reachard@/reachard";
-    }
-    env->db_url = db_url;
-
-    return 0;
-}
 
 static void
 reachard_interrupt(int sig, siginfo_t *info, void *ucontext) {
