@@ -23,11 +23,13 @@
 
 #pragma once
 
+#include <database/database.h>
+
 #include <curl/curl.h>
 #include <uv.h>
 
 struct reachard_client_state {
-    struct reachard_db *db;
+    struct reachard_db db;
     uv_loop_t *loop;
     CURLM *multi;
     uv_timer_t timer;
@@ -36,7 +38,7 @@ struct reachard_client_state {
 int
 reachard_client_state_init(
     struct reachard_client_state *state,
-    struct reachard_db *db,
+    struct reachard_db db,
     uv_loop_t *loop
 );
 

@@ -39,7 +39,7 @@ target_timer(uv_timer_t *timer) {
         (struct reachard_client_target *)timer;
 
     struct reachard_db_target db_target;
-    reachard_db_targets_get(state->db, &db_target, client_target->id);
+    reachard_db_targets_get(&state->db, &db_target, client_target->id);
 
     CURL *easy = curl_easy_init();
     curl_easy_setopt(easy, CURLOPT_URL, db_target.url);
@@ -56,13 +56,14 @@ reachard_client_target_init(
     target->timer.data = state;
     target->id = id;
 
+    uv_timer_init(state->loop, &target->timer);
+
     struct reachard_db_target db_target;
-    if (reachard_db_targets_get(state->db, &db_target, id)) {
+    if (reachard_db_targets_get(&state->db, &db_target, id)) {
         fprintf(stderr, "failed to get the target\n");
         return 1;
     };
 
-    uv_timer_init(state->loop, &target->timer);
     uv_timer_start(&target->timer, target_timer, 0, db_target.interval * 1000);
 
     return 0;

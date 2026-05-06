@@ -25,6 +25,7 @@
 
 #include <client/state.h>
 #include <client/targets.h>
+#include <database/database.h>
 
 #include <stdio.h>
 #include <threads.h>
@@ -32,7 +33,7 @@
 #include <uv.h>
 
 int
-reachard_client_init(struct reachard_client *client, struct reachard_db *db) {
+reachard_client_init(struct reachard_client *client, struct reachard_db db) {
     if (uv_loop_init(&client->loop)) {
         fprintf(stderr, "failed to initialize the client loop\n");
         return 1;

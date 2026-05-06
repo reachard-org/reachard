@@ -39,16 +39,21 @@
 int
 reachard_client_state_init(
     struct reachard_client_state *state,
-    struct reachard_db *db,
+    struct reachard_db db,
     uv_loop_t *loop
 ) {
+    state->db = db;
+    state->loop = loop;
+
     if (curl_global_init(CURL_GLOBAL_ALL)) {
         fprintf(stderr, "failed to initialize curl\n");
         return 1;
     }
 
-    state->loop = loop;
-    state->db = db;
+    if (reachard_db_connect(&state->db)) {
+        fprintf(stderr, "failed to connect to the database\n");
+        return 1;
+    }
 
     return 0;
 }
@@ -222,4 +227,5 @@ reachard_client_state_clear(struct reachard_client_state *state) {
 void
 reachard_client_state_deinit(struct reachard_client_state *state) {
     curl_global_cleanup();
+    reachard_db_deinit(&state->db);
 }

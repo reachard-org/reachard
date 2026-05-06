@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 struct reachard_server {
-    struct reachard_db *db;
+    struct reachard_db db;
     uint16_t port;
     struct MHD_Daemon *daemon;
 };
@@ -36,7 +36,7 @@ struct reachard_server {
 int
 reachard_server_init(
     struct reachard_server *server,
-    struct reachard_db *db,
+    struct reachard_db db,
     uint16_t port
 );
 
@@ -45,3 +45,6 @@ reachard_server_start(struct reachard_server *server);
 
 void
 reachard_server_stop(struct reachard_server *server);
+
+void
+reachard_server_deinit(struct reachard_server *server);

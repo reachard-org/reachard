@@ -33,11 +33,16 @@
 int
 reachard_server_init(
     struct reachard_server *server,
-    struct reachard_db *db,
+    struct reachard_db db,
     uint16_t port
 ) {
     server->db = db;
     server->port = port;
+
+    if (reachard_db_connect(&server->db)) {
+        fprintf(stderr, "failed to connect to the database\n");
+        return 1;
+    }
 
     return 0;
 }
@@ -47,7 +52,7 @@ reachard_server_start(struct reachard_server *server) {
     server->daemon = MHD_start_daemon(
         MHD_USE_EPOLL_INTERNAL_THREAD, server->port,
         0, 0,
-        &reachard_handle, server->db,
+        &reachard_handle, &server->db,
         MHD_OPTION_NOTIFY_COMPLETED, &reachard_handle_complete, 0,
         MHD_OPTION_END
     );
@@ -62,4 +67,9 @@ reachard_server_start(struct reachard_server *server) {
 void
 reachard_server_stop(struct reachard_server *server) {
     MHD_stop_daemon(server->daemon);
+}
+
+void
+reachard_server_deinit(struct reachard_server *server) {
+    reachard_db_deinit(&server->db);
 }

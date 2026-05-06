@@ -27,16 +27,21 @@
 
 #include <libpq-fe.h>
 
+void
+reachard_db_init(struct reachard_db *db, char *connstring) {
+    db->connstring = connstring;
+}
+
 // See https://www.postgresql.org/docs/current/libpq-connect.html
 int
-reachard_db_init(struct reachard_db *db, const char *connstring) {
+reachard_db_connect(struct reachard_db *db) {
     PGconn *conn = 0;
     PGresult *res = 0;
 
-    conn = PQconnectdb(connstring);
+    conn = PQconnectdb(db->connstring);
     if (PQstatus(conn) != CONNECTION_OK) {
         fprintf(stderr, "%s", PQerrorMessage(conn));
-        fprintf(stderr, "failed to connect to the database\n");
+        fprintf(stderr, "failed to establish a connection\n");
         goto failure;
     }
 

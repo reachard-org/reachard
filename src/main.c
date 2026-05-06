@@ -84,10 +84,11 @@ main() {
     reachard_env_init(&env);
 
     struct reachard_db db;
+    reachard_db_init(&db, env.db_url);
 
-    if (reachard_db_init(&db, env.db_url)) {
-        fprintf(stderr, "failed to initialize the database\n");
-        goto deinit_db;
+    if (reachard_db_connect(&db)) {
+        fprintf(stderr, "failed to connect to the database\n");
+        return 1;
     }
 
     if (reachard_db_migrate(&db)) {
@@ -95,24 +96,27 @@ main() {
         goto deinit_db;
     }
 
-    struct reachard_server server;
-    reachard_server_init(&server, &db, env.port);
-
     struct reachard_client client;
-    if (reachard_client_init(&client, &db)) {
+    if (reachard_client_init(&client, db)) {
         fprintf(stderr, "failed to initialize the client");
         goto deinit_client;
     };
 
-    if (reachard_server_start(&server)) {
-        fprintf(stderr, "failed to start the server\n");
-        goto deinit;
+    struct reachard_server server;
+    if (reachard_server_init(&server, db, env.port)) {
+        fprintf(stderr, "failed to initialize the server");
+        goto deinit_server;
     };
 
     if (reachard_client_start(&client)) {
         fprintf(stderr, "failed to start the client");
         goto deinit;
     }
+
+    if (reachard_server_start(&server)) {
+        fprintf(stderr, "failed to start the server\n");
+        goto deinit;
+    };
 
     printf("Listening on :%d\n", env.port);
     reachard_pause();
@@ -123,6 +127,8 @@ main() {
     result = 0;
 
 deinit:
+deinit_server:
+    reachard_server_deinit(&server);
 deinit_client:
     reachard_client_deinit(&client);
 deinit_db:

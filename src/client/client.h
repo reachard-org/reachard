@@ -25,6 +25,7 @@
 
 #include <client/state.h>
 #include <client/targets.h>
+#include <database/database.h>
 
 #include <threads.h>
 
@@ -38,7 +39,7 @@ struct reachard_client {
 };
 
 int
-reachard_client_init(struct reachard_client *client, struct reachard_db *db);
+reachard_client_init(struct reachard_client *client, struct reachard_db db);
 
 int
 reachard_client_start(struct reachard_client *client);
