@@ -56,7 +56,7 @@ main() {
     reachard_env_init(&env);
 
     struct reachard_db db;
-    reachard_db_init(&db, env.db_url);
+    reachard_db_init(&db, &env);
 
     if (reachard_db_connect(&db)) {
         fprintf(stderr, "failed to connect to the database\n");
@@ -75,7 +75,7 @@ main() {
     };
 
     struct reachard_server server;
-    if (reachard_server_init(&server, db, env.port)) {
+    if (reachard_server_init(&server, db, &env)) {
         fprintf(stderr, "failed to initialize the server");
         goto deinit_server;
     };

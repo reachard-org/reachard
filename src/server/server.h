@@ -24,6 +24,7 @@
 #pragma once
 
 #include <database/database.h>
+#include <env/env.h>
 
 #include <stdint.h>
 
@@ -37,7 +38,7 @@ int
 reachard_server_init(
     struct reachard_server *server,
     struct reachard_db db,
-    uint16_t port
+    struct reachard_env *env
 );
 
 int

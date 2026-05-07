@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include <env/env.h>
+
 #include <libpq-fe.h>
 
 struct reachard_db {
@@ -31,7 +33,7 @@ struct reachard_db {
 };
 
 void
-reachard_db_init(struct reachard_db *db, char *connstring);
+reachard_db_init(struct reachard_db *db, struct reachard_env *env);
 
 int
 reachard_db_connect(struct reachard_db *db);

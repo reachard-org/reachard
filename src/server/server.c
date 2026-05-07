@@ -24,6 +24,7 @@
 #include "server.h"
 
 #include <database/database.h>
+#include <env/env.h>
 #include <server/handle.h>
 
 #include <stdio.h>
@@ -34,10 +35,10 @@ int
 reachard_server_init(
     struct reachard_server *server,
     struct reachard_db db,
-    uint16_t port
+    struct reachard_env *env
 ) {
     server->db = db;
-    server->port = port;
+    server->port = env->port;
 
     if (reachard_db_connect(&server->db)) {
         fprintf(stderr, "failed to connect to the database\n");

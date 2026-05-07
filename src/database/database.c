@@ -23,13 +23,15 @@
 
 #include "database.h"
 
+#include <env/env.h>
+
 #include <stdio.h>
 
 #include <libpq-fe.h>
 
 void
-reachard_db_init(struct reachard_db *db, char *connstring) {
-    db->connstring = connstring;
+reachard_db_init(struct reachard_db *db, struct reachard_env *env) {
+    db->connstring = env->db_url;
 }
 
 // See https://www.postgresql.org/docs/current/libpq-connect.html
