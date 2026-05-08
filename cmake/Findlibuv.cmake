@@ -25,10 +25,7 @@ set(_target_name libuv)
 set(_header_name uv.h)
 set(_library_name uv)
 
-find_package(PkgConfig)
-if(PkgConfig_FOUND)
-  pkg_check_modules(PC_${_pkg_name} QUIET ${_pkg_name})
-endif()
+pkg_check_modules(PC_${_pkg_name} QUIET ${_pkg_name})
 
 find_path(
   ${_pkg_name}_INCLUDE_DIR

@@ -26,6 +26,7 @@ project(reachard VERSION 0.1.0 LANGUAGES C)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Build dependencies
+find_package(PkgConfig REQUIRED)
 find_package(uthash 2 REQUIRED)
 
 # Runtime dependencies

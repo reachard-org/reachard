@@ -25,10 +25,7 @@ set(_target_name MHD)
 set(_header_name microhttpd.h)
 set(_library_name microhttpd)
 
-find_package(PkgConfig)
-if(PkgConfig_FOUND)
-  pkg_check_modules(PC_${_pkg_name} QUIET ${_pkg_name})
-endif()
+pkg_check_modules(PC_${_pkg_name} QUIET ${_pkg_name})
 
 find_path(
   ${_pkg_name}_INCLUDE_DIR
