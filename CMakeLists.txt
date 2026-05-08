@@ -25,6 +25,10 @@ project(reachard VERSION 0.1.0 LANGUAGES C)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+# Build dependencies
+find_package(uthash 2 REQUIRED)
+
+# Runtime dependencies
 find_package(cJSON 1 REQUIRED)
 find_package(CURL 8 REQUIRED)
 find_package(libmicrohttpd 1 REQUIRED) # Must have `epoll` support enabled
@@ -64,6 +68,7 @@ target_link_libraries(
     libmicrohttpd::MHD
     libuv::libuv
     PostgreSQL::PostgreSQL
+    uthash::uthash
 )
 target_sources(
   reachard
