@@ -19,17 +19,4 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-set(_pkg_name ${CMAKE_FIND_PACKAGE_NAME})
-set(_target_name ${_pkg_name})
-
-find_package(${_pkg_name} QUIET CONFIG)
-
-include(FindPackageHandleStandardArgs)
-
-find_package_handle_standard_args(${_pkg_name} HANDLE_COMPONENTS CONFIG_MODE)
-
-if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::${_target_name})
-  add_library(${_pkg_name}::${_target_name} ALIAS cjson)
-endif()
-
-mark_as_advanced(${_pkg_name}_DIR)
+find_package_via_find_package(TARGET_NAME cjson)

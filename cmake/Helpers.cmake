@@ -19,11 +19,48 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-include(FindPackageHandleStandardArgs)
+function(find_package_via_find_package)
+  include(FindPackageHandleStandardArgs)
 
-find_package(PkgConfig REQUIRED)
+  set(options)
+  set(one_value_keywords PACKAGE_NAME ALIAS_NAME TARGET_NAME)
+  set(multi_value_keywords)
+  cmake_parse_arguments(
+    PARSE_ARGV 0
+    arg
+    "${options}"
+    "${one_value_keywords}"
+    "${multi_value_keywords}"
+  )
+
+  if(NOT DEFINED arg_PACKAGE_NAME)
+    set(arg_PACKAGE_NAME ${CMAKE_FIND_PACKAGE_NAME})
+  endif()
+
+  if(NOT DEFINED arg_ALIAS_NAME)
+    set(arg_ALIAS_NAME ${arg_PACKAGE_NAME})
+  endif()
+
+  if(NOT DEFINED arg_TARGET_NAME)
+    message(SEND_ERROR "TARGET_NAME must be defined.")
+  endif()
+
+  find_package(${arg_PACKAGE_NAME} QUIET CONFIG)
+
+  include(FindPackageHandleStandardArgs)
+
+  find_package_handle_standard_args(${arg_PACKAGE_NAME} CONFIG_MODE)
+
+  if(NOT TARGET ${arg_PACKAGE_NAME}::${arg_ALIAS_NAME})
+    add_library(${arg_PACKAGE_NAME}::${arg_ALIAS_NAME} ALIAS ${arg_TARGET_NAME})
+  endif()
+endfunction()
 
 function(find_package_via_pkg_config)
+  include(FindPackageHandleStandardArgs)
+
+  find_package(PkgConfig REQUIRED)
+
   set(options)
   set(one_value_keywords PACKAGE_NAME TARGET_NAME HEADER_NAME LIBRARY_NAME)
   set(multi_value_keywords)
