@@ -19,46 +19,8 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-set(_pkg_name ${CMAKE_FIND_PACKAGE_NAME})
-
-set(_target_name MHD)
-set(_header_name microhttpd.h)
-set(_library_name microhttpd)
-
-pkg_check_modules(PC_${_pkg_name} QUIET ${_pkg_name})
-
-find_path(
-  ${_pkg_name}_INCLUDE_DIR
-  NAMES ${_header_name}
-  HINTS PC_${_pkg_name}_INCLUDE_DIRS
-  PATH_SUFFIXES ${_pkg_name}
+find_package_via_pkg_config(
+  TARGET_NAME MHD
+  HEADER_NAME microhttpd.h
+  LIBRARY_NAME microhttpd
 )
-
-find_library(
-  ${_pkg_name}_LIBRARY
-  NAMES ${_library_name}
-  HINTS PC_${_pkg_name}_LIBRARY_DIRS
-)
-
-set(${_pkg_name}_VERSION ${PC_${_pkg_name}_VERSION})
-
-include(FindPackageHandleStandardArgs)
-
-find_package_handle_standard_args(
-  ${_pkg_name}
-  REQUIRED_VARS ${_pkg_name}_INCLUDE_DIR ${_pkg_name}_LIBRARY
-  VERSION_VAR ${_pkg_name}_VERSION
-)
-
-if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::${_target_name})
-  add_library(${_pkg_name}::${_target_name} UNKNOWN IMPORTED)
-  set_target_properties(
-    ${_pkg_name}::${_target_name}
-    PROPERTIES
-      IMPORTED_LOCATION "${${_pkg_name}_LIBRARY}"
-      INTERFACE_COMPILE_OPTIONS "${PC_${_pkg_name}_CFLAGS_OTHER}"
-      INTERFACE_INCLUDE_DIRECTORIES "${${_pkg_name}_INCLUDE_DIR}"
-  )
-endif()
-
-mark_as_advanced(${_pkg_name}_INCLUDE_DIR ${_pkg_name}_LIBRARY)
