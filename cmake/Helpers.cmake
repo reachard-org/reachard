@@ -19,9 +19,9 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-function(find_package_via_find_package)
-  include(FindPackageHandleStandardArgs)
+include(FindPackageHandleStandardArgs)
 
+function(find_package_via_find_package)
   set(options)
   set(one_value_keywords PACKAGE_NAME ALIAS_NAME TARGET_NAME)
   set(multi_value_keywords)
@@ -42,7 +42,7 @@ function(find_package_via_find_package)
   endif()
 
   if(NOT DEFINED arg_TARGET_NAME)
-    message(SEND_ERROR "TARGET_NAME must be defined.")
+    message(FATAL_ERROR "TARGET_NAME must be defined.")
   endif()
 
   find_package(${arg_PACKAGE_NAME} QUIET CONFIG)
@@ -56,9 +56,100 @@ function(find_package_via_find_package)
   endif()
 endfunction()
 
-function(find_package_via_pkg_config)
-  include(FindPackageHandleStandardArgs)
+function(find_package_via_files)
+  set(options)
+  set(
+    one_value_keywords
+    PACKAGE_NAME
+    TARGET_NAME
+    HEADER_NAME
+    LIBRARY_NAME
+    VERSION_FUNCTION
+  )
+  set(multi_value_keywords HEADER_HINTS LIBRARY_HINTS)
+  cmake_parse_arguments(
+    PARSE_ARGV 0
+    arg
+    "${options}"
+    "${one_value_keywords}"
+    "${multi_value_keywords}"
+  )
 
+  if(NOT DEFINED arg_PACKAGE_NAME)
+    set(arg_PACKAGE_NAME ${CMAKE_FIND_PACKAGE_NAME})
+  endif()
+
+  if(NOT DEFINED arg_TARGET_NAME)
+    set(arg_TARGET_NAME ${arg_PACKAGE_NAME})
+  endif()
+
+  if(NOT DEFINED arg_HEADER_NAME OR arg_HEADER_NAME STREQUAL "")
+    message(FATAL_ERROR "HEADER_NAME must be defined and not empty.")
+  endif()
+
+  if(DEFINED arg_LIBRARY_NAME AND arg_LIBRARY_NAME STREQUAL "")
+    message(FATAL_ERROR "LIBRARY_NAME must not be empty")
+  endif()
+
+  if(NOT DEFINED arg_VERSION_FUNCTION)
+    message(FATAL_ERROR "VERSION_FUNCTION must be defined.")
+  endif()
+
+  find_path(
+    ${arg_PACKAGE_NAME}_INCLUDE_DIR
+    NAMES ${arg_HEADER_NAME}
+    HINTS ${arg_HEADER_HINTS}
+    PATH_SUFFIXES ${arg_PACKAGE_NAME}
+  )
+
+  if(DEFINED arg_LIBRARY_NAME)
+    find_library(
+      ${arg_PACKAGE_NAME}_LIBRARY
+      NAMES ${arg_LIBRARY_NAME}
+      HINTS ${arg_LIBRARY_HINTS}
+    )
+  endif()
+
+  cmake_language(CALL ${arg_VERSION_FUNCTION})
+
+  set(
+    _required_vars
+    ${arg_PACKAGE_NAME}_INCLUDE_DIR
+    ${arg_PACKAGE_NAME}_VERSION
+  )
+  if(DEFINED arg_LIBRARY_NAME)
+    list(APPEND _required_vars ${arg_PACKAGE_NAME}_LIBRARY)
+  endif()
+
+  find_package_handle_standard_args(
+    ${arg_PACKAGE_NAME}
+    REQUIRED_VARS ${_required_vars}
+    VERSION_VAR ${arg_PACKAGE_NAME}_VERSION
+  )
+
+  if(DEFINED arg_LIBRARY_NAME)
+    set(_library_type UNKNOWN)
+  else()
+    set(_library_type INTERFACE)
+  endif()
+
+  set(
+    _properties
+    INTERFACE_INCLUDE_DIRECTORIES
+    "${${arg_PACKAGE_NAME}_INCLUDE_DIR}"
+  )
+  if(DEFINED arg_LIBRARY_NAME)
+    list(APPEND _properties IMPORTED_LOCATION "${${arg_PACKAGE_NAME}_LIBRARY}")
+  endif()
+
+  add_library(${arg_PACKAGE_NAME}::${arg_TARGET_NAME} ${_library_type} IMPORTED)
+  set_target_properties(
+    ${arg_PACKAGE_NAME}::${arg_TARGET_NAME}
+    PROPERTIES ${_properties}
+  )
+endfunction()
+
+function(find_package_via_pkg_config)
   find_package(PkgConfig REQUIRED)
 
   set(options)
@@ -81,45 +172,30 @@ function(find_package_via_pkg_config)
   endif()
 
   if(NOT DEFINED arg_HEADER_NAME)
-    message(SEND_ERROR "HEADER_NAME must be defined.")
+    message(FATAL_ERROR "HEADER_NAME must be defined.")
   endif()
 
   if(NOT DEFINED arg_LIBRARY_NAME)
-    message(SEND_ERROR "LIBRARY_NAME must be defined.")
+    message(FATAL_ERROR "LIBRARY_NAME must be defined.")
   endif()
 
   pkg_check_modules(PC_${arg_PACKAGE_NAME} QUIET ${arg_PACKAGE_NAME})
 
-  find_path(
-    ${arg_PACKAGE_NAME}_INCLUDE_DIR
-    NAMES ${arg_HEADER_NAME}
-    HINTS PC_${arg_PACKAGE_NAME}_INCLUDE_DIRS
-    PATH_SUFFIXES ${arg_PACKAGE_NAME}
-  )
-
-  find_library(
-    ${arg_PACKAGE_NAME}_LIBRARY
-    NAMES ${arg_LIBRARY_NAME}
-    HINTS PC_${arg_PACKAGE_NAME}_LIBRARY_DIRS
-  )
-
-  set(${arg_PACKAGE_NAME}_VERSION ${PC_${arg_PACKAGE_NAME}_VERSION})
-
-  find_package_handle_standard_args(
-    ${arg_PACKAGE_NAME}
-    REQUIRED_VARS
-      ${arg_PACKAGE_NAME}_INCLUDE_DIR
-      ${arg_PACKAGE_NAME}_LIBRARY
+  function(version_function)
+    set(
       ${arg_PACKAGE_NAME}_VERSION
-    VERSION_VAR ${arg_PACKAGE_NAME}_VERSION
-  )
+      ${PC_${arg_PACKAGE_NAME}_VERSION}
+      PARENT_SCOPE
+    )
+  endfunction()
 
-  add_library(${arg_PACKAGE_NAME}::${arg_TARGET_NAME} UNKNOWN IMPORTED)
-  set_target_properties(
-    ${arg_PACKAGE_NAME}::${arg_TARGET_NAME}
-    PROPERTIES
-      IMPORTED_LOCATION "${${arg_PACKAGE_NAME}_LIBRARY}"
-      INTERFACE_COMPILE_OPTIONS "${PC_${arg_PACKAGE_NAME}_CFLAGS_OTHER}"
-      INTERFACE_INCLUDE_DIRECTORIES "${${arg_PACKAGE_NAME}_INCLUDE_DIR}"
+  find_package_via_files(
+    PACKAGE_NAME ${arg_PACKAGE_NAME}
+    TARGET_NAME ${arg_TARGET_NAME}
+    HEADER_NAME ${arg_HEADER_NAME}
+    LIBRARY_NAME ${arg_LIBRARY_NAME}
+    HEADER_HINTS PC_${arg_PACKAGE_NAME}_INCLUDE_DIRS
+    LIBRARY_HINTS PC_${arg_PACKAGE_NAME}_LIBRARY_DIRS
+    VERSION_FUNCTION version_function
   )
 endfunction()

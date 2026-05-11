@@ -19,43 +19,18 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-set(_pkg_name ${CMAKE_FIND_PACKAGE_NAME})
-
-set(_target_name uthash)
-set(_header_name uthash.h)
-
-find_path(
-  ${_pkg_name}_INCLUDE_DIR
-  NAMES ${_header_name}
-  PATH_SUFFIXES ${_pkg_name}
-)
-
-file(
-  READ ${${_pkg_name}_INCLUDE_DIR}/${_header_name}
-  _header_content
-  LIMIT 2000
-)
-string(
-  REGEX MATCHALL "#define UTHASH_VERSION ([0-9]+.[0-9]+.[0-9]+)"
-  ${_header_version}
-  ${_header_content}
-)
-set(${_pkg_name}_VERSION ${CMAKE_MATCH_1})
-
-include(FindPackageHandleStandardArgs)
-
-find_package_handle_standard_args(
-  ${_pkg_name}
-  REQUIRED_VARS ${_pkg_name}_INCLUDE_DIR ${_pkg_name}_VERSION
-  VERSION_VAR ${_pkg_name}_VERSION
-)
-
-if(${_pkg_name}_FOUND AND NOT TARGET ${_pkg_name}::${_target_name})
-  add_library(${_pkg_name}::${_target_name} INTERFACE IMPORTED)
-  set_target_properties(
-    ${_pkg_name}::${_target_name}
-    PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${${_pkg_name}_INCLUDE_DIR}"
+function(version_function)
+  file(
+    READ ${${arg_PACKAGE_NAME}_INCLUDE_DIR}/${arg_HEADER_NAME}
+    _header_content
+    LIMIT 2000
   )
-endif()
+  string(
+    REGEX MATCHALL "#define UTHASH_VERSION ([0-9]+.[0-9]+.[0-9]+)"
+    ${_header_version}
+    ${_header_content}
+  )
+  set(${arg_PACKAGE_NAME}_VERSION ${CMAKE_MATCH_1} PARENT_SCOPE)
+endfunction()
 
-mark_as_advanced(${_pkg_name}_INCLUDE_DIR)
+find_package_via_files(HEADER_NAME uthash.h VERSION_FUNCTION version_function)
