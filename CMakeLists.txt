@@ -25,7 +25,7 @@ project(reachard VERSION 0.1.0 LANGUAGES C)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-include(Helpers)
+include(FindHelpers)
 
 # Build dependencies
 find_package(PkgConfig REQUIRED)
