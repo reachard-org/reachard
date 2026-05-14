@@ -76,7 +76,11 @@ target_link_libraries(
 target_sources(
   reachard
   PRIVATE src/main.c
-  PRIVATE src/client/client.c src/client/state.c src/client/targets.c
+  PRIVATE
+    src/client/client.c
+    src/client/state.c
+    src/client/targets.c
+    src/client/watcher.c
   PRIVATE src/database/database.c src/database/migrate.c src/database/targets.c
   PRIVATE src/env/env.c
   PRIVATE

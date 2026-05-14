@@ -23,8 +23,7 @@
 
 #pragma once
 
-#include <client/state.h>
-#include <client/targets.h>
+#include <client/watcher.h>
 #include <database/database.h>
 
 #include <threads.h>
@@ -32,8 +31,7 @@
 #include <uv.h>
 
 struct reachard_client {
-    struct reachard_client_state state;
-    struct reachard_client_target target;
+    struct reachard_client_watcher watcher;
     uv_loop_t loop;
     thrd_t thrd;
 };

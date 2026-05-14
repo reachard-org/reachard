@@ -23,8 +23,7 @@
 
 #include "client.h"
 
-#include <client/state.h>
-#include <client/targets.h>
+#include <client/watcher.h>
 #include <database/database.h>
 
 #include <stdio.h>
@@ -32,6 +31,7 @@
 
 #include <uv.h>
 
+// Runs in the main thread
 int
 reachard_client_init(struct reachard_client *client, struct reachard_db db) {
     if (uv_loop_init(&client->loop)) {
@@ -39,8 +39,8 @@ reachard_client_init(struct reachard_client *client, struct reachard_db db) {
         return 1;
     }
 
-    if (reachard_client_state_init(&client->state, db, &client->loop)) {
-        fprintf(stderr, "failed to initialize curl\n");
+    if (reachard_client_watcher_init(&client->watcher, db, &client->loop)) {
+        fprintf(stderr, "failed to initialize the watcher\n");
         return 1;
     }
 
@@ -54,9 +54,8 @@ start(void *arg) {
 
     uv_thread_setname("client");
 
-    reachard_client_state_prepare(&client->state);
-
-    reachard_client_target_init(&client->state, &client->target, 1);
+    reachard_client_watcher_start(&client->watcher);
+    reachard_client_watcher_add(&client->watcher, 1);
 
     uv_run(&client->loop, UV_RUN_DEFAULT);
 
@@ -81,9 +80,7 @@ static void
 stop(uv_async_t *async) {
     struct reachard_client *client = async->data;
 
-    reachard_client_target_deinit(&client->target);
-
-    reachard_client_state_clear(&client->state);
+    reachard_client_watcher_stop(&client->watcher);
 
     uv_close((uv_handle_t *)async, 0);
 }
@@ -105,8 +102,9 @@ reachard_client_stop(struct reachard_client *client) {
     thrd_join(client->thrd, 0);
 }
 
+// Runs in the main thread
 void
 reachard_client_deinit(struct reachard_client *client) {
-    reachard_client_state_deinit(&client->state);
+    reachard_client_watcher_deinit(&client->watcher);
     uv_loop_close(&client->loop);
 }
