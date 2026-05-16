@@ -74,10 +74,10 @@ check_completed(CURLM *multi) {
             fprintf(stderr, "%s\n", curl_easy_strerror(err));
             fprintf(stderr, "transfer failed with error code %d\n", err);
         } else {
-            int status;
+            long status;
             curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &status);
             fprintf(
-                stderr, "finished the transfer with status code %d\n", status
+                stderr, "finished the transfer with status code %ld\n", status
             );
         }
 
