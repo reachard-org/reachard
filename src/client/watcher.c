@@ -40,6 +40,8 @@ reachard_client_watcher_init(
     struct reachard_db db,
     uv_loop_t *loop
 ) {
+    watcher->targets = 0;
+
     if (reachard_client_state_init(&watcher->state, db, loop)) {
         fprintf(stderr, "failed to initialize the state\n");
         return 1;
