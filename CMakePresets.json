@@ -28,6 +28,17 @@
         "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -fno-inline",
         "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address"
       }
+    },
+    {
+      "name": "lsan",
+      "displayName": "LSAN Configuration Preset",
+      "inherits": [
+        "debug"
+      ],
+      "cacheVariables": {
+        "CMAKE_C_FLAGS": "-fsanitize=leak -fno-omit-frame-pointer -fno-inline",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=leak"
+      }
     }
   ]
 }
