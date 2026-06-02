@@ -39,7 +39,14 @@ target_timer(uv_timer_t *timer) {
         (struct reachard_client_target *)timer;
 
     struct reachard_db_target db_target;
-    reachard_db_targets_get(&state->db, &db_target, client_target->id);
+    if (reachard_db_targets_get(&state->db, &db_target, client_target->id)) {
+        fprintf(
+            stderr,
+            "tried to run the timer on a non-existing target with id %d\n",
+            client_target->id
+        );
+        return;
+    }
 
     CURL *easy = curl_easy_init();
     curl_easy_setopt(easy, CURLOPT_URL, db_target.url);
