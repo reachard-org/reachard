@@ -180,7 +180,7 @@ reachard_db_targets_get_all(
     }
 
     for (int i = 0; i < ntargets; i++) {
-        parse_target((*targets + i), res, i);
+        parse_target(&(*targets)[i], res, i);
     }
 
     PQclear(res);
