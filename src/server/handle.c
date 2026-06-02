@@ -26,6 +26,7 @@
 #include <server/handle/targets.h>
 #include <server/request.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -50,6 +51,11 @@ reachard_handle_upload_data(struct reachard_request *request) {
         conn_info->upload_data,
         conn_info->upload_data_size + *request->upload_data_size + 1
     );
+    if (!conn_info->upload_data) {
+        fprintf(stderr, "failed to allocate memory for the upload data\n");
+        return MHD_NO;
+    }
+
     memcpy(
         conn_info->upload_data,
         request->upload_data,
