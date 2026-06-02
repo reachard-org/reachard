@@ -166,6 +166,8 @@ reachard_db_targets_get_all(
 
     const int ntargets = PQntuples(res);
     if (!ntargets) {
+        *targets = 0;
+        *count = 0;
         PQclear(res);
         return 0;
     }
