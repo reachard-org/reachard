@@ -90,7 +90,6 @@ reachard_client_watcher_delete(
     if (target) {
         HASH_DEL(watcher->targets, target);
         reachard_client_target_deinit(target);
-        free(target);
     }
 }
 
@@ -102,7 +101,6 @@ reachard_client_watcher_stop(struct reachard_client_watcher *watcher) {
     HASH_ITER(hh, watcher->targets, target, tmp) {
         HASH_DEL(watcher->targets, target);
         reachard_client_target_deinit(target);
-        free(target);
     }
 
     reachard_client_state_clear(&watcher->state);

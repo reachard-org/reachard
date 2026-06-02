@@ -27,6 +27,7 @@
 #include <database/targets.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <curl/curl.h>
 #include <uv.h>
@@ -79,8 +80,15 @@ reachard_client_target_init(
     return 0;
 }
 
+static void
+target_deinit(uv_handle_t *handle) {
+    struct reachard_client_target *target =
+        (struct reachard_client_target *)handle;
+    free(target);
+}
+
 void
 reachard_client_target_deinit(struct reachard_client_target *target) {
     uv_timer_stop(&target->timer);
-    uv_close((uv_handle_t *)&target->timer, 0);
+    uv_close((uv_handle_t *)&target->timer, target_deinit);
 }
