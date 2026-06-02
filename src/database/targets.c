@@ -172,6 +172,10 @@ reachard_db_targets_get_all(
 
     *count = ntargets;
     *targets = calloc(ntargets, sizeof(struct reachard_db_target));
+    if (!*targets) {
+        fprintf(stderr, "failed to allocate memory for targets\n");
+        return 1;
+    }
 
     for (int i = 0; i < ntargets; i++) {
         parse_target((*targets + i), res, i);

@@ -63,6 +63,10 @@ reachard_client_watcher_add(
 ) {
     struct reachard_client_target *target =
         malloc(sizeof(struct reachard_client_target));
+    if (!target) {
+        fprintf(stderr, "failed to allocate memory for a target\n");
+        return 1;
+    }
 
     if (reachard_client_target_init(&watcher->state, target, id)) {
         fprintf(stderr, "failed to add a target to the watcher\n");

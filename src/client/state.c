@@ -135,6 +135,11 @@ socket_function(
         socket = socketp;
     } else {
         socket = malloc(sizeof(struct socket));
+        if (!socket) {
+            fprintf(stderr, "failed to allocate memory for a socket\n");
+            return -1;
+        }
+
         uv_poll_init_socket(state->loop, &socket->poll, s);
         socket->poll.data = state;
         socket->s = s;
