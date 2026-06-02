@@ -52,6 +52,8 @@ target_timer(uv_timer_t *timer) {
     curl_easy_setopt(easy, CURLOPT_URL, db_target.url);
     curl_easy_setopt(easy, CURLOPT_NOBODY, (long)1);
     curl_multi_add_handle(state->multi, easy);
+
+    reachard_db_target_free(&db_target);
 }
 
 int
@@ -73,6 +75,7 @@ reachard_client_target_init(
 
     uv_timer_start(&target->timer, target_timer, 0, db_target.interval * 1000);
 
+    reachard_db_target_free(&db_target);
     return 0;
 }
 

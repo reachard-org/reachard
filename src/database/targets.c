@@ -33,10 +33,15 @@
 #include <libpq-fe.h>
 
 void
+reachard_db_target_free(struct reachard_db_target *target) {
+    free(target->name);
+    free(target->url);
+}
+
+void
 reachard_db_targets_free(struct reachard_db_target *targets, size_t count) {
     for (size_t i = 0; i < count; i++) {
-        free(targets[i].name);
-        free(targets[i].url);
+        reachard_db_target_free(&targets[i]);
     }
     free(targets);
 }

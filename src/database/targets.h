@@ -35,6 +35,9 @@ struct reachard_db_target {
 };
 
 void
+reachard_db_target_free(struct reachard_db_target *target);
+
+void
 reachard_db_targets_free(struct reachard_db_target *targets, size_t count);
 
 int
