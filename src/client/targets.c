@@ -43,7 +43,7 @@ target_timer(uv_timer_t *timer) {
 
     CURL *easy = curl_easy_init();
     curl_easy_setopt(easy, CURLOPT_URL, db_target.url);
-    curl_easy_setopt(easy, CURLOPT_NOBODY, 1);
+    curl_easy_setopt(easy, CURLOPT_NOBODY, (long)1);
     curl_multi_add_handle(state->multi, easy);
 }
 
