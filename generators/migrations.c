@@ -60,9 +60,18 @@ main(int argc, char **argv) {
     regmatch_t pmatch[1];
 
     const char *dir = argv[1];
+
     DIR *dirp = opendir(dir);
+    if (!dirp) {
+        fprintf(stderr, "failed to open the migrations directory\n");
+        return 1;
+    }
 
     FILE *filep = fopen("migrations.h", "w");
+    if (!filep) {
+        fprintf(stderr, "failed to open the migrations header");
+        return 1;
+    }
 
     const char *pattern = "^([0-9]*)\\.sql$";
     if (regcomp(&regex, pattern, REG_EXTENDED)) {
