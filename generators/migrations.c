@@ -69,7 +69,7 @@ main(int argc, char **argv) {
 
     FILE *filep = fopen("migrations.h", "w");
     if (!filep) {
-        fprintf(stderr, "failed to open the migrations header");
+        fprintf(stderr, "failed to open the migrations header\n");
         return 1;
     }
 

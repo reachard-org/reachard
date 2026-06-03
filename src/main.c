@@ -70,18 +70,18 @@ main() {
 
     struct reachard_client client;
     if (reachard_client_init(&client, db)) {
-        fprintf(stderr, "failed to initialize the client");
+        fprintf(stderr, "failed to initialize the client\n");
         goto deinit_client;
     };
 
     struct reachard_server server;
     if (reachard_server_init(&server, db, &env)) {
-        fprintf(stderr, "failed to initialize the server");
+        fprintf(stderr, "failed to initialize the server\n");
         goto deinit_server;
     };
 
     if (reachard_client_start(&client)) {
-        fprintf(stderr, "failed to start the client");
+        fprintf(stderr, "failed to start the client\n");
         goto deinit;
     }
 
