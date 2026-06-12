@@ -32,6 +32,7 @@
 struct reachard_client_target {
     uv_timer_t timer;
     int id;
+    bool up;
     UT_hash_handle hh;
 };
 

@@ -61,7 +61,7 @@ reachard_db_targets_add(
 
     res = PQexecParams(
         db->conn, "INSERT INTO targets\n"
-                  "VALUES (DEFAULT, $1, $2, $3)\n"
+                  "VALUES (DEFAULT, $1, $2, $3, DEFAULT)\n"
                   "RETURNING id",
         paramValuesN, 0, paramValues, 0, 0, 0
     );
@@ -117,6 +117,9 @@ parse_target(struct reachard_db_target *target, PGresult *res, int col) {
 
     value = PQgetvalue(res, col, 3);
     target->interval = atoi(value);
+
+    value = PQgetvalue(res, col, 4);
+    target->up = atoi(value);
 }
 
 int

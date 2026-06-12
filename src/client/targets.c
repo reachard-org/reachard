@@ -65,6 +65,7 @@ reachard_client_target_init(
 ) {
     target->timer.data = state;
     target->id = db_target->id;
+    target->up = db_target->up;
 
     uv_timer_init(state->loop, &target->timer);
     uv_timer_start(&target->timer, target_timer, 0, db_target->interval * 1000);

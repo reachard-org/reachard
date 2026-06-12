@@ -32,6 +32,7 @@ struct reachard_db_target {
     char *name;
     char *url;
     int interval;
+    bool up;
 };
 
 void
