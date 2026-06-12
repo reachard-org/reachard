@@ -117,11 +117,11 @@ reachard_db_apply_migration(
     }
     PQclear(res);
 
-    return true;
+    return 0;
 
 failure:
     PQclear(res);
-    return false;
+    return 1;
 }
 
 int
@@ -139,8 +139,7 @@ reachard_db_migrate(struct reachard_db *db) {
         if (reachard_db_apply_migration(db, version, migration)) {
             fprintf(
                 stderr,
-                "failed to apply migration to version %d\n",
-                version
+                "failed to apply migration to version %d\n", version
             );
             return 1;
         }
