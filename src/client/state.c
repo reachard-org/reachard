@@ -24,10 +24,10 @@
 #include "state.h"
 
 #include <database/database.h>
+#include <utils/closure.h>
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 
 // See the following documentation:
 // - https://curl.se/libcurl/c/libcurl-multi.html
@@ -75,15 +75,9 @@ check_completed(CURLM *multi) {
             fprintf(stderr, "%s\n", curl_easy_strerror(err));
             fprintf(stderr, "transfer failed with error code %d\n", err);
         } else {
-            char *url;
-            long status;
-            time_t epoch;
-
-            curl_easy_getinfo(easy, CURLINFO_EFFECTIVE_URL, &url);
-            curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &status);
-            time(&epoch);
-
-            fprintf(stderr, "%s --> %ld at %jd\n", url, status, epoch);
+            struct reachard_closure *closure;
+            curl_easy_getinfo(easy, CURLINFO_PRIVATE, &closure);
+            reachard_closure_run(closure);
         }
 
         curl_multi_remove_handle(multi, easy);

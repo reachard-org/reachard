@@ -25,15 +25,39 @@
 
 #include <client/state.h>
 #include <database/targets.h>
+#include <utils/closure.h>
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <curl/curl.h>
 #include <uv.h>
 
+struct transfer {
+    CURL *easy;
+    struct reachard_client_target *target;
+};
+
 static void
-target_timer(uv_timer_t *timer) {
+transfer_complete(void *data) {
+    struct transfer *transfer = data;
+
+    char *url;
+    long status;
+    time_t epoch;
+
+    curl_easy_getinfo(transfer->easy, CURLINFO_EFFECTIVE_URL, &url);
+    curl_easy_getinfo(transfer->easy, CURLINFO_RESPONSE_CODE, &status);
+    time(&epoch);
+
+    fprintf(stderr, "%s --> %ld at %jd\n", url, status, epoch);
+
+    free(transfer);
+}
+
+static void
+target_check(uv_timer_t *timer) {
     struct reachard_client_state *state = timer->data;
 
     struct reachard_client_target *client_target =
@@ -49,10 +73,32 @@ target_timer(uv_timer_t *timer) {
         return;
     }
 
-    CURL *easy = curl_easy_init();
-    curl_easy_setopt(easy, CURLOPT_URL, db_target.url);
-    curl_easy_setopt(easy, CURLOPT_NOBODY, (long)1);
-    curl_multi_add_handle(state->multi, easy);
+    struct reachard_closure *closure = malloc(sizeof(struct reachard_closure));
+    if (!closure) {
+        fprintf(stderr, "failed to allocate memory for a closure\n");
+        reachard_db_target_free(&db_target);
+        return;
+    }
+
+    struct transfer *transfer = malloc(sizeof(struct transfer));
+    if (!transfer) {
+        fprintf(stderr, "failed to allocate memory for a transfer\n");
+        free(closure);
+        reachard_db_target_free(&db_target);
+        return;
+    }
+
+    transfer->easy = curl_easy_init();
+    curl_easy_setopt(transfer->easy, CURLOPT_URL, db_target.url);
+    curl_easy_setopt(transfer->easy, CURLOPT_NOBODY, (long)1);
+
+    transfer->target = client_target;
+
+    closure->function = transfer_complete;
+    closure->data = transfer;
+
+    curl_easy_setopt(transfer->easy, CURLOPT_PRIVATE, closure);
+    curl_multi_add_handle(state->multi, transfer->easy);
 
     reachard_db_target_free(&db_target);
 }
@@ -68,7 +114,7 @@ reachard_client_target_init(
     target->up = db_target->up;
 
     uv_timer_init(state->loop, &target->timer);
-    uv_timer_start(&target->timer, target_timer, 0, db_target->interval * 1000);
+    uv_timer_start(&target->timer, target_check, 0, db_target->interval * 1000);
 }
 
 static void
