@@ -1,4 +1,6 @@
 Documentation:
   CommentFormat: Doxygen
+CompileFlags:
+  Remove: [-fanalyzer] # GCC specific
 Completion:
   HeaderInsertion: Never
