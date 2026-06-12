@@ -52,9 +52,32 @@ reachard_client_watcher_init(
 }
 
 // Runs in the client's thread
-void
+int
 reachard_client_watcher_start(struct reachard_client_watcher *watcher) {
     reachard_client_state_prepare(&watcher->state);
+
+    struct reachard_db_target *db_targets;
+    size_t count;
+    if (reachard_db_targets_get_all(&watcher->state.db, &db_targets, &count)) {
+        fprintf(stderr, "failed to get targets\n");
+        return 1;
+    }
+
+    struct reachard_client_target *target;
+    for (size_t i = 0; i < count; i++) {
+        target = malloc(sizeof(struct reachard_client_target));
+        if (!target) {
+            fprintf(stderr, "failed to allocate memory for a target\n");
+            reachard_db_targets_free(db_targets, count);
+            return 1;
+        }
+
+        reachard_client_target_init(&watcher->state, target, &db_targets[i]);
+        HASH_ADD_INT(watcher->targets, id, target);
+    }
+
+    reachard_db_targets_free(db_targets, count);
+    return 0;
 }
 
 // Runs in the client's thread
@@ -77,7 +100,6 @@ reachard_client_watcher_add(
     };
 
     reachard_client_target_init(&watcher->state, target, &db_target);
-
     HASH_ADD_INT(watcher->targets, id, target);
 
     reachard_db_target_free(&db_target);

@@ -55,7 +55,6 @@ start(void *arg) {
     uv_thread_setname("client");
 
     reachard_client_watcher_start(&client->watcher);
-    reachard_client_watcher_add(&client->watcher, 1);
 
     uv_run(&client->loop, UV_RUN_DEFAULT);
 

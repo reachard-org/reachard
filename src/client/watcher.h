@@ -41,7 +41,7 @@ reachard_client_watcher_init(
     uv_loop_t *loop
 );
 
-void
+int
 reachard_client_watcher_start(struct reachard_client_watcher *watcher);
 
 int
