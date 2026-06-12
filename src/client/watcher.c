@@ -26,6 +26,7 @@
 #include <client/state.h>
 #include <client/targets.h>
 #include <database/database.h>
+#include <database/targets.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,14 +69,18 @@ reachard_client_watcher_add(
         return 1;
     }
 
-    if (reachard_client_target_init(&watcher->state, target, id)) {
-        fprintf(stderr, "failed to add a target to the watcher\n");
+    struct reachard_db_target db_target;
+    if (reachard_db_targets_get(&watcher->state.db, &db_target, id)) {
+        fprintf(stderr, "failed to get the target\n");
         free(target);
         return 1;
-    }
+    };
+
+    reachard_client_target_init(&watcher->state, target, &db_target);
 
     HASH_ADD_INT(watcher->targets, id, target);
 
+    reachard_db_target_free(&db_target);
     return 0;
 }
 

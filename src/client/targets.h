@@ -24,6 +24,7 @@
 #pragma once
 
 #include <client/state.h>
+#include <database/targets.h>
 
 #include <uthash.h>
 #include <uv.h>
@@ -34,11 +35,11 @@ struct reachard_client_target {
     UT_hash_handle hh;
 };
 
-int
+void
 reachard_client_target_init(
     struct reachard_client_state *state,
     struct reachard_client_target *target,
-    int id
+    struct reachard_db_target *db_target
 );
 
 void

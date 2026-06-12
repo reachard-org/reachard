@@ -57,27 +57,17 @@ target_timer(uv_timer_t *timer) {
     reachard_db_target_free(&db_target);
 }
 
-int
+void
 reachard_client_target_init(
     struct reachard_client_state *state,
     struct reachard_client_target *target,
-    int id
+    struct reachard_db_target *db_target
 ) {
     target->timer.data = state;
-    target->id = id;
+    target->id = db_target->id;
 
     uv_timer_init(state->loop, &target->timer);
-
-    struct reachard_db_target db_target;
-    if (reachard_db_targets_get(&state->db, &db_target, id)) {
-        fprintf(stderr, "failed to get the target\n");
-        return 1;
-    };
-
-    uv_timer_start(&target->timer, target_timer, 0, db_target.interval * 1000);
-
-    reachard_db_target_free(&db_target);
-    return 0;
+    uv_timer_start(&target->timer, target_timer, 0, db_target->interval * 1000);
 }
 
 static void
