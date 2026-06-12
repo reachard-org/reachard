@@ -129,9 +129,10 @@ reachard_db_targets_get(
     snprintf(id_str, sizeof(id_str), "%d", id);
 
     const char *paramValues[1] = {id_str};
-    res = PQexecParams(db->conn, "SELECT id, name, url, interval FROM targets\n"
-                                 "WHERE id = $1",
-                       1, 0, paramValues, 0, 0, 0);
+    res = PQexecParams(
+        db->conn, "SELECT * FROM targets WHERE id = $1",
+        1, 0, paramValues, 0, 0, 0
+    );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to run the select query\n");
@@ -160,8 +161,7 @@ reachard_db_targets_get_all(
 ) {
     PGresult *res = 0;
 
-    res = PQexec(db->conn, "SELECT id, name, url, interval FROM targets\n"
-                           "ORDER BY id");
+    res = PQexec(db->conn, "SELECT * FROM targets ORDER BY id");
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to run the select query\n");
