@@ -1,0 +1,21 @@
+# Reachard Valgrind suppressions file
+
+# https://github.com/ngtcp2/ngtcp2/issues/2207
+# num-callers >= 14
+{
+    ngtcp2_crypto_ossl_init
+    Memcheck:Leak
+    ...
+    fun:ngtcp2_crypto_ossl_init
+}
+
+
+# https://github.com/openssl/openssl/issues/24892
+{
+    ossl_provider_set_operation_bit
+    Memcheck:Leak
+    fun:realloc
+    fun:CRYPTO_realloc
+    fun:ossl_provider_set_operation_bit
+    ...
+}
