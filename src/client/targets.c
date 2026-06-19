@@ -35,26 +35,35 @@
 
 static void
 transfer_complete(struct reachard_client_transfer *transfer) {
+    struct reachard_client_target *target =
+        (struct reachard_client_target *)transfer->data;
+
     CURL *easy = transfer->message->easy_handle;
 
-    CURLcode err = transfer->message->data.result;
-    if (err) {
-        fprintf(stderr, "%s\n", curl_easy_strerror(err));
-        fprintf(stderr, "transfer failed with error code %d\n", err);
-        goto deinit;
-    }
-
     char *url;
-    long status;
-    time_t epoch;
-
     curl_easy_getinfo(easy, CURLINFO_EFFECTIVE_URL, &url);
+
+    long status;
     curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &status);
+
+    time_t epoch;
     time(&epoch);
 
-    fprintf(stderr, "%s --> %ld at %jd\n", url, status, epoch);
+    bool up;
+    CURLcode err = transfer->message->data.result;
+    if (err) {
+        fprintf(stderr, "%s --> ERROR %d at %jd\n", url, err, epoch);
+        up = false;
+    } else {
+        fprintf(stderr, "%s --> %ld at %jd\n", url, status, epoch);
+        up = (status >= 200 && status <= 299);
+    }
 
-deinit:
+    if (up != target->up) {
+        fprintf(stderr, "status for %s changed to %d\n", url, up);
+        target->up = up;
+    }
+
     free(transfer);
 }
 
