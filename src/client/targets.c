@@ -60,17 +60,17 @@ deinit:
 
 static void
 target_check(uv_timer_t *timer) {
-    struct reachard_client_state *state = timer->data;
-
-    struct reachard_client_target *client_target =
+    struct reachard_client_target *target =
         (struct reachard_client_target *)timer;
 
+    struct reachard_client_state *state = target->state;
+
     struct reachard_db_target db_target;
-    if (reachard_db_targets_get(&state->db, &db_target, client_target->id)) {
+    if (reachard_db_targets_get(&state->db, &db_target, target->id)) {
         fprintf(
             stderr,
             "tried to run the timer on a non-existing target with id %d\n",
-            client_target->id
+            target->id
         );
         return;
     }
@@ -84,7 +84,7 @@ target_check(uv_timer_t *timer) {
     }
 
     transfer->complete = transfer_complete;
-    transfer->data = client_target;
+    transfer->data = target;
 
     CURL *easy = curl_easy_init();
     curl_easy_setopt(easy, CURLOPT_URL, db_target.url);
@@ -102,7 +102,7 @@ reachard_client_target_init(
     struct reachard_client_target *target,
     struct reachard_db_target *db_target
 ) {
-    target->timer.data = state;
+    target->state = state;
     target->id = db_target->id;
     target->up = db_target->up;
 

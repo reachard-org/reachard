@@ -29,8 +29,10 @@
 #include <uthash.h>
 #include <uv.h>
 
+// Used as a baton
 struct reachard_client_target {
     uv_timer_t timer;
+    struct reachard_client_state *state;
     int id;
     bool up;
     UT_hash_handle hh;
