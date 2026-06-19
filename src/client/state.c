@@ -24,7 +24,6 @@
 #include "state.h"
 
 #include <database/database.h>
-#include <utils/closure.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,6 +59,11 @@ reachard_client_state_init(
 }
 
 static void
+transfer_complete(struct reachard_client_transfer *transfer) {
+    transfer->complete(transfer);
+}
+
+static void
 check_completed(CURLM *multi) {
     CURLMsg *message;
     int pending;
@@ -68,19 +72,13 @@ check_completed(CURLM *multi) {
             continue;
         }
 
+        struct reachard_client_transfer *transfer;
+
         CURL *easy = message->easy_handle;
+        curl_easy_getinfo(easy, CURLINFO_PRIVATE, &transfer);
 
-        struct reachard_closure *closure;
-        curl_easy_getinfo(easy, CURLINFO_PRIVATE, &closure);
-
-        CURLcode err = message->data.result;
-        if (err) {
-            fprintf(stderr, "%s\n", curl_easy_strerror(err));
-            fprintf(stderr, "transfer failed with error code %d\n", err);
-        } else {
-            reachard_closure_run(closure);
-        }
-        reachard_closure_deinit(closure);
+        transfer->message = message;
+        transfer_complete(transfer);
 
         curl_multi_remove_handle(multi, easy);
         curl_easy_cleanup(easy);

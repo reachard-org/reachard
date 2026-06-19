@@ -25,7 +25,6 @@
 
 #include <client/state.h>
 #include <database/targets.h>
-#include <utils/closure.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,30 +33,28 @@
 #include <curl/curl.h>
 #include <uv.h>
 
-struct transfer {
-    CURL *easy;
-    struct reachard_client_target *target;
-};
-
 static void
-transfer_complete(void *data) {
-    struct transfer *transfer = data;
+transfer_complete(struct reachard_client_transfer *transfer) {
+    CURL *easy = transfer->message->easy_handle;
+
+    CURLcode err = transfer->message->data.result;
+    if (err) {
+        fprintf(stderr, "%s\n", curl_easy_strerror(err));
+        fprintf(stderr, "transfer failed with error code %d\n", err);
+        goto deinit;
+    }
 
     char *url;
     long status;
     time_t epoch;
 
-    curl_easy_getinfo(transfer->easy, CURLINFO_EFFECTIVE_URL, &url);
-    curl_easy_getinfo(transfer->easy, CURLINFO_RESPONSE_CODE, &status);
+    curl_easy_getinfo(easy, CURLINFO_EFFECTIVE_URL, &url);
+    curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &status);
     time(&epoch);
 
     fprintf(stderr, "%s --> %ld at %jd\n", url, status, epoch);
-}
 
-static void
-transfer_deinit(void *data) {
-    struct transfer *transfer = data;
-
+deinit:
     free(transfer);
 }
 
@@ -78,33 +75,23 @@ target_check(uv_timer_t *timer) {
         return;
     }
 
-    struct reachard_closure *closure = malloc(sizeof(struct reachard_closure));
-    if (!closure) {
-        fprintf(stderr, "failed to allocate memory for a closure\n");
-        reachard_db_target_free(&db_target);
-        return;
-    }
-
-    struct transfer *transfer = malloc(sizeof(struct transfer));
+    struct reachard_client_transfer *transfer =
+        malloc(sizeof(struct reachard_client_transfer));
     if (!transfer) {
         fprintf(stderr, "failed to allocate memory for a transfer\n");
-        free(closure);
         reachard_db_target_free(&db_target);
         return;
     }
 
-    transfer->easy = curl_easy_init();
-    curl_easy_setopt(transfer->easy, CURLOPT_URL, db_target.url);
-    curl_easy_setopt(transfer->easy, CURLOPT_NOBODY, (long)1);
+    transfer->complete = transfer_complete;
+    transfer->data = client_target;
 
-    transfer->target = client_target;
+    CURL *easy = curl_easy_init();
+    curl_easy_setopt(easy, CURLOPT_URL, db_target.url);
+    curl_easy_setopt(easy, CURLOPT_NOBODY, (long)1);
+    curl_easy_setopt(easy, CURLOPT_PRIVATE, transfer);
 
-    closure->callback = transfer_complete;
-    closure->deinit = transfer_deinit;
-    closure->data = transfer;
-
-    curl_easy_setopt(transfer->easy, CURLOPT_PRIVATE, closure);
-    curl_multi_add_handle(state->multi, transfer->easy);
+    curl_multi_add_handle(state->multi, easy);
 
     reachard_db_target_free(&db_target);
 }

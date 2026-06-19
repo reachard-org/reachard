@@ -35,6 +35,12 @@ struct reachard_client_state {
     uv_timer_t timer;
 };
 
+struct reachard_client_transfer {
+    void (*complete)(struct reachard_client_transfer *transfer);
+    void *data;
+    CURLMsg *message;
+};
+
 int
 reachard_client_state_init(
     struct reachard_client_state *state,
