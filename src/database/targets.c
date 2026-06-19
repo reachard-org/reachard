@@ -119,7 +119,7 @@ parse_target(struct reachard_db_target *target, PGresult *res, int col) {
     target->interval = atoi(value);
 
     value = PQgetvalue(res, col, 4);
-    target->up = atoi(value);
+    target->up = value[0] == 't';
 }
 
 int
