@@ -27,6 +27,11 @@
 
 void
 reachard_closure_run(struct reachard_closure *closure) {
-    closure->function(closure->data);
+    closure->callback(closure->data);
+}
+
+void
+reachard_closure_deinit(struct reachard_closure *closure) {
+    closure->deinit(closure->data);
     free(closure);
 }

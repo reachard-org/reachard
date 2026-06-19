@@ -52,6 +52,11 @@ transfer_complete(void *data) {
     time(&epoch);
 
     fprintf(stderr, "%s --> %ld at %jd\n", url, status, epoch);
+}
+
+static void
+transfer_deinit(void *data) {
+    struct transfer *transfer = data;
 
     free(transfer);
 }
@@ -94,7 +99,8 @@ target_check(uv_timer_t *timer) {
 
     transfer->target = client_target;
 
-    closure->function = transfer_complete;
+    closure->callback = transfer_complete;
+    closure->deinit = transfer_deinit;
     closure->data = transfer;
 
     curl_easy_setopt(transfer->easy, CURLOPT_PRIVATE, closure);

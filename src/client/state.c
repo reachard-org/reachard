@@ -70,15 +70,17 @@ check_completed(CURLM *multi) {
 
         CURL *easy = message->easy_handle;
 
+        struct reachard_closure *closure;
+        curl_easy_getinfo(easy, CURLINFO_PRIVATE, &closure);
+
         CURLcode err = message->data.result;
         if (err) {
             fprintf(stderr, "%s\n", curl_easy_strerror(err));
             fprintf(stderr, "transfer failed with error code %d\n", err);
         } else {
-            struct reachard_closure *closure;
-            curl_easy_getinfo(easy, CURLINFO_PRIVATE, &closure);
             reachard_closure_run(closure);
         }
+        reachard_closure_deinit(closure);
 
         curl_multi_remove_handle(multi, easy);
         curl_easy_cleanup(easy);

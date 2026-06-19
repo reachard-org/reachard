@@ -22,9 +22,13 @@
  */
 
 struct reachard_closure {
-    void (*function)(void *data);
+    void (*callback)(void *data);
+    void (*deinit)(void *data);
     void *data;
 };
 
 void
 reachard_closure_run(struct reachard_closure *closure);
+
+void
+reachard_closure_deinit(struct reachard_closure *closure);
