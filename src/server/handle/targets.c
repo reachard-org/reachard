@@ -111,6 +111,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
     }
 
     struct reachard_db_target target;
+    reachard_db_target_init(&target);
 
     cJSON *object;
     cJSON *item;
@@ -150,8 +151,6 @@ reachard_handle_targets_post(struct reachard_request *request) {
             );
         }
         target.interval = item->valueint;
-    } else {
-        target.interval = 5;
     }
 
     const int id = reachard_db_targets_add(db, target);

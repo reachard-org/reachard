@@ -33,6 +33,13 @@
 #include <libpq-fe.h>
 
 void
+reachard_db_target_init(struct reachard_db_target *target) {
+    memset(target, 0, sizeof(*target));
+    target->interval = 5;
+    target->up = true;
+}
+
+void
 reachard_db_target_free(struct reachard_db_target *target) {
     free(target->name);
     free(target->url);
