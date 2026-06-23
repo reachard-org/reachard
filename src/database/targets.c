@@ -32,6 +32,26 @@
 
 #include <libpq-fe.h>
 
+static void
+target_from_row(struct reachard_db_target *target, PGresult *res, int col) {
+    char *value;
+
+    value = PQgetvalue(res, col, 0);
+    target->id = atoi(value);
+
+    value = PQgetvalue(res, col, 1);
+    target->name = strdup(value);
+
+    value = PQgetvalue(res, col, 2);
+    target->url = strdup(value);
+
+    value = PQgetvalue(res, col, 3);
+    target->interval = atoi(value);
+
+    value = PQgetvalue(res, col, 4);
+    target->up = value[0] == 't';
+}
+
 void
 reachard_db_target_init(struct reachard_db_target *target) {
     memset(target, 0, sizeof(*target));
@@ -109,26 +129,6 @@ reachard_db_targets_delete(struct reachard_db *db, const int id) {
     return 0;
 }
 
-static void
-parse_target(struct reachard_db_target *target, PGresult *res, int col) {
-    char *value;
-
-    value = PQgetvalue(res, col, 0);
-    target->id = atoi(value);
-
-    value = PQgetvalue(res, col, 1);
-    target->name = strdup(value);
-
-    value = PQgetvalue(res, col, 2);
-    target->url = strdup(value);
-
-    value = PQgetvalue(res, col, 3);
-    target->interval = atoi(value);
-
-    value = PQgetvalue(res, col, 4);
-    target->up = value[0] == 't';
-}
-
 int
 reachard_db_targets_get(
     struct reachard_db *db, struct reachard_db_target *target, int id
@@ -157,7 +157,7 @@ reachard_db_targets_get(
         return 1;
     }
 
-    parse_target(target, res, 0);
+    target_from_row(target, res, 0);
 
     PQclear(res);
     return 0;
@@ -195,7 +195,7 @@ reachard_db_targets_get_all(
     }
 
     for (int i = 0; i < ntargets; i++) {
-        parse_target(&(*targets)[i], res, i);
+        target_from_row(&(*targets)[i], res, i);
     }
 
     PQclear(res);
