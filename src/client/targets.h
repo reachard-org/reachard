@@ -38,10 +38,10 @@ struct reachard_client_target {
     UT_hash_handle hh;
 };
 
-void
+int
 reachard_client_target_init(
     struct reachard_client_state *state,
-    struct reachard_client_target *target,
+    struct reachard_client_target **target,
     struct reachard_db_target *db_target
 );
 

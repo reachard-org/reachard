@@ -112,18 +112,28 @@ target_check(uv_timer_t *timer) {
     reachard_db_target_free(&db_target);
 }
 
-void
+int
 reachard_client_target_init(
     struct reachard_client_state *state,
-    struct reachard_client_target *target,
+    struct reachard_client_target **target,
     struct reachard_db_target *db_target
 ) {
-    target->state = state;
-    target->id = db_target->id;
-    target->up = db_target->up;
+    *target = malloc(sizeof(struct reachard_client_target));
+    if (!*target) {
+        fprintf(stderr, "failed to allocate memory for a target\n");
+        return 1;
+    }
 
-    uv_timer_init(state->loop, &target->timer);
-    uv_timer_start(&target->timer, target_check, 0, db_target->interval * 1000);
+    (*target)->state = state;
+    (*target)->id = db_target->id;
+    (*target)->up = db_target->up;
+
+    uv_timer_init(state->loop, &(*target)->timer);
+
+    int interval_ms = db_target->interval * 1000;
+    uv_timer_start(&(*target)->timer, target_check, 0, interval_ms);
+
+    return 0;
 }
 
 static void

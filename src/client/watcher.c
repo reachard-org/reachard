@@ -29,7 +29,6 @@
 #include <database/targets.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 
 #include <uthash.h>
 #include <uv.h>
@@ -59,20 +58,21 @@ reachard_client_watcher_start(struct reachard_client_watcher *watcher) {
     struct reachard_db_target *db_targets;
     size_t count;
     if (reachard_db_targets_get_all(&watcher->state.db, &db_targets, &count)) {
-        fprintf(stderr, "failed to get targets\n");
+        fprintf(stderr, "failed to get targets from the database\n");
         return 1;
     }
 
     struct reachard_client_target *target;
     for (size_t i = 0; i < count; i++) {
-        target = malloc(sizeof(struct reachard_client_target));
-        if (!target) {
-            fprintf(stderr, "failed to allocate memory for a target\n");
+        if (
+            reachard_client_target_init(
+                &watcher->state, &target, &db_targets[i]
+            )
+        ) {
+            fprintf(stderr, "failed to initialize a target");
             reachard_db_targets_free(db_targets, count);
             return 1;
-        }
-
-        reachard_client_target_init(&watcher->state, target, &db_targets[i]);
+        };
         HASH_ADD_INT(watcher->targets, id, target);
     }
 
@@ -85,21 +85,18 @@ int
 reachard_client_watcher_add(
     struct reachard_client_watcher *watcher, int id
 ) {
-    struct reachard_client_target *target =
-        malloc(sizeof(struct reachard_client_target));
-    if (!target) {
-        fprintf(stderr, "failed to allocate memory for a target\n");
-        return 1;
-    }
-
     struct reachard_db_target db_target;
     if (reachard_db_targets_get(&watcher->state.db, &db_target, id)) {
-        fprintf(stderr, "failed to get the target\n");
-        free(target);
+        fprintf(stderr, "failed to get the target from the database\n");
         return 1;
     };
 
-    reachard_client_target_init(&watcher->state, target, &db_target);
+    struct reachard_client_target *target;
+    if (reachard_client_target_init(&watcher->state, &target, &db_target)) {
+        fprintf(stderr, "failed to initialize a target\n");
+        reachard_db_target_free(&db_target);
+        return 1;
+    }
     HASH_ADD_INT(watcher->targets, id, target);
 
     reachard_db_target_free(&db_target);
