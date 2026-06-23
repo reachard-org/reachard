@@ -24,34 +24,29 @@
 #pragma once
 
 #include <database/database.h>
+#include <database/macros.h>
 
 #include <stddef.h>
 
+#define FOR_FIELDS(DO)                     \
+    DO(0, id, ID, int, number)             \
+    DO(1, name, NAME, char *, string)      \
+    DO(2, url, URL, char *, string)        \
+    DO(3, interval, INTERVAL, int, number) \
+    DO(4, up, UP, bool, boolean)
+
 struct reachard_db_target {
-    int id;
-    char *name;
-    char *url;
-    int interval;
-    bool up;
+    FOR_FIELDS(DEFINE_STRUCT_FIELD)
 };
 
+// IWYU pragma: no_forward_declare reachard_db_target_k
 enum reachard_db_target_k {
-    ID,
-    NAME,
-    URL,
-    INTERVAL,
-    UP
-};
-
-union reachard_db_target_v {
-    char *string;
-    int number;
-    bool boolean;
+    FOR_FIELDS(DEFINE_ENUM_FIELD)
 };
 
 struct reachard_db_target_kv {
     enum reachard_db_target_k key;
-    union reachard_db_target_v value;
+    union reachard_db_value value;
 };
 
 void

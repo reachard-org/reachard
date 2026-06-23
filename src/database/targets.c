@@ -24,6 +24,7 @@
 #include "targets.h"
 
 #include <database/database.h>
+#include <database/macros.h>
 #include <utils/constants.h>
 
 #include <stdio.h>
@@ -34,23 +35,8 @@
 #include <utstring.h>
 
 static void
-target_from_row(struct reachard_db_target *target, PGresult *res, int col) {
-    char *value;
-
-    value = PQgetvalue(res, col, 0);
-    target->id = atoi(value);
-
-    value = PQgetvalue(res, col, 1);
-    target->name = strdup(value);
-
-    value = PQgetvalue(res, col, 2);
-    target->url = strdup(value);
-
-    value = PQgetvalue(res, col, 3);
-    target->interval = atoi(value);
-
-    value = PQgetvalue(res, col, 4);
-    target->up = value[0] == 't';
+parse_target(struct reachard_db_target *s, PGresult *res, int col) {
+    FOR_FIELDS(DEFINE_PARSE_CALL)
 }
 
 void
@@ -97,7 +83,7 @@ reachard_db_targets_add(
         fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to add a target\n");
         PQclear(res);
-        return 0;
+        return 1;
     }
 
     const char *id_str = PQgetvalue(res, 0, 0);
@@ -160,7 +146,7 @@ reachard_db_targets_get(
         return 1;
     }
 
-    target_from_row(target, res, 0);
+    parse_target(target, res, 0);
 
     PQclear(res);
     return 0;
@@ -198,7 +184,7 @@ reachard_db_targets_get_all(
     }
 
     for (int i = 0; i < ntargets; i++) {
-        target_from_row(&(*targets)[i], res, i);
+        parse_target(&(*targets)[i], res, i);
     }
 
     PQclear(res);
@@ -213,27 +199,19 @@ reachard_db_targets_update(
     size_t count
 ) {
     enum reachard_db_target_k key;
-    union reachard_db_target_v value;
+    union reachard_db_value value;
 
     UT_string *query;
     utstring_new(query);
 
     utstring_printf(query, "UPDATE targets SET ");
 
-    char *reachard_db_target_ks[] = {
-        "id",
-        "name",
-        "url",
-        "interval",
-        "up"
+    char *field_names[] = {
+        FOR_FIELDS(DEFINE_FIELD_NAME)
     };
-
     for (size_t i = 0; i < count; i++) {
         key = kvs[i].key;
-        utstring_printf(
-            query,
-            "%s = $%ld, ", reachard_db_target_ks[key], i + 1
-        );
+        utstring_printf(query, "%s = $%ld, ", field_names[key], i + 1);
     }
 
     // Replace the last comma with a space
@@ -247,20 +225,7 @@ reachard_db_targets_update(
         value = kvs[i].value;
 
         switch (key) {
-        case ID:
-            break;
-        case NAME:
-        case URL:
-            paramValues[i] = value.string;
-            break;
-        case INTERVAL:
-            char string[REACHARD_INT_STR_LEN];
-            snprintf(string, sizeof(string), "%d", value.number);
-            paramValues[i] = string;
-            break;
-        case UP:
-            paramValues[i] = value.boolean ? "t" : "f";
-            break;
+            FOR_FIELDS(DEFINE_ENCODE_CALL)
         }
     }
 
@@ -272,10 +237,12 @@ reachard_db_targets_update(
         fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to update a target\n");
         PQclear(res);
-        return 0;
+        utstring_free(query);
+        return 1;
     }
 
     PQclear(res);
+    utstring_free(query);
 
     return 0;
 }

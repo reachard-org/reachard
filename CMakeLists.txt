@@ -81,7 +81,11 @@ target_sources(
     src/client/state.c
     src/client/targets.c
     src/client/watcher.c
-  PRIVATE src/database/database.c src/database/migrate.c src/database/targets.c
+  PRIVATE
+    src/database/database.c
+    src/database/macros.c
+    src/database/migrate.c
+    src/database/targets.c
   PRIVATE src/env/env.c
   PRIVATE
     src/server/handle.c
