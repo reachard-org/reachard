@@ -31,6 +31,7 @@
 #include <string.h>
 
 #include <libpq-fe.h>
+#include <utstring.h>
 
 static void
 target_from_row(struct reachard_db_target *target, PGresult *res, int col) {
@@ -131,7 +132,9 @@ reachard_db_targets_delete(struct reachard_db *db, const int id) {
 
 int
 reachard_db_targets_get(
-    struct reachard_db *db, struct reachard_db_target *target, int id
+    struct reachard_db *db,
+    struct reachard_db_target *target,
+    int id
 ) {
     PGresult *res = 0;
 
@@ -199,5 +202,80 @@ reachard_db_targets_get_all(
     }
 
     PQclear(res);
+    return 0;
+}
+
+int
+reachard_db_targets_update(
+    struct reachard_db *db,
+    int id,
+    struct reachard_db_target_kv kvs[],
+    size_t count
+) {
+    enum reachard_db_target_k key;
+    union reachard_db_target_v value;
+
+    UT_string *query;
+    utstring_new(query);
+
+    utstring_printf(query, "UPDATE targets SET ");
+
+    char *reachard_db_target_ks[] = {
+        "id",
+        "name",
+        "url",
+        "interval",
+        "up"
+    };
+
+    for (size_t i = 0; i < count; i++) {
+        key = kvs[i].key;
+        utstring_printf(
+            query,
+            "%s = $%ld, ", reachard_db_target_ks[key], i + 1
+        );
+    }
+
+    // Replace the last comma with a space
+    (query->d)[query->i - 2] = 32;
+
+    utstring_printf(query, "WHERE id = %d", id);
+
+    const char *paramValues[count];
+    for (size_t i = 0; i < count; i++) {
+        key = kvs[i].key;
+        value = kvs[i].value;
+
+        switch (key) {
+        case ID:
+            break;
+        case NAME:
+        case URL:
+            paramValues[i] = value.string;
+            break;
+        case INTERVAL:
+            char string[REACHARD_INT_STR_LEN];
+            snprintf(string, sizeof(string), "%d", value.number);
+            paramValues[i] = string;
+            break;
+        case UP:
+            paramValues[i] = value.boolean ? "t" : "f";
+            break;
+        }
+    }
+
+    PGresult *res = PQexecParams(
+        db->conn, utstring_body(query),
+        count, 0, paramValues, 0, 0, 0
+    );
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
+        fprintf(stderr, "failed to update a target\n");
+        PQclear(res);
+        return 0;
+    }
+
+    PQclear(res);
+
     return 0;
 }
