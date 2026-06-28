@@ -37,28 +37,7 @@ reachard_handle_targets_delete(struct reachard_request *request) {
     struct reachard_db *db = request->cls;
     struct reachard_connection_info *conn_info = *request->req_cls;
 
-    if (*request->upload_data_size > 0) {
-        return reachard_handle_upload_data(request);
-    }
-
-    cJSON *object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
-    if (!object) {
-        return reachard_request_respond_plain(
-            request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
-        );
-    }
-
-    const cJSON *id_item = cJSON_GetObjectItemCaseSensitive(object, "id");
-    if (!cJSON_IsNumber(id_item)) {
-        cJSON_Delete(object);
-        return reachard_request_respond_plain(
-            request, "failed to parse target ID", MHD_HTTP_BAD_REQUEST
-        );
-    }
-
-    const int id = id_item->valueint;
-    if (reachard_db_targets_delete(db, id)) {
-        cJSON_Delete(object);
+    if (reachard_db_targets_delete(db, conn_info->id)) {
         return reachard_request_respond_plain(
             request,
             "failed to delete the target",
@@ -66,7 +45,6 @@ reachard_handle_targets_delete(struct reachard_request *request) {
         );
     };
 
-    cJSON_Delete(object);
     return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
 }
 
@@ -168,7 +146,7 @@ enum MHD_Result
 reachard_handle_targets_first_call(struct reachard_request *request) {
     struct reachard_connection_info *conn_info = *request->req_cls;
 
-    if (strcmp(request->method, "DELETE") == 0) {
+    if (strcmp(request->method, "DELETE") == 0 && conn_info->id) {
         conn_info->handle = &reachard_handle_targets_delete;
         return MHD_YES;
     }
