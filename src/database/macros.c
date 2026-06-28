@@ -23,6 +23,8 @@
 
 #include "macros.h"
 
+#include "utils/constants.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,7 +56,7 @@ encode_string(union reachard_db_value value, char buffer[]) {
 
 char *
 encode_number(union reachard_db_value value, char buffer[]) {
-    snprintf(buffer, sizeof(*buffer), "%d", value.number);
+    snprintf(buffer, REACHARD_INT_STR_LEN, "%d", value.number);
     return buffer;
 }
 
