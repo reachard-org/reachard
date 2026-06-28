@@ -41,6 +41,9 @@ reachard_connection_info_init(struct reachard_connection_info **conn_info) {
         return 1;
     }
 
+    (*conn_info)->upload_data = 0;
+    (*conn_info)->upload_data_size = 0;
+
     return 0;
 }
 
