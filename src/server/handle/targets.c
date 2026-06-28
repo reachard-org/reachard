@@ -51,6 +51,33 @@ reachard_handle_targets_delete(struct reachard_request *request) {
 static enum MHD_Result
 reachard_handle_targets_get(struct reachard_request *request) {
     struct reachard_db *db = request->cls;
+    struct reachard_connection_info *conn_info = *request->req_cls;
+
+    struct reachard_db_target target;
+    if (reachard_db_targets_get(db, &target, conn_info->id)) {
+        return reachard_request_respond_plain(
+            request,
+            "failed to get the target",
+            MHD_HTTP_INTERNAL_SERVER_ERROR
+        );
+    };
+
+    cJSON *object = cJSON_CreateObject();
+    cJSON_AddNumberToObject(object, "id", target.id);
+    cJSON_AddStringToObject(object, "name", target.name);
+    cJSON_AddStringToObject(object, "url", target.url);
+    cJSON_AddNumberToObject(object, "interval", target.interval);
+
+    char *body = cJSON_PrintUnformatted(object);
+
+    cJSON_Delete(object);
+    reachard_db_target_free(&target);
+    return reachard_request_respond_json(request, body, MHD_HTTP_OK);
+}
+
+static enum MHD_Result
+reachard_handle_targets_get_all(struct reachard_request *request) {
+    struct reachard_db *db = request->cls;
 
     size_t count;
     struct reachard_db_target *targets;
@@ -64,12 +91,12 @@ reachard_handle_targets_get(struct reachard_request *request) {
 
     cJSON *array = cJSON_CreateArray();
     for (size_t i = 0; i < count; i++) {
-        cJSON *target = cJSON_CreateObject();
-        cJSON_AddNumberToObject(target, "id", targets[i].id);
-        cJSON_AddStringToObject(target, "name", targets[i].name);
-        cJSON_AddStringToObject(target, "url", targets[i].url);
-        cJSON_AddNumberToObject(target, "interval", targets[i].interval);
-        cJSON_AddItemToArray(array, target);
+        cJSON *object = cJSON_CreateObject();
+        cJSON_AddNumberToObject(object, "id", targets[i].id);
+        cJSON_AddStringToObject(object, "name", targets[i].name);
+        cJSON_AddStringToObject(object, "url", targets[i].url);
+        cJSON_AddNumberToObject(object, "interval", targets[i].interval);
+        cJSON_AddItemToArray(array, object);
     }
 
     char *body = cJSON_PrintUnformatted(array);
@@ -151,7 +178,11 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
         return MHD_YES;
     }
     if (strcmp(request->method, "GET") == 0) {
-        conn_info->handle = &reachard_handle_targets_get;
+        if (conn_info->id) {
+            conn_info->handle = &reachard_handle_targets_get;
+        } else {
+            conn_info->handle = &reachard_handle_targets_get_all;
+        }
         return MHD_YES;
     }
     if (strcmp(request->method, "POST") == 0) {
