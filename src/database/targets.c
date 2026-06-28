@@ -220,6 +220,7 @@ reachard_db_targets_update(
     utstring_printf(query, "WHERE id = %d", id);
 
     const char *paramValues[count];
+    FOR_FIELDS(DEFINE_BUFFER)
     for (size_t i = 0; i < count; i++) {
         key = kvs[i].key;
         value = kvs[i].value;

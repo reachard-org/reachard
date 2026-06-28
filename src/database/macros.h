@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "utils/constants.h"
+
 #include <libpq-fe.h>
 
 // See https://en.wikipedia.org/wiki/X_macro
@@ -63,8 +65,10 @@ encode_number(union reachard_db_value value, char buffer[]);
 char *
 encode_boolean(union reachard_db_value value, char buffer[]);
 
+#define DEFINE_BUFFER(idx, name, NAME, type, TYPE, ...) \
+    char buffer_##name[REACHARD_INT_STR_LEN] = {0};
+
 #define DEFINE_ENCODE_CALL(idx, name, NAME, type, TYPE, ...)  \
     case NAME:                                                \
-        char buffer_##name[REACHARD_INT_STR_LEN];             \
         paramValues[i] = encode_##TYPE(value, buffer_##name); \
         break;
