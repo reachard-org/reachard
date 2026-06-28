@@ -32,8 +32,18 @@
 
 #include <microhttpd.h>
 
+static int
+reachard_connection_info_init(struct reachard_connection_info **conn_info) {
+    *conn_info = malloc(sizeof(struct reachard_connection_info));
+    if (!*conn_info) {
+        return 1;
+    }
+
+    return 0;
+}
+
 static void
-reachard_connection_info_destroy(struct reachard_connection_info *conn_info) {
+reachard_connection_info_deinit(struct reachard_connection_info *conn_info) {
     if (!conn_info) {
         return;
     }
@@ -70,9 +80,8 @@ reachard_handle_upload_data(struct reachard_request *request) {
 
 static enum MHD_Result
 reachard_handle_first_call(struct reachard_request *request) {
-    struct reachard_connection_info *conn_info =
-        malloc(sizeof(struct reachard_connection_info));
-    if (!conn_info) {
+    struct reachard_connection_info *conn_info;
+    if (reachard_connection_info_init(&conn_info)) {
         return MHD_NO;
     }
     *request->req_cls = conn_info;
@@ -118,5 +127,5 @@ reachard_handle_complete(
     void **req_cls,
     enum MHD_RequestTerminationCode toe
 ) {
-    reachard_connection_info_destroy(*req_cls);
+    reachard_connection_info_deinit(*req_cls);
 }
