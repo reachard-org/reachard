@@ -31,6 +31,7 @@
 
 #include <cjson/cJSON.h>
 #include <microhttpd.h>
+#include <utarray.h>
 
 static enum MHD_Result
 reachard_handle_targets_delete(struct reachard_request *request) {
@@ -104,6 +105,70 @@ reachard_handle_targets_get_all(struct reachard_request *request) {
     cJSON_Delete(array);
     reachard_db_targets_free(targets, count);
     return reachard_request_respond_json(request, body, MHD_HTTP_OK);
+}
+
+static enum MHD_Result
+reachard_handle_targets_patch(struct reachard_request *request) {
+    struct reachard_db *db = request->cls;
+    struct reachard_connection_info *conn_info = *request->req_cls;
+
+    if (*request->upload_data_size > 0) {
+        return reachard_handle_upload_data(request);
+    }
+
+    struct reachard_db_target_kv kv;
+    UT_icd kvs_icd = {sizeof(kv), 0, 0, 0};
+
+    cJSON *object;
+    cJSON *item;
+
+    object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
+    if (!object) {
+        return reachard_request_respond_plain(
+            request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
+        );
+    }
+
+    UT_array *kvs;
+    utarray_new(kvs, &kvs_icd);
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "name");
+    if (cJSON_IsString(item)) {
+        kv.key = NAME;
+        kv.value.string = item->valuestring;
+        utarray_push_back(kvs, &kv);
+    }
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "url");
+    if (cJSON_IsString(item)) {
+        kv.key = URL;
+        kv.value.string = item->valuestring;
+        utarray_push_back(kvs, &kv);
+    }
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "interval");
+    if (cJSON_IsNumber(item)) {
+        kv.key = INTERVAL;
+        kv.value.number = item->valueint;
+        utarray_push_back(kvs, &kv);
+    }
+
+    if (
+        reachard_db_targets_update(
+            db, conn_info->id, utarray_front(kvs), utarray_len(kvs)
+        )
+    ) {
+        cJSON_Delete(object);
+        utarray_free(kvs);
+        return reachard_request_respond_plain(
+            request,
+            "failed to update the target", MHD_HTTP_INTERNAL_SERVER_ERROR
+        );
+    };
+
+    utarray_free(kvs);
+    cJSON_Delete(object);
+    return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
 }
 
 static enum MHD_Result
@@ -183,6 +248,10 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
         } else {
             conn_info->handle = &reachard_handle_targets_get_all;
         }
+        return MHD_YES;
+    }
+    if (strcmp(request->method, "PATCH") == 0 && conn_info->id) {
+        conn_info->handle = &reachard_handle_targets_patch;
         return MHD_YES;
     }
     if (strcmp(request->method, "POST") == 0) {
