@@ -23,9 +23,11 @@
 
 #include "handle.h"
 
+#include "utils/constants.h"
 #include <server/handle/targets.h>
 #include <server/request.h>
 
+#include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,6 +80,37 @@ reachard_handle_upload_data(struct reachard_request *request) {
     return MHD_YES;
 }
 
+// "^/endpoint/(([0-9]{1,n})/)?$"
+#define PATTERN(endpoint) \
+    "^/" endpoint "/(([0-9]{1," str(REACHARD_INT_STR_LEN) "})/)?$"
+
+static int
+match(struct reachard_request *request, char *pattern) {
+    struct reachard_connection_info *conn_info = *request->req_cls;
+
+    regex_t regex;
+    regmatch_t pmatch[3];
+
+    if (regcomp(&regex, pattern, REG_EXTENDED)) {
+        fprintf(stderr, "failed to compile regex\n");
+        regfree(&regex);
+        return 0;
+    }
+
+    int matched = regexec(&regex, request->url, 3, pmatch, 0) == 0;
+
+    if (matched) {
+        // If there was no ID in the URL, it will be set 0 here
+        char id_str[REACHARD_INT_STR_LEN] = {0};
+        regmatch_t match = pmatch[2];
+        strncpy(id_str, request->url + match.rm_so, match.rm_eo - match.rm_so);
+        conn_info->id = atoi(id_str);
+    };
+
+    regfree(&regex);
+    return matched;
+}
+
 static enum MHD_Result
 reachard_handle_first_call(struct reachard_request *request) {
     struct reachard_connection_info *conn_info;
@@ -86,7 +119,7 @@ reachard_handle_first_call(struct reachard_request *request) {
     }
     *request->req_cls = conn_info;
 
-    if (strcmp(request->url, "/targets/") == 0) {
+    if (match(request, PATTERN("targets"))) {
         return reachard_handle_targets_first_call(request);
     }
 
