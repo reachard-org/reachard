@@ -24,11 +24,9 @@
 #pragma once
 
 #include <database/database.h>
+#include <database/update.h>
 
 #include <stddef.h>
-
-#include <utarray.h>
-#include <utstring.h>
 
 struct reachard_db_target {
     int id;
@@ -70,43 +68,33 @@ reachard_db_targets_get_all(
     size_t *count
 );
 
-struct reachard_db_target_update {
-    struct reachard_db *db;
-    int id;
-    UT_string *query;
-    UT_array *params;
-};
-
 void
 reachard_db_targets_update_init(
-    struct reachard_db_target_update *update,
+    struct reachard_db_update *update,
     struct reachard_db *db,
     int id
 );
 
 void
-reachard_db_targets_update_string(
-    struct reachard_db_target_update *update,
-    char *name,
-    char *string
+reachard_db_targets_update_name(
+    struct reachard_db_update *update,
+    char *name
 );
 
 void
-reachard_db_targets_update_number(
-    struct reachard_db_target_update *update,
-    char *name,
-    int number
+reachard_db_targets_update_url(
+    struct reachard_db_update *update,
+    char *url
 );
 
 void
-reachard_db_targets_update_boolean(
-    struct reachard_db_target_update *update,
-    char *name,
-    bool boolean
+reachard_db_targets_update_interval(
+    struct reachard_db_update *update,
+    int interval
 );
 
-int
-reachard_db_targets_update_commit(struct reachard_db_target_update *update);
-
 void
-reachard_db_targets_update_deinit(struct reachard_db_target_update *update);
+reachard_db_targets_update_up(
+    struct reachard_db_update *update,
+    bool up
+);

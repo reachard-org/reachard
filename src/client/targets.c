@@ -25,6 +25,7 @@
 
 #include <client/state.h>
 #include <database/targets.h>
+#include <database/update.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,13 +65,13 @@ transfer_complete(struct reachard_client_transfer *transfer) {
         fprintf(stderr, "status for %s changed to %d\n", url, up);
         target->up = up;
 
-        struct reachard_db_target_update update;
+        struct reachard_db_update update;
         reachard_db_targets_update_init(&update, db, target->id);
-        reachard_db_targets_update_boolean(&update, "up", up);
-        if (reachard_db_targets_update_commit(&update)) {
+        reachard_db_targets_update_up(&update, up);
+        if (reachard_db_update_commit(&update)) {
             fprintf(stderr, "failed to update the status of a target\n");
         };
-        reachard_db_targets_update_deinit(&update);
+        reachard_db_update_deinit(&update);
     }
 
     free(transfer);

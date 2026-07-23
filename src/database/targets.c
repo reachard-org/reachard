@@ -25,6 +25,7 @@
 
 #include <database/database.h>
 #include <database/parse.h>
+#include <database/update.h>
 #include <utils/constants.h>
 
 #include <stdio.h>
@@ -32,7 +33,6 @@
 #include <string.h>
 
 #include <libpq-fe.h>
-#include <utstring.h>
 
 static void
 parse_target(struct reachard_db_target *s, PGresult *res, int col) {
@@ -197,92 +197,41 @@ reachard_db_targets_get_all(
 
 void
 reachard_db_targets_update_init(
-    struct reachard_db_target_update *update,
+    struct reachard_db_update *update,
     struct reachard_db *db,
     int id
 ) {
-    update->db = db;
-    update->id = id;
-
-    utstring_new(update->query);
-
-    // This `icd` dupes all strings
-    utarray_new(update->params, &ut_str_icd);
-    utstring_printf(update->query, "UPDATE targets SET ");
+    reachard_db_update_init(update, db, "targets", id);
 }
 
 void
-reachard_db_targets_update_string(
-    struct reachard_db_target_update *update,
-    char *name,
-    char *string
+reachard_db_targets_update_name(
+    struct reachard_db_update *update,
+    char *name
 ) {
-    utarray_push_back(update->params, &string);
-    utstring_printf(
-        update->query,
-        "%s = $%d, ", name, utarray_len(update->params)
-    );
+    reachard_db_update_string(update, "name", name);
 }
 
 void
-reachard_db_targets_update_number(
-    struct reachard_db_target_update *update,
-    char *name,
-    int number
+reachard_db_targets_update_url(
+    struct reachard_db_update *update,
+    char *url
 ) {
-    char buffer[REACHARD_INT_STR_LEN];
-    snprintf(buffer, sizeof(buffer), "%d", number);
-
-    utarray_push_back(update->params, &(char *){buffer});
-    utstring_printf(
-        update->query,
-        "%s = $%d, ", name, utarray_len(update->params)
-    );
+    reachard_db_update_string(update, "url", url);
 }
 
 void
-reachard_db_targets_update_boolean(
-    struct reachard_db_target_update *update,
-    char *name,
-    bool boolean
+reachard_db_targets_update_interval(
+    struct reachard_db_update *update,
+    int interval
 ) {
-    char *string = boolean ? "t" : "f";
-
-    utarray_push_back(update->params, &string);
-    utstring_printf(
-        update->query,
-        "%s = $%d, ", name, utarray_len(update->params)
-    );
-}
-
-int
-reachard_db_targets_update_commit(struct reachard_db_target_update *update) {
-    if (utarray_len(update->params) == 0) {
-        return 0;
-    }
-
-    // Replace the last comma with a space
-    (update->query->d)[update->query->i - 2] = 32;
-
-    utstring_printf(update->query, "WHERE id = %d", update->id);
-
-    PGresult *res = PQexecParams(
-        update->db->conn, utstring_body(update->query),
-        utarray_len(update->params), 0, utarray_front(update->params), 0, 0, 0
-    );
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        fprintf(stderr, "%s", PQresultErrorMessage(res));
-        fprintf(stderr, "failed to update a target\n");
-        PQclear(res);
-        return 1;
-    }
-
-    PQclear(res);
-    return 0;
+    reachard_db_update_number(update, "interval", interval);
 }
 
 void
-reachard_db_targets_update_deinit(struct reachard_db_target_update *update) {
-    utstring_free(update->query);
-    utarray_free(update->params);
+reachard_db_targets_update_up(
+    struct reachard_db_update *update,
+    bool up
+) {
+    reachard_db_update_boolean(update, "up", up);
 }

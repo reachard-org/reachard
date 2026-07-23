@@ -86,6 +86,7 @@ target_sources(
     src/database/migrate.c
     src/database/parse.c
     src/database/targets.c
+    src/database/update.c
   PRIVATE src/env/env.c
   PRIVATE
     src/server/handle.c
