@@ -37,6 +37,7 @@ static void
 transfer_complete(struct reachard_client_transfer *transfer) {
     struct reachard_client_target *target =
         (struct reachard_client_target *)transfer->data;
+    struct reachard_db *db = &target->state->db;
 
     CURL *easy = transfer->message->easy_handle;
 
@@ -63,12 +64,13 @@ transfer_complete(struct reachard_client_transfer *transfer) {
         fprintf(stderr, "status for %s changed to %d\n", url, up);
         target->up = up;
 
-        struct reachard_db_target_kv kvs[] = {{.key = UP, .value.boolean = up}};
-        if (
-            reachard_db_targets_update(&target->state->db, target->id, kvs, 1)
-        ) {
+        struct reachard_db_target_update update;
+        reachard_db_targets_update_init(&update, db, target->id);
+        reachard_db_targets_update_boolean(&update, "up", up);
+        if (reachard_db_targets_update_commit(&update)) {
             fprintf(stderr, "failed to update the status of a target\n");
         };
+        reachard_db_targets_update_deinit(&update);
     }
 
     free(transfer);
