@@ -31,7 +31,6 @@
 
 #include <cjson/cJSON.h>
 #include <microhttpd.h>
-#include <utarray.h>
 
 static enum MHD_Result
 reachard_handle_targets_delete(struct reachard_request *request) {
@@ -116,9 +115,6 @@ reachard_handle_targets_patch(struct reachard_request *request) {
         return reachard_handle_upload_data(request);
     }
 
-    struct reachard_db_target_kv kv;
-    UT_icd kvs_icd = {sizeof(kv), 0, 0, 0};
-
     cJSON *object;
     cJSON *item;
 
@@ -129,44 +125,32 @@ reachard_handle_targets_patch(struct reachard_request *request) {
         );
     }
 
-    UT_array *kvs;
-    utarray_new(kvs, &kvs_icd);
+    struct reachard_db_target_update update;
+    reachard_db_targets_update_init(&update, db, conn_info->id);
 
     item = cJSON_GetObjectItemCaseSensitive(object, "name");
     if (cJSON_IsString(item)) {
-        kv.key = NAME;
-        kv.value.string = item->valuestring;
-        utarray_push_back(kvs, &kv);
+        reachard_db_targets_update_string(&update, "name", item->valuestring);
     }
 
     item = cJSON_GetObjectItemCaseSensitive(object, "url");
     if (cJSON_IsString(item)) {
-        kv.key = URL;
-        kv.value.string = item->valuestring;
-        utarray_push_back(kvs, &kv);
+        reachard_db_targets_update_string(&update, "url", item->valuestring);
     }
 
     item = cJSON_GetObjectItemCaseSensitive(object, "interval");
     if (cJSON_IsNumber(item)) {
-        kv.key = INTERVAL;
-        kv.value.number = item->valueint;
-        utarray_push_back(kvs, &kv);
+        reachard_db_targets_update_number(&update, "interval", item->valueint);
     }
 
-    if (
-        reachard_db_targets_update(
-            db, conn_info->id, utarray_front(kvs), utarray_len(kvs)
-        )
-    ) {
+    if (reachard_db_targets_update_commit(&update)) {
         cJSON_Delete(object);
-        utarray_free(kvs);
         return reachard_request_respond_plain(
             request,
             "failed to update the target", MHD_HTTP_INTERNAL_SERVER_ERROR
         );
     };
 
-    utarray_free(kvs);
     cJSON_Delete(object);
     return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
 }
