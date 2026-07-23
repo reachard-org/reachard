@@ -112,6 +112,13 @@ reachard_db_targets_update_number(
     int number
 );
 
+void
+reachard_db_targets_update_boolean(
+    struct reachard_db_target_update *update,
+    char *name,
+    bool boolean
+);
+
 int
 reachard_db_targets_update_commit(struct reachard_db_target_update *update);
 

@@ -236,6 +236,21 @@ reachard_db_targets_update_number(
     );
 }
 
+void
+reachard_db_targets_update_boolean(
+    struct reachard_db_target_update *update,
+    char *name,
+    bool boolean
+) {
+    char *string = boolean ? "t" : "f";
+
+    utarray_push_back(update->params, &string);
+    utstring_printf(
+        update->query,
+        "%s = $%d, ", name, utarray_len(update->params)
+    );
+}
+
 int
 reachard_db_targets_update_commit(struct reachard_db_target_update *update) {
     if (utarray_len(update->params) == 0) {
