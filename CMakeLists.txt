@@ -83,8 +83,8 @@ target_sources(
     src/client/watcher.c
   PRIVATE
     src/database/database.c
-    src/database/macros.c
     src/database/migrate.c
+    src/database/parse.c
     src/database/targets.c
   PRIVATE src/env/env.c
   PRIVATE

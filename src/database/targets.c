@@ -24,7 +24,7 @@
 #include "targets.h"
 
 #include <database/database.h>
-#include <database/macros.h>
+#include <database/parse.h>
 #include <utils/constants.h>
 
 #include <stdio.h>
@@ -36,7 +36,11 @@
 
 static void
 parse_target(struct reachard_db_target *s, PGresult *res, int col) {
-    FOR_FIELDS(DEFINE_PARSE_CALL)
+    s->id = parse_number(res, col, 0);
+    s->name = parse_string(res, col, 1);
+    s->url = parse_string(res, col, 2);
+    s->interval = parse_number(res, col, 3);
+    s->up = parse_boolean(res, col, 4);
 }
 
 void
@@ -281,61 +285,4 @@ void
 reachard_db_targets_update_deinit(struct reachard_db_target_update *update) {
     utstring_free(update->query);
     utarray_free(update->params);
-}
-
-int
-reachard_db_targets_update(
-    struct reachard_db *db,
-    int id,
-    struct reachard_db_target_kv kvs[],
-    size_t count
-) {
-    enum reachard_db_target_k key;
-    union reachard_db_value value;
-
-    UT_string *query;
-    utstring_new(query);
-
-    utstring_printf(query, "UPDATE targets SET ");
-
-    char *field_names[] = {
-        FOR_FIELDS(DEFINE_FIELD_NAME)
-    };
-    for (size_t i = 0; i < count; i++) {
-        key = kvs[i].key;
-        utstring_printf(query, "%s = $%ld, ", field_names[key], i + 1);
-    }
-
-    // Replace the last comma with a space
-    (query->d)[query->i - 2] = 32;
-
-    utstring_printf(query, "WHERE id = %d", id);
-
-    const char *paramValues[count];
-    FOR_FIELDS(DEFINE_BUFFER)
-    for (size_t i = 0; i < count; i++) {
-        key = kvs[i].key;
-        value = kvs[i].value;
-
-        switch (key) {
-            FOR_FIELDS(DEFINE_ENCODE_CALL)
-        }
-    }
-
-    PGresult *res = PQexecParams(
-        db->conn, utstring_body(query),
-        count, 0, paramValues, 0, 0, 0
-    );
-    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
-        fprintf(stderr, "%s", PQresultErrorMessage(res));
-        fprintf(stderr, "failed to update a target\n");
-        PQclear(res);
-        utstring_free(query);
-        return 1;
-    }
-
-    PQclear(res);
-    utstring_free(query);
-
-    return 0;
 }

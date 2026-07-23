@@ -21,11 +21,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include "macros.h"
+#include "parse.h"
 
-#include "utils/constants.h"
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -47,20 +44,4 @@ inline bool
 parse_boolean(PGresult *res, int col, int row) {
     char *value = PQgetvalue(res, col, row);
     return value[0] == 't';
-}
-
-inline char *
-encode_string(union reachard_db_value value, char buffer[]) {
-    return value.string;
-}
-
-char *
-encode_number(union reachard_db_value value, char buffer[]) {
-    snprintf(buffer, REACHARD_INT_STR_LEN, "%d", value.number);
-    return buffer;
-}
-
-inline char *
-encode_boolean(union reachard_db_value value, char buffer[]) {
-    return value.boolean ? "t" : "f";
 }

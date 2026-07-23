@@ -24,32 +24,18 @@
 #pragma once
 
 #include <database/database.h>
-#include <database/macros.h>
 
 #include <stddef.h>
 
 #include <utarray.h>
 #include <utstring.h>
 
-#define FOR_FIELDS(DO)                     \
-    DO(0, id, ID, int, number)             \
-    DO(1, name, NAME, char *, string)      \
-    DO(2, url, URL, char *, string)        \
-    DO(3, interval, INTERVAL, int, number) \
-    DO(4, up, UP, bool, boolean)
-
 struct reachard_db_target {
-    FOR_FIELDS(DEFINE_STRUCT_FIELD)
-};
-
-// IWYU pragma: no_forward_declare reachard_db_target_k
-enum reachard_db_target_k {
-    FOR_FIELDS(DEFINE_ENUM_FIELD)
-};
-
-struct reachard_db_target_kv {
-    enum reachard_db_target_k key;
-    union reachard_db_value value;
+    int id;
+    char *name;
+    char *url;
+    int interval;
+    bool up;
 };
 
 void
@@ -124,11 +110,3 @@ reachard_db_targets_update_commit(struct reachard_db_target_update *update);
 
 void
 reachard_db_targets_update_deinit(struct reachard_db_target_update *update);
-
-int
-reachard_db_targets_update(
-    struct reachard_db *db,
-    int id,
-    struct reachard_db_target_kv kvs[],
-    size_t count
-);

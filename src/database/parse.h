@@ -23,26 +23,7 @@
 
 #pragma once
 
-#include "utils/constants.h"
-
 #include <libpq-fe.h>
-
-// See https://en.wikipedia.org/wiki/X_macro
-
-union reachard_db_value {
-    char *string;
-    int number;
-    bool boolean;
-};
-
-#define DEFINE_STRUCT_FIELD(idx, name, NAME, type, TYPE, ...) \
-    type name;
-
-#define DEFINE_ENUM_FIELD(idx, name, NAME, type, TYPE, ...) \
-    NAME,
-
-#define DEFINE_FIELD_NAME(idx, name, NAME, type, TYPE, ...) \
-    #name,
 
 char *
 parse_string(PGresult *res, int col, int row);
@@ -52,23 +33,3 @@ parse_number(PGresult *res, int col, int row);
 
 bool
 parse_boolean(PGresult *res, int col, int row);
-
-#define DEFINE_PARSE_CALL(idx, name, NAME, type, TYPE, ...) \
-    s->name = parse_##TYPE(res, col, idx);
-
-char *
-encode_string(union reachard_db_value value, char buffer[]);
-
-char *
-encode_number(union reachard_db_value value, char buffer[]);
-
-char *
-encode_boolean(union reachard_db_value value, char buffer[]);
-
-#define DEFINE_BUFFER(idx, name, NAME, type, TYPE, ...) \
-    char buffer_##name[REACHARD_INT_STR_LEN] = {0};
-
-#define DEFINE_ENCODE_CALL(idx, name, NAME, type, TYPE, ...)  \
-    case NAME:                                                \
-        paramValues[i] = encode_##TYPE(value, buffer_##name); \
-        break;
