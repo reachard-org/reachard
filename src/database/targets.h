@@ -28,6 +28,9 @@
 
 #include <stddef.h>
 
+#include <utarray.h>
+#include <utstring.h>
+
 #define FOR_FIELDS(DO)                     \
     DO(0, id, ID, int, number)             \
     DO(1, name, NAME, char *, string)      \
@@ -80,6 +83,37 @@ reachard_db_targets_get_all(
     struct reachard_db_target **targets,
     size_t *count
 );
+
+struct reachard_db_target_update {
+    struct reachard_db *db;
+    int id;
+    UT_string *query;
+    UT_array *params;
+};
+
+void
+reachard_db_targets_update_init(
+    struct reachard_db_target_update *update,
+    struct reachard_db *db,
+    int id
+);
+
+void
+reachard_db_targets_update_string(
+    struct reachard_db_target_update *update,
+    char *name,
+    char *string
+);
+
+void
+reachard_db_targets_update_number(
+    struct reachard_db_target_update *update,
+    char *name,
+    int number
+);
+
+int
+reachard_db_targets_update_commit(struct reachard_db_target_update *update);
 
 int
 reachard_db_targets_update(

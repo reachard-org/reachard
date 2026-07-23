@@ -191,6 +191,76 @@ reachard_db_targets_get_all(
     return 0;
 }
 
+void
+reachard_db_targets_update_init(
+    struct reachard_db_target_update *update,
+    struct reachard_db *db,
+    int id
+) {
+    update->db = db;
+    update->id = id;
+
+    utstring_new(update->query);
+
+    // This `icd` dupes all strings
+    utarray_new(update->params, &ut_str_icd);
+    utstring_printf(update->query, "UPDATE targets SET ");
+}
+
+void
+reachard_db_targets_update_string(
+    struct reachard_db_target_update *update,
+    char *name,
+    char *string
+) {
+    utarray_push_back(update->params, &string);
+    utstring_printf(
+        update->query,
+        "%s = $%d, ", name, utarray_len(update->params)
+    );
+}
+
+void
+reachard_db_targets_update_number(
+    struct reachard_db_target_update *update,
+    char *name,
+    int number
+) {
+    char buffer[REACHARD_INT_STR_LEN];
+    snprintf(buffer, sizeof(buffer), "%d", number);
+
+    utarray_push_back(update->params, &(char *){buffer});
+    utstring_printf(
+        update->query,
+        "%s = $%d, ", name, utarray_len(update->params)
+    );
+}
+
+int
+reachard_db_targets_update_commit(struct reachard_db_target_update *update) {
+    // Replace the last comma with a space
+    (update->query->d)[update->query->i - 2] = 32;
+
+    utstring_printf(update->query, "WHERE id = %d", update->id);
+
+    PGresult *res = PQexecParams(
+        update->db->conn, utstring_body(update->query),
+        utarray_len(update->params), 0, utarray_front(update->params), 0, 0, 0
+    );
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
+        fprintf(stderr, "failed to update a target\n");
+        PQclear(res);
+        utstring_free(update->query);
+        return 1;
+    }
+
+    PQclear(res);
+    utstring_free(update->query);
+    utarray_free(update->params);
+    return 0;
+}
+
 int
 reachard_db_targets_update(
     struct reachard_db *db,
