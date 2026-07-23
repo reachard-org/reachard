@@ -115,6 +115,9 @@ reachard_db_targets_update_number(
 int
 reachard_db_targets_update_commit(struct reachard_db_target_update *update);
 
+void
+reachard_db_targets_update_deinit(struct reachard_db_target_update *update);
+
 int
 reachard_db_targets_update(
     struct reachard_db *db,

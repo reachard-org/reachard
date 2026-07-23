@@ -145,6 +145,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
 
     if (reachard_db_targets_update_commit(&update)) {
         cJSON_Delete(object);
+        reachard_db_targets_update_deinit(&update);
         return reachard_request_respond_plain(
             request,
             "failed to update the target", MHD_HTTP_INTERNAL_SERVER_ERROR
@@ -152,6 +153,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     };
 
     cJSON_Delete(object);
+    reachard_db_targets_update_deinit(&update);
     return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
 }
 

@@ -239,7 +239,7 @@ reachard_db_targets_update_number(
 int
 reachard_db_targets_update_commit(struct reachard_db_target_update *update) {
     if (utarray_len(update->params) == 0) {
-        goto cleanup;
+        return 0;
     }
 
     // Replace the last comma with a space
@@ -255,16 +255,17 @@ reachard_db_targets_update_commit(struct reachard_db_target_update *update) {
         fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to update a target\n");
         PQclear(res);
-        utstring_free(update->query);
         return 1;
     }
 
     PQclear(res);
+    return 0;
+}
 
-cleanup:
+void
+reachard_db_targets_update_deinit(struct reachard_db_target_update *update) {
     utstring_free(update->query);
     utarray_free(update->params);
-    return 0;
 }
 
 int
