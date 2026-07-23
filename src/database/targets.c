@@ -238,6 +238,10 @@ reachard_db_targets_update_number(
 
 int
 reachard_db_targets_update_commit(struct reachard_db_target_update *update) {
+    if (utarray_len(update->params) == 0) {
+        goto cleanup;
+    }
+
     // Replace the last comma with a space
     (update->query->d)[update->query->i - 2] = 32;
 
@@ -256,6 +260,8 @@ reachard_db_targets_update_commit(struct reachard_db_target_update *update) {
     }
 
     PQclear(res);
+
+cleanup:
     utstring_free(update->query);
     utarray_free(update->params);
     return 0;
