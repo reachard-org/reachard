@@ -25,7 +25,6 @@
 
 #include <database/database.h>
 #include <database/parse.h>
-#include <database/update.h>
 #include <utils/constants.h>
 
 #include <stdio.h>
@@ -195,43 +194,47 @@ reachard_db_targets_get_all(
     return 0;
 }
 
-void
-reachard_db_targets_update_init(
-    struct reachard_db_update *update,
+int
+reachard_db_targets_update(
     struct reachard_db *db,
+    struct reachard_db_target target,
     int id
 ) {
-    reachard_db_update_init(update, db, "targets", id);
-}
+    PGresult *res = 0;
 
-void
-reachard_db_targets_update_name(
-    struct reachard_db_update *update,
-    char *name
-) {
-    reachard_db_update_string(update, "name", name);
-}
+    char id_str[REACHARD_INT_STR_LEN];
+    snprintf(id_str, sizeof(id_str), "%d", id);
 
-void
-reachard_db_targets_update_url(
-    struct reachard_db_update *update,
-    char *url
-) {
-    reachard_db_update_string(update, "url", url);
-}
+    char *interval_str = 0;
+    if (target.interval) {
+        char buffer[REACHARD_INT_STR_LEN];
+        snprintf(buffer, sizeof(buffer), "%d", target.interval);
+        interval_str = buffer;
+    }
 
-void
-reachard_db_targets_update_interval(
-    struct reachard_db_update *update,
-    int interval
-) {
-    reachard_db_update_number(update, "interval", interval);
-}
+    char *up_str = target.up ? "t" : "f";
 
-void
-reachard_db_targets_update_up(
-    struct reachard_db_update *update,
-    bool up
-) {
-    reachard_db_update_boolean(update, "up", up);
+    const char *paramValues[] = {
+        id_str, target.name, target.url, interval_str, up_str
+    };
+    const size_t paramValuesN = sizeof(paramValues) / sizeof(paramValues[0]);
+
+    res = PQexecParams(
+        db->conn, "UPDATE targets SET\n"
+                  "    name = COALESCE($2, name),\n"
+                  "    url = COALESCE($3, url),\n"
+                  "    interval = COALESCE($4, interval),\n"
+                  "    up = COALESCE($5, up)\n"
+                  "WHERE id = $1",
+        paramValuesN, 0, paramValues, 0, 0, 0
+    );
+    if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
+        fprintf(stderr, "failed to run the update query\n");
+        PQclear(res);
+        return 1;
+    }
+
+    PQclear(res);
+    return 0;
 }

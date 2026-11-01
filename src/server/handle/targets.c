@@ -24,7 +24,6 @@
 #include "targets.h"
 
 #include <database/targets.h>
-#include <database/update.h>
 #include <server/handle.h>
 #include <server/request.h>
 
@@ -116,6 +115,8 @@ reachard_handle_targets_patch(struct reachard_request *request) {
         return reachard_handle_upload_data(request);
     }
 
+    struct reachard_db_target target = {0};
+
     cJSON *object;
     cJSON *item;
 
@@ -126,27 +127,23 @@ reachard_handle_targets_patch(struct reachard_request *request) {
         );
     }
 
-    struct reachard_db_update update;
-    reachard_db_targets_update_init(&update, db, conn_info->id);
-
     item = cJSON_GetObjectItemCaseSensitive(object, "name");
     if (cJSON_IsString(item)) {
-        reachard_db_targets_update_name(&update, item->valuestring);
+        target.name = item->valuestring;
     }
 
     item = cJSON_GetObjectItemCaseSensitive(object, "url");
     if (cJSON_IsString(item)) {
-        reachard_db_targets_update_url(&update, item->valuestring);
+        target.url = item->valuestring;
     }
 
     item = cJSON_GetObjectItemCaseSensitive(object, "interval");
     if (cJSON_IsNumber(item)) {
-        reachard_db_targets_update_interval(&update, item->valueint);
+        target.interval = item->valueint;
     }
 
-    if (reachard_db_update_commit(&update)) {
+    if (reachard_db_targets_update(db, target, conn_info->id)) {
         cJSON_Delete(object);
-        reachard_db_update_deinit(&update);
         return reachard_request_respond_plain(
             request,
             "failed to update the target", MHD_HTTP_INTERNAL_SERVER_ERROR
@@ -154,7 +151,6 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     };
 
     cJSON_Delete(object);
-    reachard_db_update_deinit(&update);
     return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
 }
 
