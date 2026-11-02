@@ -65,9 +65,16 @@ transfer_complete(struct reachard_client_transfer *transfer) {
         target->up = up;
 
         struct reachard_db_target db_target = {0};
-        db_target.up = up;
+        struct reachard_db_target_mask db_target_mask = {0};
 
-        if (reachard_db_targets_update(db, db_target, target->id)) {
+        db_target.up = up;
+        db_target_mask.up = 1;
+
+        if (
+            reachard_db_targets_update(
+                db, db_target, db_target_mask, target->id
+            )
+        ) {
             fprintf(stderr, "failed to update the status of a target\n");
         };
     }

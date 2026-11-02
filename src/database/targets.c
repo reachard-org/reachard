@@ -198,6 +198,7 @@ int
 reachard_db_targets_update(
     struct reachard_db *db,
     struct reachard_db_target target,
+    struct reachard_db_target_mask target_mask,
     int id
 ) {
     PGresult *res = 0;
@@ -205,17 +206,30 @@ reachard_db_targets_update(
     char id_str[REACHARD_INT_STR_LEN];
     snprintf(id_str, sizeof(id_str), "%d", id);
 
+    char *name_str = 0;
+    if (target_mask.name) {
+        name_str = target.name;
+    }
+
+    char *url_str = 0;
+    if (target_mask.name) {
+        url_str = target.url;
+    }
+
     char *interval_str = 0;
-    if (target.interval) {
+    if (target_mask.interval) {
         char buffer[REACHARD_INT_STR_LEN];
         snprintf(buffer, sizeof(buffer), "%d", target.interval);
         interval_str = buffer;
     }
 
-    char *up_str = target.up ? "t" : "f";
+    char *up_str = 0;
+    if (target_mask.up) {
+        up_str = target.up ? "t" : "f";
+    }
 
     const char *paramValues[] = {
-        id_str, target.name, target.url, interval_str, up_str
+        id_str, name_str, url_str, interval_str, up_str
     };
     const size_t paramValuesN = sizeof(paramValues) / sizeof(paramValues[0]);
 

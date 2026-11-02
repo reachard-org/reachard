@@ -35,6 +35,13 @@ struct reachard_db_target {
     bool up;
 };
 
+struct reachard_db_target_mask {
+    unsigned int name : 1;
+    unsigned int url : 1;
+    unsigned int interval : 1;
+    unsigned int up : 1;
+};
+
 void
 reachard_db_target_init(struct reachard_db_target *target);
 
@@ -71,5 +78,6 @@ int
 reachard_db_targets_update(
     struct reachard_db *db,
     struct reachard_db_target target,
+    struct reachard_db_target_mask mask,
     int id
 );

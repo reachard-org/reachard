@@ -116,6 +116,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     }
 
     struct reachard_db_target target = {0};
+    struct reachard_db_target_mask target_mask = {0};
 
     cJSON *object;
     cJSON *item;
@@ -131,6 +132,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     if (item) {
         if (cJSON_IsString(item)) {
             target.name = item->valuestring;
+            target_mask.name = 1;
         } else {
             cJSON_Delete(object);
             return reachard_request_respond_plain(
@@ -144,6 +146,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     if (item) {
         if (cJSON_IsString(item)) {
             target.url = item->valuestring;
+            target_mask.url = 1;
         } else {
             cJSON_Delete(object);
             return reachard_request_respond_plain(
@@ -157,6 +160,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     if (item) {
         if (cJSON_IsNumber(item)) {
             target.interval = item->valueint;
+            target_mask.interval = 1;
         } else {
             cJSON_Delete(object);
             return reachard_request_respond_plain(
@@ -166,7 +170,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
         }
     }
 
-    if (reachard_db_targets_update(db, target, conn_info->id)) {
+    if (reachard_db_targets_update(db, target, target_mask, conn_info->id)) {
         cJSON_Delete(object);
         return reachard_request_respond_plain(
             request,
