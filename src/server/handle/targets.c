@@ -128,18 +128,42 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     }
 
     item = cJSON_GetObjectItemCaseSensitive(object, "name");
-    if (cJSON_IsString(item)) {
-        target.name = item->valuestring;
+    if (item) {
+        if (cJSON_IsString(item)) {
+            target.name = item->valuestring;
+        } else {
+            cJSON_Delete(object);
+            return reachard_request_respond_plain(
+                request,
+                "expected a string for the name", MHD_HTTP_BAD_REQUEST
+            );
+        }
     }
 
     item = cJSON_GetObjectItemCaseSensitive(object, "url");
-    if (cJSON_IsString(item)) {
-        target.url = item->valuestring;
+    if (item) {
+        if (cJSON_IsString(item)) {
+            target.url = item->valuestring;
+        } else {
+            cJSON_Delete(object);
+            return reachard_request_respond_plain(
+                request,
+                "expected a string for the url", MHD_HTTP_BAD_REQUEST
+            );
+        }
     }
 
     item = cJSON_GetObjectItemCaseSensitive(object, "interval");
-    if (cJSON_IsNumber(item)) {
-        target.interval = item->valueint;
+    if (item) {
+        if (cJSON_IsNumber(item)) {
+            target.interval = item->valueint;
+        } else {
+            cJSON_Delete(object);
+            return reachard_request_respond_plain(
+                request,
+                "expected a number for the interval", MHD_HTTP_BAD_REQUEST
+            );
+        }
     }
 
     if (reachard_db_targets_update(db, target, conn_info->id)) {
