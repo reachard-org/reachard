@@ -21,50 +21,47 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-#include "request.h"
+#pragma once
 
-#include <stdlib.h>
-#include <string.h>
+#include <server/handle.h>
 
 #include <microhttpd.h>
 
+struct reachard_response {
+    struct MHD_Response *resp;
+    unsigned int status_code;
+};
+
+void
+reachard_response_prepare_plain(
+    struct reachard_response *response,
+    char *body,
+    unsigned int status_code
+);
+
+void
+reachard_response_prepare_json(
+    struct reachard_response *response,
+    char *body,
+    unsigned int status_code
+);
+
 enum MHD_Result
-reachard_request_respond_plain(
+reachard_respond(
     struct reachard_request *request,
-    const char *body,
-    const unsigned int status_code
-) {
-    struct MHD_Response *response =
-        MHD_create_response_from_buffer_static(strlen(body), body);
-    MHD_add_response_header(
-        response, MHD_HTTP_HEADER_CONTENT_TYPE, "text/plain"
-    );
-    const enum MHD_Result result =
-        MHD_queue_response(request->conn, status_code, response);
-
-    MHD_destroy_response(response);
-
-    return result;
-}
+    struct reachard_response *response
+);
 
 enum MHD_Result
-reachard_request_respond_json(
+reachard_respond_plain(
     struct reachard_request *request,
     char *body,
-    const unsigned int status_code
-) {
-    struct MHD_Response *response =
-        MHD_create_response_from_buffer_with_free_callback_cls(
-            strlen(body), body, &free, body
-        );
-    MHD_add_response_header(
-        response, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json"
-    );
+    unsigned int status_code
+);
 
-    const enum MHD_Result result =
-        MHD_queue_response(request->conn, status_code, response);
-
-    MHD_destroy_response(response);
-
-    return result;
-}
+enum MHD_Result
+reachard_respond_json(
+    struct reachard_request *request,
+    char *body,
+    unsigned int status_code
+);

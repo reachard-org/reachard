@@ -25,7 +25,7 @@
 
 #include <database/targets.h>
 #include <server/handle.h>
-#include <server/request.h>
+#include <server/response.h>
 
 #include <string.h>
 
@@ -38,14 +38,14 @@ reachard_handle_targets_delete(struct reachard_request *request) {
     struct reachard_connection_info *conn_info = *request->req_cls;
 
     if (reachard_db_targets_delete(db, conn_info->id)) {
-        return reachard_request_respond_plain(
+        return reachard_respond_plain(
             request,
             "failed to delete the target",
             MHD_HTTP_INTERNAL_SERVER_ERROR
         );
     };
 
-    return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
+    return reachard_respond_plain(request, "", MHD_HTTP_OK);
 }
 
 static enum MHD_Result
@@ -55,7 +55,7 @@ reachard_handle_targets_get(struct reachard_request *request) {
 
     struct reachard_db_target target;
     if (reachard_db_targets_get(db, &target, conn_info->id)) {
-        return reachard_request_respond_plain(
+        return reachard_respond_plain(
             request,
             "failed to get the target",
             MHD_HTTP_INTERNAL_SERVER_ERROR
@@ -72,7 +72,7 @@ reachard_handle_targets_get(struct reachard_request *request) {
 
     cJSON_Delete(object);
     reachard_db_target_free(&target);
-    return reachard_request_respond_json(request, body, MHD_HTTP_OK);
+    return reachard_respond_json(request, body, MHD_HTTP_OK);
 }
 
 static enum MHD_Result
@@ -82,7 +82,7 @@ reachard_handle_targets_get_all(struct reachard_request *request) {
     size_t count;
     struct reachard_db_target *targets;
     if (reachard_db_targets_get_all(db, &targets, &count)) {
-        return reachard_request_respond_plain(
+        return reachard_respond_plain(
             request,
             "failed to get targets",
             MHD_HTTP_INTERNAL_SERVER_ERROR
@@ -103,7 +103,7 @@ reachard_handle_targets_get_all(struct reachard_request *request) {
 
     cJSON_Delete(array);
     reachard_db_targets_free(targets, count);
-    return reachard_request_respond_json(request, body, MHD_HTTP_OK);
+    return reachard_respond_json(request, body, MHD_HTTP_OK);
 }
 
 static enum MHD_Result
@@ -123,7 +123,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
 
     object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
     if (!object) {
-        return reachard_request_respond_plain(
+        return reachard_respond_plain(
             request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
         );
     }
@@ -135,7 +135,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
             target_mask.name = 1;
         } else {
             cJSON_Delete(object);
-            return reachard_request_respond_plain(
+            return reachard_respond_plain(
                 request,
                 "expected a string for the name", MHD_HTTP_BAD_REQUEST
             );
@@ -149,7 +149,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
             target_mask.url = 1;
         } else {
             cJSON_Delete(object);
-            return reachard_request_respond_plain(
+            return reachard_respond_plain(
                 request,
                 "expected a string for the url", MHD_HTTP_BAD_REQUEST
             );
@@ -163,7 +163,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
             target_mask.interval = 1;
         } else {
             cJSON_Delete(object);
-            return reachard_request_respond_plain(
+            return reachard_respond_plain(
                 request,
                 "expected a number for the interval", MHD_HTTP_BAD_REQUEST
             );
@@ -172,14 +172,14 @@ reachard_handle_targets_patch(struct reachard_request *request) {
 
     if (reachard_db_targets_update(db, target, target_mask, conn_info->id)) {
         cJSON_Delete(object);
-        return reachard_request_respond_plain(
+        return reachard_respond_plain(
             request,
             "failed to update the target", MHD_HTTP_INTERNAL_SERVER_ERROR
         );
     };
 
     cJSON_Delete(object);
-    return reachard_request_respond_plain(request, "", MHD_HTTP_OK);
+    return reachard_respond_plain(request, "", MHD_HTTP_OK);
 }
 
 static enum MHD_Result
@@ -199,7 +199,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
 
     object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
     if (!object) {
-        return reachard_request_respond_plain(
+        return reachard_respond_plain(
             request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
         );
     }
@@ -207,7 +207,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
     item = cJSON_GetObjectItemCaseSensitive(object, "name");
     if (!cJSON_IsString(item)) {
         cJSON_Delete(object);
-        return reachard_request_respond_plain(
+        return reachard_respond_plain(
             request, "failed to parse target name", MHD_HTTP_BAD_REQUEST
         );
     }
@@ -216,7 +216,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
     item = cJSON_GetObjectItemCaseSensitive(object, "url");
     if (!cJSON_IsString(item)) {
         cJSON_Delete(object);
-        return reachard_request_respond_plain(
+        return reachard_respond_plain(
             request, "failed to parse target url", MHD_HTTP_BAD_REQUEST
         );
     }
@@ -226,7 +226,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
     if (item) {
         if (!cJSON_IsNumber(item)) {
             cJSON_Delete(object);
-            return reachard_request_respond_plain(
+            return reachard_respond_plain(
                 request,
                 "failed to parse target interval", MHD_HTTP_BAD_REQUEST
             );
@@ -242,7 +242,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
     char *body = cJSON_PrintUnformatted(object);
     cJSON_Delete(object);
 
-    return reachard_request_respond_json(request, body, MHD_HTTP_OK);
+    return reachard_respond_json(request, body, MHD_HTTP_OK);
 }
 
 enum MHD_Result
@@ -270,7 +270,7 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
         return MHD_YES;
     }
 
-    return reachard_request_respond_plain(
+    return reachard_respond_plain(
         request, "method not allowed", MHD_HTTP_BAD_REQUEST
     );
 }

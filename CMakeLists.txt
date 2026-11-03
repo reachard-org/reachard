@@ -90,7 +90,7 @@ target_sources(
   PRIVATE
     src/server/handle.c
     src/server/handle/targets.c
-    src/server/request.c
+    src/server/response.c
     src/server/server.c
   PRIVATE
     FILE_SET HEADERS

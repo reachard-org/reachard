@@ -25,7 +25,7 @@
 
 #include "utils/constants.h"
 #include <server/handle/targets.h>
-#include <server/request.h>
+#include <server/response.h>
 
 #include <regex.h>
 #include <stdio.h>
@@ -126,7 +126,7 @@ reachard_handle_first_call(struct reachard_request *request) {
         return reachard_handle_targets_first_call(request);
     }
 
-    return reachard_request_respond_plain(
+    return reachard_respond_plain(
         request, "url not allowed", MHD_HTTP_BAD_REQUEST
     );
 }
