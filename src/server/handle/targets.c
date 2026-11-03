@@ -25,6 +25,7 @@
 
 #include <database/targets.h>
 #include <server/handle.h>
+#include <server/request.h>
 #include <server/response.h>
 
 #include <string.h>

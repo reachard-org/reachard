@@ -23,18 +23,11 @@
 
 #pragma once
 
+#include <server/request.h>
+
 #include <stddef.h>
 
 #include <microhttpd.h>
-
-struct reachard_request {
-    void *cls;
-    struct MHD_Connection *conn;
-    const char *url, *method, *version;
-    const char *upload_data;
-    size_t *upload_data_size;
-    void **req_cls;
-};
 
 typedef enum MHD_Result (*reachard_handler)(struct reachard_request *request);
 

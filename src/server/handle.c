@@ -25,6 +25,7 @@
 
 #include "utils/constants.h"
 #include <server/handle/targets.h>
+#include <server/request.h>
 #include <server/response.h>
 
 #include <regex.h>
