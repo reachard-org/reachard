@@ -27,6 +27,7 @@ reuse annotate \
     --year 2026 \
     --license "AGPL-3.0-or-later" \
     --template "AGPL-3.0-or-later" \
+    --skip-existing \
     --skip-unrecognised \
     --merge-copyrights \
     --recursive .
