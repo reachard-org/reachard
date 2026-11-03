@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <server/handle.h>
+#include <server/request.h>
 
 #include <microhttpd.h>
 
@@ -44,6 +44,13 @@ reachard_response_prepare_json(
     struct reachard_response *response,
     char *body,
     unsigned int status_code
+);
+
+void
+reachard_response_add_header(
+    struct reachard_response *response,
+    char *header,
+    char *content
 );
 
 enum MHD_Result

@@ -23,12 +23,21 @@
 
 #include "response.h"
 
-#include <server/handle.h>
+#include <server/request.h>
 
 #include <stdlib.h>
 #include <string.h>
 
 #include <microhttpd.h>
+
+void
+reachard_response_add_header(
+    struct reachard_response *response,
+    char *header,
+    char *content
+) {
+    MHD_add_response_header(response->resp, header, content);
+}
 
 void
 reachard_response_prepare_plain(
@@ -38,12 +47,13 @@ reachard_response_prepare_plain(
 ) {
     struct MHD_Response *resp =
         MHD_create_response_from_buffer_static(strlen(body), body);
-    MHD_add_response_header(
-        resp, MHD_HTTP_HEADER_CONTENT_TYPE, "text/plain"
-    );
 
     response->resp = resp;
     response->status_code = status_code;
+
+    reachard_response_add_header(
+        response, MHD_HTTP_HEADER_CONTENT_TYPE, "text/plain"
+    );
 }
 
 void
@@ -56,12 +66,13 @@ reachard_response_prepare_json(
         MHD_create_response_from_buffer_with_free_callback_cls(
             strlen(body), body, &free, body
         );
-    MHD_add_response_header(
-        resp, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json"
-    );
 
     response->resp = resp;
     response->status_code = status_code;
+
+    reachard_response_add_header(
+        response, MHD_HTTP_HEADER_CONTENT_TYPE, "application/json"
+    );
 }
 
 enum MHD_Result
