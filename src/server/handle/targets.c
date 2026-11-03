@@ -28,6 +28,7 @@
 #include <server/request.h>
 #include <server/response.h>
 
+#include <stdio.h>
 #include <string.h>
 
 #include <cjson/cJSON.h>
@@ -243,7 +244,33 @@ reachard_handle_targets_post(struct reachard_request *request) {
     char *body = cJSON_PrintUnformatted(object);
     cJSON_Delete(object);
 
-    return reachard_respond_json(request, body, MHD_HTTP_OK);
+    struct reachard_response response;
+    reachard_response_prepare_json(&response, body, MHD_HTTP_CREATED);
+
+    const char *scheme =
+        reachard_request_get_header(request, "X-Forwarded-Proto");
+    if (!scheme) {
+        scheme = "http";
+    }
+
+    const char *host =
+        reachard_request_get_header(request, "X-Forwarded-Host");
+    if (!host) {
+        host = reachard_request_get_header(request, MHD_HTTP_HEADER_HOST);
+    }
+
+    if (host) {
+        char location[256];
+        snprintf(
+            location, sizeof(location),
+            "%s://%s/targets/%d/", scheme, host, id
+        );
+        reachard_response_add_header(
+            &response, MHD_HTTP_HEADER_LOCATION, location
+        );
+    }
+
+    return reachard_respond(request, &response);
 }
 
 enum MHD_Result
