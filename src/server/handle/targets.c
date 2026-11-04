@@ -28,11 +28,42 @@
 #include <server/request.h>
 #include <server/response.h>
 
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <cjson/cJSON.h>
 #include <microhttpd.h>
+
+static void
+add_location_header(
+    struct reachard_request *request,
+    struct reachard_response *response,
+    int id
+) {
+    const char *scheme =
+        reachard_request_get_header(request, "X-Forwarded-Proto");
+    if (!scheme) {
+        scheme = "http";
+    }
+
+    const char *host =
+        reachard_request_get_header(request, "X-Forwarded-Host");
+    if (!host) {
+        host = reachard_request_get_header(request, MHD_HTTP_HEADER_HOST);
+    }
+
+    if (host) {
+        char location[256];
+        snprintf(
+            location, sizeof(location),
+            "%s://%s/targets/%d/", scheme, host, id
+        );
+        reachard_response_add_header(
+            response, MHD_HTTP_HEADER_LOCATION, location
+        );
+    }
+}
 
 static enum MHD_Result
 reachard_handle_targets_delete(struct reachard_request *request) {
@@ -246,31 +277,90 @@ reachard_handle_targets_post(struct reachard_request *request) {
 
     struct reachard_response response;
     reachard_response_prepare_json(&response, body, MHD_HTTP_CREATED);
-
-    const char *scheme =
-        reachard_request_get_header(request, "X-Forwarded-Proto");
-    if (!scheme) {
-        scheme = "http";
-    }
-
-    const char *host =
-        reachard_request_get_header(request, "X-Forwarded-Host");
-    if (!host) {
-        host = reachard_request_get_header(request, MHD_HTTP_HEADER_HOST);
-    }
-
-    if (host) {
-        char location[256];
-        snprintf(
-            location, sizeof(location),
-            "%s://%s/targets/%d/", scheme, host, id
-        );
-        reachard_response_add_header(
-            &response, MHD_HTTP_HEADER_LOCATION, location
-        );
-    }
-
+    add_location_header(request, &response, id);
     return reachard_respond(request, &response);
+}
+
+static enum MHD_Result
+reachard_handle_targets_put(struct reachard_request *request) {
+    struct reachard_db *db = request->cls;
+    struct reachard_connection_info *conn_info = *request->req_cls;
+
+    if (*request->upload_data_size > 0) {
+        return reachard_handle_upload_data(request);
+    }
+
+    struct reachard_db_target target;
+    reachard_db_target_init(&target);
+
+    cJSON *object;
+    cJSON *item;
+
+    object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
+    if (!object) {
+        return reachard_respond_plain(
+            request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
+        );
+    }
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "name");
+    if (!cJSON_IsString(item)) {
+        cJSON_Delete(object);
+        return reachard_respond_plain(
+            request, "failed to parse target name", MHD_HTTP_BAD_REQUEST
+        );
+    }
+    target.name = item->valuestring;
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "url");
+    if (!cJSON_IsString(item)) {
+        cJSON_Delete(object);
+        return reachard_respond_plain(
+            request, "failed to parse target url", MHD_HTTP_BAD_REQUEST
+        );
+    }
+    target.url = item->valuestring;
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "interval");
+    if (!cJSON_IsNumber(item)) {
+        cJSON_Delete(object);
+        return reachard_respond_plain(
+            request,
+            "failed to parse target interval", MHD_HTTP_BAD_REQUEST
+        );
+    }
+    target.interval = item->valueint;
+
+    item = cJSON_GetObjectItemCaseSensitive(object, "up");
+    if (!cJSON_IsBool(item)) {
+        cJSON_Delete(object);
+        return reachard_respond_plain(
+            request,
+            "failed to parse target up status", MHD_HTTP_BAD_REQUEST
+        );
+    }
+    target.up = cJSON_IsTrue(item);
+
+    auto result = reachard_db_targets_replace(db, target, conn_info->id);
+    cJSON_Delete(object);
+
+    switch (result) {
+    case REACHARD_REPLACE_INSERTED:
+        struct reachard_response response;
+        reachard_response_prepare_plain(&response, "", MHD_HTTP_CREATED);
+        add_location_header(request, &response, conn_info->id);
+        return reachard_respond(request, &response);
+    case REACHARD_REPLACE_REPLACED:
+        return reachard_respond_plain(request, "", MHD_HTTP_OK);
+    case REACHARD_REPLACE_ERROR:
+        return reachard_respond_plain(
+            request,
+            "failed to replace the target",
+            MHD_HTTP_INTERNAL_SERVER_ERROR
+        );
+    }
+
+    unreachable();
 }
 
 enum MHD_Result
@@ -295,6 +385,10 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
     }
     if (strcmp(request->method, "POST") == 0) {
         conn_info->handle = &reachard_handle_targets_post;
+        return MHD_YES;
+    }
+    if (strcmp(request->method, "PUT") == 0 && conn_info->id) {
+        conn_info->handle = &reachard_handle_targets_put;
         return MHD_YES;
     }
 

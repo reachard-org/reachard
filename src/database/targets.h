@@ -75,9 +75,9 @@ reachard_db_targets_get_all(
 );
 
 enum reachard_db_targets_replace_result {
-    INSERTED,
-    REPLACED,
-    ERROR
+    REACHARD_REPLACE_INSERTED,
+    REACHARD_REPLACE_REPLACED,
+    REACHARD_REPLACE_ERROR
 };
 
 enum reachard_db_targets_replace_result
