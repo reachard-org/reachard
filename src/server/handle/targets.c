@@ -371,29 +371,35 @@ enum MHD_Result
 reachard_handle_targets_first_call(struct reachard_request *request) {
     struct reachard_request_state *request_state = *request->state;
 
-    if (strcmp(request->method, "DELETE") == 0 && request_state->id) {
-        request_state->handle = &reachard_handle_targets_delete;
-        return MHD_YES;
-    }
-    if (strcmp(request->method, "GET") == 0) {
-        if (request_state->id) {
-            request_state->handle = &reachard_handle_targets_get;
-        } else {
+    switch (request_state->type) {
+    case REACHARD_REQUEST_TYPE_COLLECTION:
+        if (strcmp(request->method, "GET") == 0) {
             request_state->handle = &reachard_handle_targets_get_all;
+            return MHD_YES;
         }
-        return MHD_YES;
-    }
-    if (strcmp(request->method, "PATCH") == 0 && request_state->id) {
-        request_state->handle = &reachard_handle_targets_patch;
-        return MHD_YES;
-    }
-    if (strcmp(request->method, "POST") == 0) {
-        request_state->handle = &reachard_handle_targets_post;
-        return MHD_YES;
-    }
-    if (strcmp(request->method, "PUT") == 0 && request_state->id) {
-        request_state->handle = &reachard_handle_targets_put;
-        return MHD_YES;
+        if (strcmp(request->method, "POST") == 0) {
+            request_state->handle = &reachard_handle_targets_post;
+            return MHD_YES;
+        }
+        break;
+    case REACHARD_REQUEST_TYPE_RESOURCE:
+        if (strcmp(request->method, "DELETE") == 0) {
+            request_state->handle = &reachard_handle_targets_delete;
+            return MHD_YES;
+        }
+        if (strcmp(request->method, "GET") == 0) {
+            request_state->handle = &reachard_handle_targets_get;
+            return MHD_YES;
+        }
+        if (strcmp(request->method, "PATCH") == 0) {
+            request_state->handle = &reachard_handle_targets_patch;
+            return MHD_YES;
+        }
+        if (strcmp(request->method, "PUT") == 0) {
+            request_state->handle = &reachard_handle_targets_put;
+            return MHD_YES;
+        }
+        break;
     }
 
     return reachard_respond_plain(

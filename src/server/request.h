@@ -42,10 +42,16 @@ reachard_request_get_header(struct reachard_request *request, char *header);
 enum MHD_Result
 reachard_request_read_body(struct reachard_request *request);
 
+enum reachard_request_type {
+    REACHARD_REQUEST_TYPE_COLLECTION,
+    REACHARD_REQUEST_TYPE_RESOURCE
+};
+
 // This struct contains data that should survive multiple calls of
 // `reachard_handle`
 struct reachard_request_state {
     enum MHD_Result (*handle)(struct reachard_request *request);
+    enum reachard_request_type type;
     int id;
     char *body;
     size_t body_size;

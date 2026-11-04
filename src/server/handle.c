@@ -55,12 +55,20 @@ match(struct reachard_request *request, char *pattern) {
     int matched = regexec(&regex, request->url, 3, pmatch, 0) == 0;
 
     if (matched) {
-        // If there was no ID in the URL, it will be set 0 here
-        char id_str[REACHARD_INT_STR_LEN] = {0};
         regmatch_t match = pmatch[2];
-        strncpy(id_str, request->url + match.rm_so, match.rm_eo - match.rm_so);
-        request_state->id = atoi(id_str);
-    };
+        if (match.rm_so != -1) {
+            char id_str[REACHARD_INT_STR_LEN] = {0};
+            const char *src = request->url + match.rm_so;
+            size_t len = match.rm_eo - match.rm_so;
+            strncpy(id_str, src, len);
+            char id = atoi(id_str);
+
+            request_state->type = REACHARD_REQUEST_TYPE_RESOURCE;
+            request_state->id = id;
+        } else {
+            request_state->type = REACHARD_REQUEST_TYPE_COLLECTION;
+        };
+    }
 
     regfree(&regex);
     return matched;
