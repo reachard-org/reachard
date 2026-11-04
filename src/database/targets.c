@@ -194,6 +194,56 @@ reachard_db_targets_get_all(
     return 0;
 }
 
+enum reachard_db_targets_replace_result
+reachard_db_targets_replace(
+    struct reachard_db *db,
+    struct reachard_db_target target,
+    int id
+) {
+    PGresult *res = 0;
+
+    char id_str[REACHARD_INT_STR_LEN];
+    snprintf(id_str, sizeof(id_str), "%d", id);
+
+    char interval_str[REACHARD_INT_STR_LEN];
+    snprintf(interval_str, sizeof(interval_str), "%d", target.interval);
+
+    char *up_str = target.up ? "t" : "f";
+
+    const char *paramValues[] = {
+        id_str, target.name, target.url, interval_str, up_str
+    };
+    const size_t paramValuesN = sizeof(paramValues) / sizeof(paramValues[0]);
+
+    res = PQexecParams(
+        db->conn, "INSERT INTO targets\n"
+                  "VALUES ($1, $2, $3, $4, $5)\n"
+                  "ON CONFLICT (id)\n"
+                  "DO UPDATE SET\n"
+                  "    name = EXCLUDED.name,\n"
+                  "    url = EXCLUDED.url,\n"
+                  "    interval = EXCLUDED.interval,\n"
+                  "    up = EXCLUDED.up\n"
+                  "RETURNING (xmax = 0)",
+        paramValuesN, 0, paramValues, 0, 0, 0
+    );
+    if (PQresultStatus(res) != PGRES_TUPLES_OK) {
+        fprintf(stderr, "%s", PQresultErrorMessage(res));
+        fprintf(stderr, "failed to run the upsert query\n");
+        PQclear(res);
+        return ERROR;
+    }
+
+    bool inserted = parse_boolean(res, 0, 0);
+    PQclear(res);
+
+    if (inserted) {
+        return INSERTED;
+    } else {
+        return REPLACED;
+    }
+}
+
 int
 reachard_db_targets_update(
     struct reachard_db *db,

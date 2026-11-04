@@ -74,6 +74,19 @@ reachard_db_targets_get_all(
     size_t *count
 );
 
+enum reachard_db_targets_replace_result {
+    INSERTED,
+    REPLACED,
+    ERROR
+};
+
+enum reachard_db_targets_replace_result
+reachard_db_targets_replace(
+    struct reachard_db *db,
+    struct reachard_db_target target,
+    int id
+);
+
 int
 reachard_db_targets_update(
     struct reachard_db *db,
