@@ -66,7 +66,8 @@ reachard_db_targets_free(struct reachard_db_target *targets, size_t count) {
 int
 reachard_db_targets_add(
     struct reachard_db *db,
-    struct reachard_db_target target
+    struct reachard_db_target target,
+    int *id
 ) {
     PGresult *res = 0;
 
@@ -84,16 +85,15 @@ reachard_db_targets_add(
     );
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         fprintf(stderr, "%s", PQresultErrorMessage(res));
-        fprintf(stderr, "failed to add a target\n");
+        fprintf(stderr, "failed to run the insert query\n");
         PQclear(res);
         return 1;
     }
 
-    const char *id_str = PQgetvalue(res, 0, 0);
-    const int id = atoi(id_str);
-    PQclear(res);
+    *id = parse_number(res, 0, 0);
 
-    return id;
+    PQclear(res);
+    return 0;
 }
 
 enum reachard_db_targets_delete_result

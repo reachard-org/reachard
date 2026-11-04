@@ -54,7 +54,8 @@ reachard_db_targets_free(struct reachard_db_target *targets, size_t count);
 int
 reachard_db_targets_add(
     struct reachard_db *db,
-    struct reachard_db_target target
+    struct reachard_db_target target,
+    int *id
 );
 
 enum reachard_db_targets_delete_result {
