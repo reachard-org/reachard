@@ -261,7 +261,7 @@ reachard_db_targets_update(
     }
 
     char *url_str = 0;
-    if (target_mask.name) {
+    if (target_mask.url) {
         url_str = target.url;
     }
 
