@@ -417,6 +417,6 @@ reachard_handle_targets_first_call(struct reachard_request *request) {
     }
 
     return reachard_respond_plain(
-        request, "method not allowed", MHD_HTTP_METHOD_NOT_ALLOWED
+        request, "", MHD_HTTP_METHOD_NOT_ALLOWED
     );
 }
