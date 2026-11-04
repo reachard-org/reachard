@@ -213,7 +213,11 @@ reachard_handle_targets_patch(struct reachard_request *request) {
         }
     }
 
-    if (reachard_db_targets_update(db, target, target_mask, request_state->id)) {
+    if (
+        reachard_db_targets_update(
+            db, target, target_mask, request_state->id
+        )
+    ) {
         cJSON_Delete(object);
         return reachard_respond_plain(
             request,
@@ -222,7 +226,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     };
 
     cJSON_Delete(object);
-    return reachard_respond_plain(request, "", MHD_HTTP_OK);
+    return reachard_respond_plain(request, "", MHD_HTTP_NO_CONTENT);
 }
 
 static enum MHD_Result
@@ -369,7 +373,7 @@ reachard_handle_targets_put(struct reachard_request *request) {
         add_location_header(request, &response, request_state->id);
         return reachard_respond(request, &response);
     case REACHARD_REPLACE_REPLACED:
-        return reachard_respond_plain(request, "", MHD_HTTP_OK);
+        return reachard_respond_plain(request, "", MHD_HTTP_NO_CONTENT);
     case REACHARD_REPLACE_ERROR:
         return reachard_respond_plain(
             request,
