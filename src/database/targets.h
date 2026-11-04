@@ -60,7 +60,13 @@ reachard_db_targets_add(
 int
 reachard_db_targets_delete(struct reachard_db *db, const int id);
 
-int
+enum reachard_db_targets_get_result {
+    REACHARD_GET_FOUND,
+    REACHARD_GET_NOT_FOUND,
+    REACHARD_GET_ERROR
+};
+
+enum reachard_db_targets_get_result
 reachard_db_targets_get(
     struct reachard_db *db,
     struct reachard_db_target *target,

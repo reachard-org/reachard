@@ -119,7 +119,7 @@ reachard_db_targets_delete(struct reachard_db *db, const int id) {
     return 0;
 }
 
-int
+enum reachard_db_targets_get_result
 reachard_db_targets_get(
     struct reachard_db *db,
     struct reachard_db_target *target,
@@ -139,20 +139,19 @@ reachard_db_targets_get(
         fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to run the select query\n");
         PQclear(res);
-        return 1;
+        return REACHARD_GET_ERROR;
     }
 
     const int ntargets = PQntuples(res);
     if (!ntargets) {
-        fprintf(stderr, "there is no such target\n");
         PQclear(res);
-        return 1;
+        return REACHARD_GET_NOT_FOUND;
     }
 
     parse_target(target, res, 0);
 
     PQclear(res);
-    return 0;
+    return REACHARD_GET_FOUND;
 }
 
 int
@@ -231,16 +230,16 @@ reachard_db_targets_replace(
         fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to run the upsert query\n");
         PQclear(res);
-        return ERROR;
+        return REACHARD_REPLACE_ERROR;
     }
 
     bool inserted = parse_boolean(res, 0, 0);
     PQclear(res);
 
     if (inserted) {
-        return INSERTED;
+        return REACHARD_REPLACE_INSERTED;
     } else {
-        return REPLACED;
+        return REACHARD_REPLACE_REPLACED;
     }
 }
 
