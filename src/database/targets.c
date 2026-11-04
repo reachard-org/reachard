@@ -96,7 +96,7 @@ reachard_db_targets_add(
     return id;
 }
 
-int
+enum reachard_db_targets_delete_result
 reachard_db_targets_delete(struct reachard_db *db, const int id) {
     PGresult *res = 0;
 
@@ -112,11 +112,18 @@ reachard_db_targets_delete(struct reachard_db *db, const int id) {
         fprintf(stderr, "%s", PQresultErrorMessage(res));
         fprintf(stderr, "failed to run the delete query\n");
         PQclear(res);
-        return 1;
+        return REACHARD_DELETE_ERROR;
     }
     PQclear(res);
 
-    return 0;
+    char *affected_rows_str = PQcmdTuples(res);
+    int affected_rows = atoi(affected_rows_str);
+
+    if (affected_rows) {
+        return REACHARD_DELETE_DELETED;
+    } else {
+        return REACHARD_DELETE_NOT_FOUND;
+    }
 }
 
 enum reachard_db_targets_get_result
