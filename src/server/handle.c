@@ -35,62 +35,13 @@
 
 #include <microhttpd.h>
 
-static int
-reachard_connection_info_init(struct reachard_connection_info **conn_info) {
-    *conn_info = malloc(sizeof(struct reachard_connection_info));
-    if (!*conn_info) {
-        return 1;
-    }
-
-    (*conn_info)->upload_data = 0;
-    (*conn_info)->upload_data_size = 0;
-
-    return 0;
-}
-
-static void
-reachard_connection_info_deinit(struct reachard_connection_info *conn_info) {
-    if (!conn_info) {
-        return;
-    }
-
-    free(conn_info->upload_data);
-    free(conn_info);
-    conn_info = 0;
-}
-
-enum MHD_Result
-reachard_handle_upload_data(struct reachard_request *request) {
-    struct reachard_connection_info *conn_info = *request->req_cls;
-
-    conn_info->upload_data = realloc(
-        conn_info->upload_data,
-        conn_info->upload_data_size + *request->upload_data_size + 1
-    );
-    if (!conn_info->upload_data) {
-        fprintf(stderr, "failed to allocate memory for the upload data\n");
-        return MHD_NO;
-    }
-
-    memcpy(
-        conn_info->upload_data,
-        request->upload_data,
-        *request->upload_data_size
-    );
-    conn_info->upload_data_size += *request->upload_data_size;
-    conn_info->upload_data[conn_info->upload_data_size] = '\0';
-    *request->upload_data_size = 0;
-
-    return MHD_YES;
-}
-
 // "^/endpoint/(([0-9]{1,n})/)?$"
 #define PATTERN(endpoint) \
     "^/" endpoint "/(([0-9]{1," str(REACHARD_INT_STR_LEN) "})/)?$"
 
 static int
 match(struct reachard_request *request, char *pattern) {
-    struct reachard_connection_info *conn_info = *request->req_cls;
+    struct reachard_request_state *request_state = *request->state;
 
     regex_t regex;
     regmatch_t pmatch[3];
@@ -108,7 +59,7 @@ match(struct reachard_request *request, char *pattern) {
         char id_str[REACHARD_INT_STR_LEN] = {0};
         regmatch_t match = pmatch[2];
         strncpy(id_str, request->url + match.rm_so, match.rm_eo - match.rm_so);
-        conn_info->id = atoi(id_str);
+        request_state->id = atoi(id_str);
     };
 
     regfree(&regex);
@@ -117,11 +68,11 @@ match(struct reachard_request *request, char *pattern) {
 
 static enum MHD_Result
 reachard_handle_first_call(struct reachard_request *request) {
-    struct reachard_connection_info *conn_info;
-    if (reachard_connection_info_init(&conn_info)) {
+    struct reachard_request_state *request_state;
+    if (reachard_request_state_init(&request_state)) {
         return MHD_NO;
     }
-    *request->req_cls = conn_info;
+    *request->state = request_state;
 
     if (match(request, PATTERN("targets"))) {
         return reachard_handle_targets_first_call(request);
@@ -139,7 +90,6 @@ reachard_handle(
     const char *upload_data, size_t *upload_data_size,
     void **req_cls
 ) {
-    /* This function is called several times over the lifetime of a request */
     struct reachard_request request = {
         cls, conn,
         url, method, version,
@@ -147,15 +97,17 @@ reachard_handle(
         req_cls
     };
 
-    struct reachard_connection_info *conn_info = *req_cls;
+    // This function is called several times over the lifetime of a request,
+    // therefore a separate struct is used maintain state
+    struct reachard_request_state *state = *req_cls;
 
     /* First call has headers available only */
-    if (!conn_info) {
+    if (!state) {
         return reachard_handle_first_call(&request);
     }
 
     /* The following calls make body available as well */
-    return conn_info->handle(&request);
+    return state->handle(&request);
 }
 
 void
@@ -164,5 +116,5 @@ reachard_handle_complete(
     void **req_cls,
     enum MHD_RequestTerminationCode toe
 ) {
-    reachard_connection_info_deinit(*req_cls);
+    reachard_request_state_deinit(*req_cls);
 }

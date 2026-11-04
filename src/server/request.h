@@ -25,14 +25,34 @@
 
 #include <stddef.h>
 
+#include <microhttpd.h>
+
 struct reachard_request {
     void *cls;
     struct MHD_Connection *conn;
     const char *url, *method, *version;
-    const char *upload_data;
-    size_t *upload_data_size;
-    void **req_cls;
+    const char *body;
+    size_t *body_size;
+    void **state;
 };
 
 const char *
 reachard_request_get_header(struct reachard_request *request, char *header);
+
+enum MHD_Result
+reachard_request_read_body(struct reachard_request *request);
+
+// This struct contains data that should survive multiple calls of
+// `reachard_handle`
+struct reachard_request_state {
+    enum MHD_Result (*handle)(struct reachard_request *request);
+    int id;
+    char *body;
+    size_t body_size;
+};
+
+int
+reachard_request_state_init(struct reachard_request_state **request_state);
+
+void
+reachard_request_state_deinit(struct reachard_request_state *request_state);

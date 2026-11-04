@@ -24,7 +24,6 @@
 #include "targets.h"
 
 #include <database/targets.h>
-#include <server/handle.h>
 #include <server/request.h>
 #include <server/response.h>
 
@@ -68,9 +67,9 @@ add_location_header(
 static enum MHD_Result
 reachard_handle_targets_delete(struct reachard_request *request) {
     struct reachard_db *db = request->cls;
-    struct reachard_connection_info *conn_info = *request->req_cls;
+    struct reachard_request_state *request_state = *request->state;
 
-    if (reachard_db_targets_delete(db, conn_info->id)) {
+    if (reachard_db_targets_delete(db, request_state->id)) {
         return reachard_respond_plain(
             request,
             "failed to delete the target",
@@ -84,10 +83,10 @@ reachard_handle_targets_delete(struct reachard_request *request) {
 static enum MHD_Result
 reachard_handle_targets_get(struct reachard_request *request) {
     struct reachard_db *db = request->cls;
-    struct reachard_connection_info *conn_info = *request->req_cls;
+    struct reachard_request_state *request_state = *request->state;
 
     struct reachard_db_target target;
-    auto result = reachard_db_targets_get(db, &target, conn_info->id);
+    auto result = reachard_db_targets_get(db, &target, request_state->id);
     switch (result) {
     case REACHARD_GET_NOT_FOUND:
         return reachard_respond_plain(request, "", MHD_HTTP_NOT_FOUND);
@@ -147,10 +146,10 @@ reachard_handle_targets_get_all(struct reachard_request *request) {
 static enum MHD_Result
 reachard_handle_targets_patch(struct reachard_request *request) {
     struct reachard_db *db = request->cls;
-    struct reachard_connection_info *conn_info = *request->req_cls;
+    struct reachard_request_state *request_state = *request->state;
 
-    if (*request->upload_data_size > 0) {
-        return reachard_handle_upload_data(request);
+    if (*request->body_size > 0) {
+        return reachard_request_read_body(request);
     }
 
     struct reachard_db_target target = {0};
@@ -159,7 +158,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
     cJSON *object;
     cJSON *item;
 
-    object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
+    object = cJSON_ParseWithOpts(request_state->body, 0, true);
     if (!object) {
         return reachard_respond_plain(
             request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
@@ -208,7 +207,7 @@ reachard_handle_targets_patch(struct reachard_request *request) {
         }
     }
 
-    if (reachard_db_targets_update(db, target, target_mask, conn_info->id)) {
+    if (reachard_db_targets_update(db, target, target_mask, request_state->id)) {
         cJSON_Delete(object);
         return reachard_respond_plain(
             request,
@@ -223,10 +222,10 @@ reachard_handle_targets_patch(struct reachard_request *request) {
 static enum MHD_Result
 reachard_handle_targets_post(struct reachard_request *request) {
     struct reachard_db *db = request->cls;
-    struct reachard_connection_info *conn_info = *request->req_cls;
+    struct reachard_request_state *request_state = *request->state;
 
-    if (*request->upload_data_size > 0) {
-        return reachard_handle_upload_data(request);
+    if (*request->body_size > 0) {
+        return reachard_request_read_body(request);
     }
 
     struct reachard_db_target target;
@@ -235,7 +234,7 @@ reachard_handle_targets_post(struct reachard_request *request) {
     cJSON *object;
     cJSON *item;
 
-    object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
+    object = cJSON_ParseWithOpts(request_state->body, 0, true);
     if (!object) {
         return reachard_respond_plain(
             request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
@@ -289,10 +288,10 @@ reachard_handle_targets_post(struct reachard_request *request) {
 static enum MHD_Result
 reachard_handle_targets_put(struct reachard_request *request) {
     struct reachard_db *db = request->cls;
-    struct reachard_connection_info *conn_info = *request->req_cls;
+    struct reachard_request_state *request_state = *request->state;
 
-    if (*request->upload_data_size > 0) {
-        return reachard_handle_upload_data(request);
+    if (*request->body_size > 0) {
+        return reachard_request_read_body(request);
     }
 
     struct reachard_db_target target;
@@ -301,7 +300,7 @@ reachard_handle_targets_put(struct reachard_request *request) {
     cJSON *object;
     cJSON *item;
 
-    object = cJSON_ParseWithOpts(conn_info->upload_data, 0, true);
+    object = cJSON_ParseWithOpts(request_state->body, 0, true);
     if (!object) {
         return reachard_respond_plain(
             request, "failed to parse as JSON", MHD_HTTP_BAD_REQUEST
@@ -346,14 +345,14 @@ reachard_handle_targets_put(struct reachard_request *request) {
     }
     target.up = cJSON_IsTrue(item);
 
-    auto result = reachard_db_targets_replace(db, target, conn_info->id);
+    auto result = reachard_db_targets_replace(db, target, request_state->id);
     cJSON_Delete(object);
 
     switch (result) {
     case REACHARD_REPLACE_INSERTED:
         struct reachard_response response;
         reachard_response_prepare_plain(&response, "", MHD_HTTP_CREATED);
-        add_location_header(request, &response, conn_info->id);
+        add_location_header(request, &response, request_state->id);
         return reachard_respond(request, &response);
     case REACHARD_REPLACE_REPLACED:
         return reachard_respond_plain(request, "", MHD_HTTP_OK);
@@ -370,30 +369,30 @@ reachard_handle_targets_put(struct reachard_request *request) {
 
 enum MHD_Result
 reachard_handle_targets_first_call(struct reachard_request *request) {
-    struct reachard_connection_info *conn_info = *request->req_cls;
+    struct reachard_request_state *request_state = *request->state;
 
-    if (strcmp(request->method, "DELETE") == 0 && conn_info->id) {
-        conn_info->handle = &reachard_handle_targets_delete;
+    if (strcmp(request->method, "DELETE") == 0 && request_state->id) {
+        request_state->handle = &reachard_handle_targets_delete;
         return MHD_YES;
     }
     if (strcmp(request->method, "GET") == 0) {
-        if (conn_info->id) {
-            conn_info->handle = &reachard_handle_targets_get;
+        if (request_state->id) {
+            request_state->handle = &reachard_handle_targets_get;
         } else {
-            conn_info->handle = &reachard_handle_targets_get_all;
+            request_state->handle = &reachard_handle_targets_get_all;
         }
         return MHD_YES;
     }
-    if (strcmp(request->method, "PATCH") == 0 && conn_info->id) {
-        conn_info->handle = &reachard_handle_targets_patch;
+    if (strcmp(request->method, "PATCH") == 0 && request_state->id) {
+        request_state->handle = &reachard_handle_targets_patch;
         return MHD_YES;
     }
     if (strcmp(request->method, "POST") == 0) {
-        conn_info->handle = &reachard_handle_targets_post;
+        request_state->handle = &reachard_handle_targets_post;
         return MHD_YES;
     }
-    if (strcmp(request->method, "PUT") == 0 && conn_info->id) {
-        conn_info->handle = &reachard_handle_targets_put;
+    if (strcmp(request->method, "PUT") == 0 && request_state->id) {
+        request_state->handle = &reachard_handle_targets_put;
         return MHD_YES;
     }
 
