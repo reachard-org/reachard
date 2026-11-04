@@ -277,7 +277,15 @@ reachard_handle_targets_post(struct reachard_request *request) {
         target.interval = item->valueint;
     }
 
-    const int id = reachard_db_targets_add(db, target);
+    int id;
+    if (reachard_db_targets_add(db, target, &id)) {
+        cJSON_Delete(object);
+        return reachard_respond_plain(
+            request,
+            "failed to add the target",
+            MHD_HTTP_INTERNAL_SERVER_ERROR
+        );
+    }
     cJSON_Delete(object);
 
     object = cJSON_CreateObject();
