@@ -69,7 +69,13 @@ reachard_handle_targets_delete(struct reachard_request *request) {
     struct reachard_db *db = request->cls;
     struct reachard_request_state *request_state = *request->state;
 
-    if (reachard_db_targets_delete(db, request_state->id)) {
+    auto result = reachard_db_targets_delete(db, request_state->id);
+    switch (result) {
+    case REACHARD_DELETE_DELETED:
+        return reachard_respond_plain(request, "", MHD_HTTP_NO_CONTENT);
+    case REACHARD_DELETE_NOT_FOUND:
+        return reachard_respond_plain(request, "", MHD_HTTP_NOT_FOUND);
+    case REACHARD_DELETE_ERROR:
         return reachard_respond_plain(
             request,
             "failed to delete the target",
@@ -77,7 +83,7 @@ reachard_handle_targets_delete(struct reachard_request *request) {
         );
     };
 
-    return reachard_respond_plain(request, "", MHD_HTTP_OK);
+    unreachable();
 }
 
 static enum MHD_Result
