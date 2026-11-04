@@ -87,12 +87,17 @@ reachard_handle_targets_get(struct reachard_request *request) {
     struct reachard_connection_info *conn_info = *request->req_cls;
 
     struct reachard_db_target target;
-    if (reachard_db_targets_get(db, &target, conn_info->id)) {
+    auto result = reachard_db_targets_get(db, &target, conn_info->id);
+    switch (result) {
+    case REACHARD_GET_NOT_FOUND:
+        return reachard_respond_plain(request, "", MHD_HTTP_NOT_FOUND);
+    case REACHARD_GET_ERROR:
         return reachard_respond_plain(
             request,
             "failed to get the target",
             MHD_HTTP_INTERNAL_SERVER_ERROR
         );
+    case REACHARD_GET_FOUND:
     };
 
     cJSON *object = cJSON_CreateObject();
